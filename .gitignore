@@ -48,5 +48,7 @@ Thumbs.db
 
 # Local
 *.local
+
+# Large source video (compressed AtakhanMovie.mp4 is committed instead)
 Atakhan_Promo.mp4
-AtakhanLeague/public/Atakhan_Promo.mp4
+**/Atakhan_Promo.mp4

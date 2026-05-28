@@ -8,7 +8,7 @@ export default function VideoBackground() {
         playsInline
         className="absolute inset-0 w-full h-full object-cover"
       >
-        <source src="/Atakhan_Promo.mp4" type="video/mp4" />
+        <source src="/AtakhanMovie.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-black/85" />
     </div>

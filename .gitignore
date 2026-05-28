@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables — NEVER commit these (API keys, DB credentials, JWT secrets)
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# Prisma generated client (regenerated on every `prisma generate`)
+**/generated/
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+**/dist/
+**/build/
+
+# Vite cache
+.vite/
+**/.vite/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local
+*.local
+Atakhan_Promo.mp4
+AtakhanLeague/public/Atakhan_Promo.mp4

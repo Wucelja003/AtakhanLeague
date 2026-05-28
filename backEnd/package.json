@@ -1,0 +1,12 @@
+{
+  "name": "atakhan-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch index.js",
+    "start": "tsx index.js",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio"
+  }
+}

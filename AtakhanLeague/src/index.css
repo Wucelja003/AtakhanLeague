@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oxanium:wght@400;700&family=Exo+2:wght@400;700&family=Inter:wght@700&family=Orbitron:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #7B1A1A;
+  --color-secondary: #8B0000;
+  --color-accent-gold: #d4af37;
+  --font-heading: 'Bebas Neue', sans-serif;
+  --font-slogan: 'Oxanium', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
+  --font-nav: 'Inter', 'Roboto', sans-serif;
+  --font-orbitron: 'Orbitron', 'Roboto', sans-serif;
+
+  --animate-header-effect: header-effect 1.5s linear;
+  --animate-wind-flow-fast: windFlow 1s ease infinite;
+  --animate-wind-flow-login: windFlow 3s ease infinite;
+  --animate-wind-flow-register: windFlow 4s ease infinite;
+  --animate-fade-in-down: fadeInDown 0.8s ease 0.2s both;
+  --animate-fade-in-scale: fadeInScale 0.9s ease 0.6s both;
+  --animate-fade-in-up: fadeInUp 0.8s ease 1s both;
+  --animate-fade-in-up-delayed: fadeInUp 0.8s ease 1.3s both;
+  --animate-slide-in-left: slideInLeft 0.8s ease both;
+  --animate-slide-in-right: slideInRight 0.8s ease 0.3s both;
+  --animate-form-fade-in: formFadeIn 0.7s ease both;
+  --animate-field-slide-in: fieldSlideIn 0.5s ease both;
+  --animate-dropdown-open: dropdownOpen 0.2s ease forwards;
+  --animate-shake: shake 0.4s ease;
+
+  @keyframes header-effect {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes windFlow {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-60px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(60px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes formFadeIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fieldSlideIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes dropdownOpen {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-6px); }
+    75%      { transform: translateX(6px); }
+  }
+}
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at center,
+    #1E1E1E 0%,
+    #121212 60%,
+    #0A0A0A 100%);
+  margin: 0;
+}

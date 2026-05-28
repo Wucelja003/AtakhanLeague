@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String?
+  googleId  String?  @unique
+  username  String   @unique
+  role      Role     @default(PLAYER)
+
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+
+  // Tournament registrations — a user can captain one team OR sign up individually.
+  team                   Team?
+  individualRegistration IndividualRegistration?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  PLAYER
+  ADMIN
+}
+
+model Team {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  division        String
+  captainId       String   @unique
+  captainUsername String   // snapshot of captain's summoner name at registration
+  captain         User     @relation(fields: [captainId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+}
+
+model IndividualRegistration {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  username  String   // snapshot of summoner name at registration
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  division  String
+  role      LaneRole
+  createdAt DateTime @default(now())
+}
+
+enum LaneRole {
+  TOP
+  JUNGLE
+  MID
+  ADC
+  SUPPORT
+}

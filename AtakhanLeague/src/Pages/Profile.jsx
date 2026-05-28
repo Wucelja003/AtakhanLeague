@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { api } from '../api';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -28,7 +29,7 @@ export default function Profile() {
   // Fetch current user's registration on mount
   useEffect(() => {
     if (!currentUser) return;
-    fetch('/api/registration/me', { credentials: 'include' })
+    fetch(api('/registration/me'), { credentials: 'include' })
       .then((r) => r.json())
       .then((data) => setRegistration(data))
       .catch(() => setRegistration({ team: null, individual: null }));
@@ -38,7 +39,7 @@ export default function Profile() {
     if (!confirm(`Cancel your ${type} registration?`)) return;
     setRegLoading(true);
     try {
-      const res = await fetch(`/api/registration/${type}`, {
+      const res = await fetch(api(`/registration/${type}`), {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -57,7 +58,7 @@ export default function Profile() {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser.id}`, {
+      const res = await fetch(api(`/user/update/${currentUser.id}`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -80,7 +81,7 @@ export default function Profile() {
     if (!confirm('Are you sure you want to permanently delete your account?')) return;
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser.id}`, {
+      const res = await fetch(api(`/user/delete/${currentUser.id}`), {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -99,7 +100,7 @@ export default function Profile() {
   const handleSignOut = async () => {
     try {
       dispatch(signOutUserStart());
-      await fetch('/api/auth/signout', { method: 'POST', credentials: 'include' });
+      await fetch(api('/auth/signout'), { method: 'POST', credentials: 'include' });
       dispatch(signOutUserSuccess());
       navigate('/');
     } catch (err) {

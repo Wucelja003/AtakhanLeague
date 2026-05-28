@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import RegistrationForm from './RegistrationForm';
+import { api } from '../api';
 
 const teamFields = [
   { name: 'playerName', label: 'Game name', type: 'text', placeholder: 'YourSummonerName' },
@@ -72,14 +73,14 @@ export default function Registration() {
               title="Team Registration for the Tournament"
               fields={teamFields}
               buttonLabel="Register Team"
-              endpoint="/api/registration/team"
+              endpoint={api('/registration/team')}
               attention="The team captain needs to register on behalf of the entire squad. The remaining player details will be collected at a later stage. Good luck out there, summoner!"
             />
             <RegistrationForm
               title="Individual Registration for the Tournament"
               fields={individualFields}
               buttonLabel="Register"
-              endpoint="/api/registration/individual"
+              endpoint={api('/registration/individual')}
               needsRole
               attention="Individual registration is for solo players looking to be placed on a team or compete independently. Step up and make your mark!"
             />

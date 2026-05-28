@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { api } from '../api';
 import { useDispatch, useSelector } from 'react-redux';
 import { signOut } from '../redux/user/userSlice';
 import './Header.css';
@@ -21,7 +22,7 @@ export default function Header() {
 
   async function handleSignOut() {
     try {
-      await fetch('/api/auth/signout', { method: 'POST', credentials: 'include' });
+      await fetch(api('/auth/signout'), { method: 'POST', credentials: 'include' });
     } catch (_) {
       // ignore network errors — we sign out locally anyway
     }

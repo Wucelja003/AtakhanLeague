@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { api } from '../api';
 
 const roles = [
   { key: 'top', label: 'Top', img: '/Icons/Top_icon.png' },
@@ -18,7 +19,7 @@ export default function PlayersPool() {
   useEffect(() => {
     let alive = true;
     const fetchData = () =>
-      fetch('/api/registration/individuals')
+      fetch(api('/registration/individuals'))
         .then((r) => r.json())
         .then((data) => alive && setRegistrations(Array.isArray(data) ? data : []))
         .catch(() => {});

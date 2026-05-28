@@ -34,6 +34,13 @@ app.use('/api/user', userRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/registration', registrationRouter);
 
+app.get('/', (req, res) => {
+  res.json({
+    status: 'Atakhan League API is running',
+    site: 'https://atakhanleague.com',
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });

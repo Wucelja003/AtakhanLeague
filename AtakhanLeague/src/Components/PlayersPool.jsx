@@ -55,15 +55,15 @@ export default function PlayersPool() {
   return (
     <section className="relative z-[2] mt-[100px] px-5 pt-4 pb-20">
       <div className="mx-auto max-w-6xl">
-        <h2 className="text-center font-heading text-white text-[44px] mb-2.5 [text-shadow:0_0_18px_rgba(139,0,0,0.9),0_0_40px_rgba(102,0,0,0.5)]">
+        <h2 className="text-center font-heading text-white text-[32px] sm:text-[44px] mb-2.5 [text-shadow:0_0_18px_rgba(139,0,0,0.9),0_0_40px_rgba(102,0,0,0.5)]">
           Players Pool
         </h2>
-        <p className="text-center font-body text-[20px] text-neutral-300 mb-12">
+        <p className="text-center font-body text-[15px] sm:text-[20px] text-neutral-300 mb-8 sm:mb-12 px-4">
           A list of individually registered players competing in this tournament.
         </p>
 
         {/* Teams grid */}
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {TEAM_NAMES.map((teamName, teamIndex) => (
             <div
               key={teamName}
@@ -101,7 +101,7 @@ export default function PlayersPool() {
             Available Slots
           </h3>
 
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {roles.map((role) => {
               const remaining = remainingByRole[role.key];
               const isFull = remaining === 0;

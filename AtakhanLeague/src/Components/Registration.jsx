@@ -68,7 +68,7 @@ export default function Registration() {
           </div>
         ) : (
           // Logged in — show the actual forms
-          <div className="flex flex-wrap items-start justify-center gap-[100px] mt-[50px]">
+          <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-10 lg:gap-[100px] mt-[50px]">
             <RegistrationForm
               title="Team Registration for the Tournament"
               fields={teamFields}

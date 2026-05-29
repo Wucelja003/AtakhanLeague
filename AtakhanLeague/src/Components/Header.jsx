@@ -52,7 +52,7 @@ export default function Header() {
           <img
             src="/AtakhanMainLogo.svg"
             alt="Atakhan League"
-            className="h-14 sm:h-[70px] w-auto"
+            className="h-14 sm:h-[80px] lg:h-[100px] w-auto"
           />
         </Link>
 

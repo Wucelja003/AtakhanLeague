@@ -8,12 +8,12 @@ export default function DiscordSection() {
             Join Our Discord Server
           </h2>
           <a
-            href="https://discord.gg/atakhanleague"
+            href="https://discord.gg/WuNn2G8PxY"
             target="_blank"
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-2 font-slogan text-[16px] tracking-wider text-secondary transition-colors duration-300 hover:text-[#DC143C]"
           >
-            discord.gg/atakhanleague
+            https://discord.gg/WuNn2G8PxY
             <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
           </a>
         </div>

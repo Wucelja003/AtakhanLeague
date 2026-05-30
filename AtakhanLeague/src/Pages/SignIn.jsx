@@ -3,6 +3,7 @@ import { api } from '../api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice';
+import SEO from '../Components/SEO';
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
@@ -39,6 +40,7 @@ export default function SignIn() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center px-6 py-16">
+      <SEO title="Sign In" path="/sign-in" noindex />
       <div className="w-full max-w-md">
         {/* Top: heading */}
         <div className="text-center mb-10 animate-fade-in-down">

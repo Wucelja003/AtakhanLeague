@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import SEO from '../Components/SEO';
 
 // Mock data — replace with DB fetch later
 const mockPlayers = [
@@ -51,6 +52,11 @@ export default function Rankings() {
 
   return (
     <section className="relative z-[2] min-h-[calc(100vh-200px)] px-5 py-16">
+      <SEO
+        title="Summoner Rankings"
+        path="/rankings"
+        description="Top Atakhan League summoners ranked by performance points. See who tops the leaderboard across the Rift."
+      />
       <div className="mx-auto max-w-5xl">
         {/* Heading */}
         <div className="text-center mb-10 animate-fade-in-down">

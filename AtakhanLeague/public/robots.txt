@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Block functional pages from indexing
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /profile
+
+Sitemap: https://atakhanleague.com/sitemap.xml

@@ -1,6 +1,13 @@
+import SEO from '../Components/SEO';
+
 export default function League() {
   return (
     <section className="relative z-[2] min-h-[calc(100vh-200px)] px-5 py-20 flex items-center justify-center">
+      <SEO
+        title="League"
+        path="/league"
+        description="Atakhan League — official league information. Schedule, divisions, and ranked play coming soon. Stay tuned, summoner."
+      />
       <div className="w-full max-w-3xl">
         {/* Eyebrow + heading */}
         <div className="text-center mb-12 animate-fade-in-down">

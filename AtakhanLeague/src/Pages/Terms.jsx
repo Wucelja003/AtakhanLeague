@@ -1,3 +1,5 @@
+import SEO from '../Components/SEO';
+
 const sections = [
   {
     title: '1. Acceptance of Terms',
@@ -44,6 +46,11 @@ const sections = [
 export default function Terms() {
   return (
     <section className="relative z-[2] min-h-[calc(100vh-200px)] px-5 py-16">
+      <SEO
+        title="Terms & Conditions"
+        path="/terms"
+        description="Atakhan League terms of use, tournament rules, fair play policy, and disclaimer."
+      />
       <div className="mx-auto max-w-3xl">
         {/* Heading */}
         <div className="text-center mb-12 animate-fade-in-down">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api';
+import SEO from '../Components/SEO';
 
 // Placeholder topics — final list to be decided later
 const topics = [
@@ -63,6 +64,11 @@ export default function ContactUs() {
 
   return (
     <section className="relative z-[2] min-h-[calc(100vh-200px)] px-5 py-20 flex items-center justify-center">
+      <SEO
+        title="Contact Us"
+        path="/contact-us"
+        description="Get in touch with the Atakhan League team — questions about tournaments, partnerships, technical support, and more."
+      />
       <div className="w-full max-w-2xl">
         {/* Heading */}
         <div className="text-center mb-10 animate-fade-in-down">

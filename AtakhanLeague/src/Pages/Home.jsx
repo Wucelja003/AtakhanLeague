@@ -1,3 +1,4 @@
+import SEO from '../Components/SEO';
 import VideoBackground from '../Components/VideoBackground';
 import Introduce from '../Components/Introduce';
 import Journey from '../Components/Journey';
@@ -9,6 +10,10 @@ import DiscordSection from '../Components/DiscordSection';
 export default function Home() {
   return (
     <>
+    <SEO
+      path="/"
+      description="Atakhan League — community-run League of Legends tournament platform. Register your team or sign up as an individual summoner and compete in the next tournament."
+    />
     <VideoBackground />
     <section className="relative z-[2] min-h-[calc(100vh-100px)] pt-[120px] sm:pt-[200px] px-4 flex">
       <div className="mx-auto flex flex-col items-center">

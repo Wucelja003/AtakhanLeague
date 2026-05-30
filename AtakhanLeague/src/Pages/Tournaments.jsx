@@ -1,3 +1,5 @@
+import SEO from '../Components/SEO';
+
 // Mock bracket — replace with DB data later.
 // Quarterfinal seedings: 1v8, 4v5, 3v6, 2v7. Winners advance up the bracket.
 const bracket = {
@@ -67,6 +69,11 @@ function RoundColumn({ label, children }) {
 export default function Tournaments() {
   return (
     <section className="relative z-[2] min-h-[calc(100vh-200px)] px-5 py-16">
+      <SEO
+        title="Tournaments"
+        path="/tournaments"
+        description="View the upcoming Atakhan League tournament bracket — quarterfinals, semifinals, and the grand final. 8 teams battle for the Rift."
+      />
       <div className="mx-auto max-w-6xl">
         {/* Heading */}
         <div className="text-center mb-12 animate-fade-in-down">

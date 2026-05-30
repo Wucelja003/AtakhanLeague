@@ -3,6 +3,7 @@ import { api } from '../api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice';
+import SEO from '../Components/SEO';
 
 const passwordRules = [
   { test: (v) => v.length >= 6, label: 'At least 6 characters' },
@@ -61,6 +62,7 @@ export default function SignUp() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center px-6 py-16">
+      <SEO title="Sign Up" path="/sign-up" noindex />
       <div className="w-full max-w-md">
         {/* Top: heading */}
         <div className="text-center mb-10 animate-fade-in-down">

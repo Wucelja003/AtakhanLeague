@@ -7,6 +7,7 @@ import authRouter from './routes/auth.routes.js'
 import userRouter from './routes/user.routes.js'
 import contactRouter from './routes/contact.routes.js'
 import registrationRouter from './routes/registration.routes.js'
+import teamRouter from './routes/team.routes.js'
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/registration', registrationRouter);
+app.use('/api/team', teamRouter);
 
 app.get('/', (req, res) => {
   res.json({

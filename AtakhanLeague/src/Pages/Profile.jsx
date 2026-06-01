@@ -7,6 +7,7 @@ import {
   deleteUserStart, deleteUserSuccess, deleteUserFailure,
   signOutUserStart, signOutUserSuccess, signOutUserFailure,
 } from '../redux/user/userSlice';
+import TeamRoster from '../Components/TeamRoster';
 
 const roleIcons = {
   top: '/Icons/Top_icon.png',
@@ -340,6 +341,9 @@ export default function Profile() {
               </div>
             )}
           </div>
+
+          {/* Team roster — renders only if user is a captain */}
+          <TeamRoster />
 
           {/* Bottom actions */}
           <div className="mt-6 pt-5 border-t border-[rgba(102,0,0,0.3)] flex items-center justify-between">

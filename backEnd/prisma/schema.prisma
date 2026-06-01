@@ -35,13 +35,30 @@ enum Role {
 }
 
 model Team {
-  id              String   @id @default(uuid())
-  name            String   @unique
+  id              String       @id @default(uuid())
+  name            String       @unique
   division        String
-  captainId       String   @unique
-  captainUsername String   // snapshot of captain's summoner name at registration
-  captain         User     @relation(fields: [captainId], references: [id], onDelete: Cascade)
-  createdAt       DateTime @default(now())
+  captainId       String       @unique
+  captainUsername String       // snapshot of captain's summoner name at registration
+  captainRole     LaneRole?    // captain's lane in the team
+  captain         User         @relation(fields: [captainId], references: [id], onDelete: Cascade)
+  members         TeamMember[] // the other 4 players the captain adds later
+  createdAt       DateTime     @default(now())
+}
+
+// Other 4 players in a team (captain adds them later from Profile page).
+// captainRole on Team + 4 members = 5 lanes total. Unique constraint prevents
+// two players taking the same lane in the same team.
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  username  String   // summoner name of this player
+  role      LaneRole
+  division  String?
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, role])
 }
 
 model IndividualRegistration {

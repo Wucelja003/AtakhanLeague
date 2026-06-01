@@ -12,11 +12,17 @@ const roleMap = {
 
 // --- POST /api/registration/team ---
 export const registerTeam = async (req, res, next) => {
-  const { teamName, division } = req.body;
+  const { teamName, division, role } = req.body;
   const captainId = req.user.id; // from verifyToken middleware
 
   if (!teamName || !division) {
     return next(errorHandler(400, 'Team name and division are required'));
+  }
+
+  // Captain's role is optional but if provided must be a valid LaneRole
+  const captainRole = role ? roleMap[role] : null;
+  if (role && !captainRole) {
+    return next(errorHandler(400, 'Invalid role'));
   }
 
   try {
@@ -37,7 +43,13 @@ export const registerTeam = async (req, res, next) => {
     if (!captain) return next(errorHandler(404, 'User not found'));
 
     const team = await prisma.team.create({
-      data: { name: teamName, division, captainId, captainUsername: captain.username },
+      data: {
+        name: teamName,
+        division,
+        captainId,
+        captainUsername: captain.username,
+        captainRole,
+      },
     });
     res.status(201).json(team);
   } catch (error) {

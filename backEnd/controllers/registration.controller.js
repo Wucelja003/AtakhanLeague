@@ -143,3 +143,22 @@ export const listIndividuals = async (req, res, next) => {
     next(error);
   }
 };
+
+// --- GET /api/registration/teams --- (for TournamentBoard)
+export const listTeams = async (req, res, next) => {
+  try {
+    const list = await prisma.team.findMany({
+      orderBy: { createdAt: 'asc' },
+    });
+    res.json(
+      list.map((t) => ({
+        id: t.id,
+        name: t.name,
+        captainUsername: t.captainUsername,
+        division: t.division,
+      }))
+    );
+  } catch (error) {
+    next(error);
+  }
+};

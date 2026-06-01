@@ -3,6 +3,7 @@ import {
   registerTeam,
   registerIndividual,
   listIndividuals,
+  listTeams,
   getMyRegistration,
   cancelTeam,
   cancelIndividual,
@@ -17,5 +18,6 @@ router.delete('/team', verifyToken, cancelTeam);
 router.delete('/individual', verifyToken, cancelIndividual);
 router.get('/me', verifyToken, getMyRegistration);
 router.get('/individuals', listIndividuals); // public — read-only
+router.get('/teams', listTeams);             // public — read-only
 
 export default router;

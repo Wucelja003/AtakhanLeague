@@ -4,6 +4,7 @@ import Introduce from '../Components/Introduce';
 import Journey from '../Components/Journey';
 import TournamentInfo from '../Components/TournamentInfo';
 import Registration from '../Components/Registration';
+import TournamentBoard from '../Components/TournamentBoard';
 import PlayersPool from '../Components/PlayersPool';
 import DiscordSection from '../Components/DiscordSection';
 
@@ -47,6 +48,7 @@ export default function Home() {
     <Journey />
     <TournamentInfo />
     <Registration />
+    <TournamentBoard />
     <PlayersPool />
     <DiscordSection />
     </>

@@ -74,6 +74,7 @@ export default function Registration() {
               fields={teamFields}
               buttonLabel="Register Team"
               endpoint={api('/registration/team')}
+              needsRole
               attention="The team captain needs to register on behalf of the entire squad. The remaining player details will be collected at a later stage. Good luck out there, summoner!"
             />
             <RegistrationForm

@@ -1,24 +1,8 @@
 import { useState, useMemo } from 'react';
 import SEO from '../Components/SEO';
 
-// Mock data — replace with DB fetch later
-const mockPlayers = [
-  { username: 'Player1', rank: 'Unranked', points: 0 },
-  { username: 'Player2', rank: 'Unranked', points: 0 },
-  { username: 'Player3', rank: 'Unranked', points: 0 },
-  { username: 'Player4', rank: 'Unranked', points: 0 },
-  { username: 'Player5', rank: 'Unranked', points: 0 },
-  { username: 'Player6', rank: 'Unranked', points: 0 },
-  { username: 'Player7', rank: 'Unranked', points: 0 },
-  { username: 'Player8', rank: 'Unranked', points: 0 },
-  { username: 'Player9', rank: 'Unranked', points: 0 },
-  { username: 'Player10', rank: 'Unranked', points: 0 },
-  { username: 'Player11', rank: 'Unranked', points: 0 },
-  { username: 'Player12', rank: 'Unranked', points: 0 },
-  { username: 'Player13', rank: 'Unranked', points: 0 },
-  { username: 'Player14', rank: 'Unranked', points: 0 },
-  { username: 'Player15', rank: 'Unranked', points: 0 },
-];
+// Empty leaderboard — players appear here after they play tournament matches
+const mockPlayers = [];
 
 // Map rank to a color
 const rankColor = (rank) => {
@@ -119,8 +103,19 @@ export default function Rankings() {
               <tbody>
                 {players.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center font-body text-neutral-500">
-                      No summoner found.
+                    <td colSpan={4} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <svg className="w-12 h-12 text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+                        </svg>
+                        <p className="font-heading text-white text-[22px] tracking-wide">
+                          No rankings yet
+                        </p>
+                        <p className="font-body text-sm text-neutral-500 max-w-xs">
+                          The leaderboard will fill up once tournament matches begin.
+                          Be the first to make your mark on the Rift.
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 )}

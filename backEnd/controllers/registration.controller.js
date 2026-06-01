@@ -1,5 +1,6 @@
 import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
+import { sendTournamentConfirmation } from '../utils/mailer.js';
 
 // Map frontend role values (lowercase) → Prisma enum (uppercase)
 const roleMap = {
@@ -51,6 +52,17 @@ export const registerTeam = async (req, res, next) => {
         captainRole,
       },
     });
+
+    // Send confirmation email — don't block on failure
+    sendTournamentConfirmation(captain.email, {
+      username: captain.username,
+      type: 'team',
+      teamName: team.name,
+      division: team.division,
+    }).catch((err) => {
+      console.error('[mail] Failed to send team confirmation:', err.message);
+    });
+
     res.status(201).json(team);
   } catch (error) {
     if (error.code === 'P2002') {
@@ -88,6 +100,17 @@ export const registerIndividual = async (req, res, next) => {
     const reg = await prisma.individualRegistration.create({
       data: { userId, username: user.username, division, role: dbRole },
     });
+
+    // Send confirmation email — don't block on failure
+    sendTournamentConfirmation(user.email, {
+      username: user.username,
+      type: 'individual',
+      role: role,
+      division: reg.division,
+    }).catch((err) => {
+      console.error('[mail] Failed to send individual confirmation:', err.message);
+    });
+
     res.status(201).json(reg);
   } catch (error) {
     next(error);

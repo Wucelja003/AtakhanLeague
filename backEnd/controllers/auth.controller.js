@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
-import { sendResetPasswordEmail } from '../utils/mailer.js';
+import { sendResetPasswordEmail, sendWelcomeEmail } from '../utils/mailer.js';
 
 // Cookie options — dev koristi http (secure:false), prod prelazi na secure:true + sameSite:'none'
 const cookieOpts = {
@@ -19,6 +19,11 @@ export const signup = async (req, res, next) => {
     const newUser = await prisma.user.create({
       data: { username, email, password: hashedPassword },
     });
+    // Send welcome email — don't block signup on email failure
+    sendWelcomeEmail(newUser.email, newUser.username).catch((err) => {
+      console.error('[mail] Failed to send welcome email:', err.message);
+    });
+
     // Auto-login: set cookie + return user so frontend can route to /profile
     const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     const { password: _, ...rest } = newUser;

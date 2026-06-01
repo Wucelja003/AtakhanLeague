@@ -3,21 +3,21 @@ import SEO from '../Components/SEO';
 
 // Mock data — replace with DB fetch later
 const mockPlayers = [
-  { username: 'Faker', rank: 'Challenger', points: 2148 },
-  { username: 'Caps', rank: 'Challenger', points: 2095 },
-  { username: 'Canyon', rank: 'Challenger', points: 2032 },
-  { username: 'Keria', rank: 'Grandmaster', points: 1987 },
-  { username: 'Chovy', rank: 'Grandmaster', points: 1944 },
-  { username: 'Gumayusi', rank: 'Grandmaster', points: 1902 },
-  { username: 'Ruler', rank: 'Master', points: 1865 },
-  { username: 'Knight', rank: 'Master', points: 1820 },
-  { username: 'Doinb', rank: 'Master', points: 1788 },
-  { username: 'Showmaker', rank: 'Diamond I', points: 1742 },
-  { username: 'Rookie', rank: 'Diamond I', points: 1701 },
-  { username: 'JackeyLove', rank: 'Diamond II', points: 1654 },
-  { username: 'TheShy', rank: 'Diamond II', points: 1622 },
-  { username: 'Bjergsen', rank: 'Diamond III', points: 1588 },
-  { username: 'Doublelift', rank: 'Diamond IV', points: 1543 },
+  { username: 'Player1', rank: 'Unranked', points: 0 },
+  { username: 'Player2', rank: 'Unranked', points: 0 },
+  { username: 'Player3', rank: 'Unranked', points: 0 },
+  { username: 'Player4', rank: 'Unranked', points: 0 },
+  { username: 'Player5', rank: 'Unranked', points: 0 },
+  { username: 'Player6', rank: 'Unranked', points: 0 },
+  { username: 'Player7', rank: 'Unranked', points: 0 },
+  { username: 'Player8', rank: 'Unranked', points: 0 },
+  { username: 'Player9', rank: 'Unranked', points: 0 },
+  { username: 'Player10', rank: 'Unranked', points: 0 },
+  { username: 'Player11', rank: 'Unranked', points: 0 },
+  { username: 'Player12', rank: 'Unranked', points: 0 },
+  { username: 'Player13', rank: 'Unranked', points: 0 },
+  { username: 'Player14', rank: 'Unranked', points: 0 },
+  { username: 'Player15', rank: 'Unranked', points: 0 },
 ];
 
 // Map rank to a color

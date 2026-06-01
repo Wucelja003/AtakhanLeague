@@ -63,6 +63,7 @@ export const addMember = async (req, res, next) => {
     const member = await prisma.teamMember.create({
       data: {
         teamId: team.id,
+        teamName: team.name, // snapshot for easy admin lookup
         username: username.trim(),
         role: dbRole,
         division: division ? division.trim() : null,

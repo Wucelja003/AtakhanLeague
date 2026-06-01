@@ -52,6 +52,7 @@ model Team {
 model TeamMember {
   id        String   @id @default(uuid())
   teamId    String
+  teamName  String   // snapshot of team name for easy admin lookup
   team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   username  String   // summoner name of this player
   role      LaneRole

@@ -12,9 +12,8 @@ function getResend() {
   return _resend;
 }
 
-// Without a verified custom domain, Resend allows sending only from `onboarding@resend.dev`
-// and only TO the email you signed up with. Verify a domain in Resend dashboard to send anywhere.
-const FROM_ADDRESS = 'Atakhan League <onboarding@resend.dev>';
+// Domain atakhanleague.com is verified in Resend — can send to anyone.
+const FROM_ADDRESS = 'Atakhan League <noreply@atakhanleague.com>';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 

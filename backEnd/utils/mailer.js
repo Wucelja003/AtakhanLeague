@@ -149,11 +149,36 @@ export async function sendWelcomeEmail(to, username) {
     </div>
   `;
 
+  // Plain text fallback — improves deliverability (helps avoid Promotions tab)
+  const text = `Hey ${username}, welcome to Atakhan League.
+
+Atakhan League was built for players who live and breathe League of Legends — regardless of rank, regardless of division. In honor of Atakhan, the ancient demon of bloodshed, we've built a platform worthy of his legacy.
+
+Whether you want to register a full squad or sign up solo and get matched — every summoner gets a real shot at competing, climbing, and walking away with prizes that match their hunger for victory.
+
+NEXT TOURNAMENT: 28. June 2026.
+Single-elimination · 4 teams · All divisions · Free entry
+
+What's next?
+- Register your team or sign up as a solo player on the site
+- Join our Discord: ${DISCORD_INVITE}
+- Be on Discord 30 minutes before your match
+
+Site: ${FRONTEND_URL}
+
+Good luck, summoner. The Rift remembers the name of every champion who dared to compete.
+— Atakhan League`;
+
   return getResend().emails.send({
     from: FROM_ADDRESS,
     to,
-    subject: 'Thank you for joining Atakhan League',
+    replyTo: process.env.ADMIN_EMAIL || 'vucelja.web@gmail.com',
+    subject: `Welcome to Atakhan League, ${username}`,
     html,
+    text,
+    headers: {
+      'List-Unsubscribe': `<mailto:${process.env.ADMIN_EMAIL || 'vucelja.web@gmail.com'}?subject=Unsubscribe>`,
+    },
   });
 }
 
@@ -235,12 +260,54 @@ export async function sendTournamentConfirmation(to, { username, type, teamName,
     </div>
   `;
 
+  // Plain text fallback for deliverability
+  const text = isTeam
+    ? `Team locked in, captain.
+
+Your team is officially registered for the next Atakhan League tournament.
+
+REGISTRATION DETAILS:
+Team Name: ${teamName}
+Captain: ${username}
+Division: ${division || '—'}
+
+TOURNAMENT DATE: 28. June 2026.
+
+What's next?
+- Add your 4 remaining players from your Profile page: ${FRONTEND_URL}/profile
+- Join our Discord: ${DISCORD_INVITE}
+- Be on Discord 30 minutes before your scheduled match
+
+— Atakhan League`
+    : `You're in the pool, summoner.
+
+You've been registered as a solo player. Our organizers will place you on a team before the tournament kicks off.
+
+REGISTRATION DETAILS:
+Summoner: ${username}
+Role: ${(role || '').toUpperCase()}
+Division: ${division || '—'}
+
+TOURNAMENT DATE: 28. June 2026.
+
+What's next?
+- Watch the Players Pool on the site — you'll see your assigned team
+- Join our Discord: ${DISCORD_INVITE}
+- Be on Discord 30 minutes before your scheduled match
+
+— Atakhan League`;
+
   return getResend().emails.send({
     from: FROM_ADDRESS,
     to,
+    replyTo: process.env.ADMIN_EMAIL || 'vucelja.web@gmail.com',
     subject: isTeam
-      ? 'Team Registration Confirmed — Atakhan League'
-      : 'Tournament Registration Confirmed — Atakhan League',
+      ? `Team "${teamName}" is in, ${username}`
+      : `${username}, you're in the next tournament`,
     html,
+    text,
+    headers: {
+      'List-Unsubscribe': `<mailto:${process.env.ADMIN_EMAIL || 'vucelja.web@gmail.com'}?subject=Unsubscribe>`,
+    },
   });
 }

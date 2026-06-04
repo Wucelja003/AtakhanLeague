@@ -31,7 +31,15 @@ export default function Profile() {
   useEffect(() => {
     if (!currentUser) return;
     fetch(api('/registration/me'), { credentials: 'include' })
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) return { team: null, individual: null };
+        const d = await r.json();
+        // Defensive — only accept shape with team/individual keys
+        return {
+          team: d?.team || null,
+          individual: d?.individual || null,
+        };
+      })
       .then((data) => setRegistration(data))
       .catch(() => setRegistration({ team: null, individual: null }));
   }, [currentUser]);

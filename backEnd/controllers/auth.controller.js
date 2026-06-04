@@ -5,11 +5,14 @@ import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { sendResetPasswordEmail, sendWelcomeEmail } from '../utils/mailer.js';
 
-// Cookie options — dev koristi http (secure:false), prod prelazi na secure:true + sameSite:'none'
+// Cookie options — always secure + sameSite:'none' so cookie travels from
+// the Vercel frontend (atakhanleague.com) to the Railway backend (api.atakhanleague.com).
+// In local dev with HTTPS proxy via Vite this still works; if you ever run pure
+// http://localhost the browser will block it — that's the expected tradeoff.
 const cookieOpts = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  secure: true,
+  sameSite: 'none',
 };
 
 export const signup = async (req, res, next) => {

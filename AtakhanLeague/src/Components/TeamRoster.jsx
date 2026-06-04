@@ -21,11 +21,17 @@ export default function TeamRoster() {
   const fetchRoster = async () => {
     try {
       const res = await fetch(api('/team/roster'), { credentials: 'include' });
-      if (res.status === 404) {
+      // Anything non-200 (404, 401, 500...) means we don't have a valid roster
+      if (!res.ok) {
         setRoster(null);
         return;
       }
       const data = await res.json();
+      // Defensive: only accept payload that looks like a real roster
+      if (!data || !Array.isArray(data.members)) {
+        setRoster(null);
+        return;
+      }
       setRoster(data);
     } catch (_) {
       setRoster(null);

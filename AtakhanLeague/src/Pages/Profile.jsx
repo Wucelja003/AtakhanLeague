@@ -350,8 +350,8 @@ export default function Profile() {
             )}
           </div>
 
-          {/* Team roster — renders only if user is a captain */}
-          <TeamRoster />
+          {/* Team roster — only mount for actual team captains (avoids 404 noise) */}
+          {registration.team && <TeamRoster />}
 
           {/* Bottom actions */}
           <div className="mt-6 pt-5 border-t border-[rgba(102,0,0,0.3)] flex items-center justify-between">

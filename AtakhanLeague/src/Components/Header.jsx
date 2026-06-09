@@ -49,11 +49,9 @@ export default function Header() {
     <header className="relative z-[20] max-h-[100px] px-5 py-[15px] animate-header-effect">
       <div className="flex items-center justify-between">
         <Link to="/" className="shrink-0">
-          <img
-            src="/AtakhanMainLogo.svg"
-            alt="Atakhan League"
-            className="h-14 sm:h-[80px] lg:h-[100px] w-auto"
-          />
+          <span className="font-heading text-white text-[26px] sm:text-[34px] lg:text-[42px] tracking-[3px] uppercase [text-shadow:0_0_18px_rgba(139,0,0,0.7),0_0_40px_rgba(102,0,0,0.4)] whitespace-nowrap">
+            Atakhan <span className="text-secondary">League</span>
+          </span>
         </Link>
 
         {/* Desktop nav */}

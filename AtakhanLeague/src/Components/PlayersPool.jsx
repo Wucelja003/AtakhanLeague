@@ -4,9 +4,6 @@ import { api } from '../api';
 const roles = [
   { key: 'top', label: 'Top', img: '/Icons/Top_icon.png' },
   { key: 'jungle', label: 'Jungle', img: '/Icons/Jungle_icon.png' },
-  { key: 'mid', label: 'Mid', img: '/Icons/Middle_icon.png' },
-  { key: 'adc', label: 'ADC', img: '/Icons/Bottom_icon.png' },
-  { key: 'support', label: 'Support', img: '/Icons/Support_icon.png' },
 ];
 
 const TEAM_NAMES = ['Team Alpha', 'Team Beta', 'Team Gamma', 'Team Delta', 'Team Epsilon'];

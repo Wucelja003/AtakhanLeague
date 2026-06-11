@@ -4,7 +4,7 @@ export default function VideoBackground() {
   const [ready, setReady] = useState(false);
 
   return (
-    <div className="absolute top-0 left-0 w-full h-[70vh] sm:h-screen z-0 overflow-hidden pointer-events-none">
+    <div className="absolute top-0 left-0 w-full h-[110vh] sm:h-[115vh] z-0 overflow-hidden pointer-events-none">
       <video
         autoPlay
         loop

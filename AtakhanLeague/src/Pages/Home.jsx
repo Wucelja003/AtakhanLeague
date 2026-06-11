@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import SEO from '../Components/SEO';
 import VideoBackground from '../Components/VideoBackground';
 import Introduce from '../Components/Introduce';
@@ -72,6 +74,18 @@ function Countdown() {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
+  const { currentUser } = useSelector((s) => s.user);
+
+  function handleJoinClick() {
+    if (!currentUser) {
+      navigate('/sign-up');
+      return;
+    }
+    const target = document.getElementById('registration-section');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   return (
     <>
       <SEO
@@ -102,9 +116,10 @@ export default function Home() {
             <Countdown />
 
             <button
+              onClick={handleJoinClick}
               className="px-8 sm:px-[45px] py-3.5 sm:py-4 rounded-[20px] font-slogan text-[12px] sm:text-[14px] font-bold uppercase tracking-[2px] sm:tracking-[3px] text-white border-0 cursor-pointer bg-[length:300%_300%] bg-[linear-gradient(270deg,#660000,#8B0000,#DC143C,#8B0000,#660000)] shadow-[0_4px_24px_rgba(139,0,0,0.4)] animate-wind-flow-login transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:animate-wind-flow-fast hover:shadow-[0_6px_36px_rgba(220,20,60,0.6)]"
             >
-              Join the Tournament
+              {currentUser ? 'Join the Tournament' : 'Sign Up to Join'}
             </button>
           </div>
         </div>
@@ -112,7 +127,9 @@ export default function Home() {
       <Introduce />
       <Journey />
       <TournamentInfo />
-      <Registration />
+      <div id="registration-section">
+        <Registration />
+      </div>
       <TournamentBoard />
       <PlayersPool />
       <DiscordSection />

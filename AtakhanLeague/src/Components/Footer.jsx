@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 const socials = [
   { label: 'Discord', img: '/Icons/Discord-icon.svg', href: 'https://discord.gg/WuNn2G8PxY' },
   { label: 'Instagram', img: '/Icons/Instragram-icon.svg', href: 'https://www.instagram.com/atakhanleague' },
-  { label: 'TikTok', img: '/Icons/tiktok-icon.svg', href: 'https://www.tiktok.com/atakhanleague' },
+  { label: 'TikTok', img: '/Icons/tiktok-icon.svg', href: 'https://www.tiktok.com/@atakhanleague' },
 ];
 
 const navLinks = [

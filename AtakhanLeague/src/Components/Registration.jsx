@@ -4,7 +4,7 @@ import RegistrationForm from './RegistrationForm';
 import { api } from '../api';
 
 const teamFields = [
-  { name: 'playerName', label: 'Game name', type: 'text', placeholder: 'YourSummonerName' },
+  { name: 'playerName', label: 'Summoner name', type: 'text', placeholder: 'YourSummonerName' },
   { name: 'teamName', label: 'Team Name', type: 'text', placeholder: 'Demacian Kings' },
   { name: 'division', label: 'Ranked Division', type: 'text', placeholder: 'Emerald 2' },
   { name: 'email', label: 'Email', type: 'email', placeholder: 'atakhanleague@gmail.com' },

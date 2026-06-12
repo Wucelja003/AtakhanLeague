@@ -8,6 +8,7 @@ import userRouter from './routes/user.routes.js'
 import contactRouter from './routes/contact.routes.js'
 import registrationRouter from './routes/registration.routes.js'
 import teamRouter from './routes/team.routes.js'
+import riotRouter from './routes/riot.routes.js'
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/user', userRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/registration', registrationRouter);
 app.use('/api/team', teamRouter);
+app.use('/api/riot', riotRouter);
 
 app.get('/', (req, res) => {
   res.json({

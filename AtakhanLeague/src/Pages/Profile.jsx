@@ -8,6 +8,7 @@ import {
   signOutUserStart, signOutUserSuccess, signOutUserFailure,
 } from '../redux/user/userSlice';
 import TeamRoster from '../Components/TeamRoster';
+import RiotStats from '../Components/RiotStats';
 
 const roleIcons = {
   top: '/Icons/Top_icon.png',
@@ -349,6 +350,9 @@ export default function Profile() {
               </div>
             )}
           </div>
+
+          {/* Riot Stats — only mount if user has a linked Riot account */}
+          {currentUser?.riotPuuid && <RiotStats />}
 
           {/* Team roster — only mount for actual team captains (avoids 404 noise) */}
           {registration.team && <TeamRoster />}

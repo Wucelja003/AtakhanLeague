@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { sendResetPasswordEmail, sendWelcomeEmail } from '../utils/mailer.js';
+import { getAccountByRiotId } from '../utils/riot.js';
 
 // Cookie options — always secure + sameSite:'none' so cookie travels from
 // the Vercel frontend (atakhanleague.com) to the Railway backend (api.atakhanleague.com).
@@ -16,12 +17,38 @@ const cookieOpts = {
 };
 
 export const signup = async (req, res, next) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, tagLine } = req.body;
+
+  if (!tagLine) {
+    return next(errorHandler(400, 'Riot tag is required (e.g. EUW, KR1, EUNE)'));
+  }
+
   try {
+    // 1) Verify the Riot account exists BEFORE creating the user
+    let riotAccount;
+    try {
+      riotAccount = await getAccountByRiotId(username, tagLine);
+    } catch (err) {
+      console.error('[riot] verify failed:', err.message);
+      return next(errorHandler(503, 'Could not verify Riot account. Please try again in a moment.'));
+    }
+    if (!riotAccount) {
+      return next(errorHandler(404, `Riot account ${username}#${tagLine} not found. Check spelling.`));
+    }
+
+    // 2) Create the user with verified Riot data attached
     const hashedPassword = bcrypt.hashSync(password, 10);
     const newUser = await prisma.user.create({
-      data: { username, email, password: hashedPassword },
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+        riotPuuid:    riotAccount.puuid,
+        riotGameName: riotAccount.gameName,
+        riotTagLine:  riotAccount.tagLine,
+      },
     });
+
     // Send welcome email — don't block signup on email failure
     sendWelcomeEmail(newUser.email, newUser.username).catch((err) => {
       console.error('[mail] Failed to send welcome email:', err.message);
@@ -33,7 +60,9 @@ export const signup = async (req, res, next) => {
     res.cookie('access_token', token, cookieOpts).status(201).json(rest);
   } catch (error) {
     if (error.code === 'P2002') {
-      return next(errorHandler(409, 'Email or summoner name already in use'));
+      // Unique constraint: email, username, or riotPuuid
+      const field = error.meta?.target?.[0] || 'account';
+      return next(errorHandler(409, `That ${field} is already in use`));
     }
     next(error);
   }

@@ -21,6 +21,11 @@ model User {
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
+  // Riot account verification (linked at signup via Riot API)
+  riotPuuid    String?  @unique  // globally unique Riot account ID
+  riotGameName String?           // game name part of Riot ID
+  riotTagLine  String?           // tag part (e.g. EUW, KR1)
+
   // Tournament registrations — a user can captain one team OR sign up individually.
   team                   Team?
   individualRegistration IndividualRegistration?

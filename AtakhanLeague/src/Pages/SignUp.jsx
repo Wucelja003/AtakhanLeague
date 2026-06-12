@@ -83,21 +83,37 @@ export default function SignUp() {
         {/* Form card */}
         <div className="rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-10 py-10 backdrop-blur-md shadow-[0_0_48px_rgba(102,0,0,0.22),inset_0_0_24px_rgba(102,0,0,0.06)] animate-form-fade-in">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Summoner Name */}
+            {/* Riot ID: Summoner Name + Tag */}
             <div className="animate-field-slide-in" style={{ animationDelay: '0.15s' }}>
               <label
                 htmlFor="username"
                 className="block font-slogan text-[11px] font-bold uppercase tracking-[2px] text-neutral-400 mb-2"
               >
-                Summoner Name
+                Riot ID
               </label>
-              <input
-                type="text"
-                id="username"
-                placeholder="YourSummonerName"
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  id="username"
+                  required
+                  placeholder="Summoner Name"
+                  onChange={handleChange}
+                  className="flex-1 min-w-0 px-4 py-3 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
+                />
+                <span className="font-heading text-[#DC143C] text-[20px] leading-none">#</span>
+                <input
+                  type="text"
+                  id="tagLine"
+                  required
+                  placeholder="EUW"
+                  maxLength={5}
+                  onChange={handleChange}
+                  className="w-20 px-3 py-3 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm text-center uppercase outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
+                />
+              </div>
+              <p className="font-slogan text-[10px] tracking-wider text-neutral-500 mt-1.5">
+                Your full Riot ID — name + tag. We'll verify it with Riot.
+              </p>
             </div>
 
             {/* Email */}

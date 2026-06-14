@@ -1,8 +1,8 @@
 export default function Introduce() {
   return (
     <section className="relative z-[2] mt-[80px] sm:mt-[100px] px-5 py-16 sm:py-20">
-      <div className="mx-auto max-w-3xl">
-        <div className="border-l-[3px] border-[#660000] pl-5 sm:pl-7 animate-slide-in-left">
+      <div className="mx-auto max-w-6xl flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
+        <div className="border-l-[3px] border-[#660000] pl-5 sm:pl-7 animate-slide-in-left flex-1">
           <h2 className="relative inline-block font-heading text-[28px] sm:text-[36px] lg:text-[44px] text-white pb-3 mb-5 sm:mb-7 [text-shadow:0_0_18px_rgba(139,0,0,0.9),0_0_40px_rgba(102,0,0,0.5)] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:rounded-sm after:bg-[linear-gradient(90deg,#660000,#DC143C,#8B0000,#660000)]">
             What is Atakhan League?
           </h2>
@@ -22,6 +22,11 @@ export default function Introduce() {
           </p>
         </div>
 
+        <img
+          src="/mainDemon-removebg-preview.png"
+          alt="Atakhan, the demon of bloodshed"
+          className="w-[220px] sm:w-[300px] lg:w-[380px] h-auto shrink-0 [filter:drop-shadow(0_0_30px_rgba(139,0,0,0.6))]"
+        />
       </div>
       <hr className="mt-16 sm:mt-20 border-0 h-[2px] bg-[linear-gradient(90deg,transparent,#DC143C,#8B0000,#DC143C,transparent)] shadow-[0_0_12px_rgba(220,20,60,0.5)]" />
     </section>

@@ -14,6 +14,7 @@ import ForgotPassword from './Pages/ForgotPassword';
 import ResetPassword from './Pages/ResetPassword';
 import PrivateRoute from './Components/PrivateRoute';
 import Footer from './Components/Footer';
+import BackgroundPattern from './Components/BackgroundPattern';
 
 // Track page views on route change (SPA-aware GA4)
 function AnalyticsTracker() {
@@ -34,6 +35,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AnalyticsTracker />
+      <BackgroundPattern />
       <Header />
       <Routes>
         <Route path='/' element={<Home />} />

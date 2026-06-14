@@ -48,12 +48,15 @@ export default function Header() {
   return (
     <header className="relative z-[20] max-h-[100px] px-5 py-[15px] animate-header-effect">
       <div className="flex items-center justify-between">
-        <Link to="/" className="shrink-0">
+        <Link to="/" className="shrink-0 flex items-center gap-3">
           <img
-            src="/AtakhanFullLogo.svg"
-            alt="Atakhan League"
-            className="h-[50px] sm:h-[64px] lg:h-[76px] w-auto [filter:drop-shadow(0_0_18px_rgba(139,0,0,0.7))]"
+            src="/MainLogoAtakhan-2.svg"
+            alt="Atakhan League logo"
+            className="h-[52px] sm:h-[68px] lg:h-[84px] w-auto [filter:drop-shadow(0_0_18px_rgba(139,0,0,0.7))]"
           />
+          <span className="font-heading text-white text-[18px] sm:text-[24px] lg:text-[30px] tracking-[3px] uppercase [text-shadow:0_0_18px_rgba(139,0,0,0.7),0_0_40px_rgba(102,0,0,0.4)] whitespace-nowrap">
+            Atakhan <span className="text-secondary">League</span>
+          </span>
         </Link>
 
         {/* Desktop nav */}

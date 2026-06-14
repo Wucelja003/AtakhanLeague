@@ -28,7 +28,7 @@ export default function Footer() {
         <div className="flex flex-col items-start gap-7">
           <Link to="/">
             <img
-              src="/mainDemon-removebg-preview.png"
+              src="/MainLogoAtakhan-2.svg"
               alt="Atakhan League"
               className="w-[120px] h-auto [filter:drop-shadow(0_0_20px_rgba(139,0,0,0.5))] transition-[filter] duration-300 hover:[filter:drop-shadow(0_0_32px_rgba(139,0,0,0.85))]"
             />

@@ -63,11 +63,11 @@ export default function PlayersPool() {
         </p>
 
         {/* Teams grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="flex flex-wrap justify-center gap-4">
           {TEAM_NAMES.map((teamName, teamIndex) => (
             <div
               key={teamName}
-              className="flex flex-col gap-2 rounded-xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-4 py-5 backdrop-blur-md shadow-[0_0_32px_rgba(102,0,0,0.15),inset_0_0_16px_rgba(102,0,0,0.05)]"
+              className="flex flex-col gap-2 w-full sm:w-[260px] rounded-xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-4 py-5 backdrop-blur-md shadow-[0_0_32px_rgba(102,0,0,0.15),inset_0_0_16px_rgba(102,0,0,0.05)]"
             >
               <h3 className="text-center font-slogan text-[13px] font-bold tracking-[2px] uppercase text-white pb-3 mb-1 border-b border-[rgba(102,0,0,0.4)] [text-shadow:0_0_12px_rgba(220,20,60,0.4)]">
                 {teamName}

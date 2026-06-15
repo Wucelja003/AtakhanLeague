@@ -6,10 +6,10 @@ import SEO from '../Components/SEO';
 const bracket = {
   semifinals: [
     { id: 'SF1', round: 'Semifinal 1', teamA: 'Team Alpha', teamB: 'Team Beta', scoreA: null, scoreB: null, time: '19:00' },
-    { id: 'SF2', round: 'Semifinal 2', teamA: 'Team Gamma', teamB: 'Team Delta', scoreA: null, scoreB: null, time: '20:30' },
+    { id: 'SF2', round: 'Semifinal 2', teamA: 'Team Gamma', teamB: 'Team Delta', scoreA: null, scoreB: null, time: '19:00' },
   ],
   final: {
-    id: 'F', round: 'Grand Final', teamA: 'Winner SF1', teamB: 'Winner SF2', scoreA: null, scoreB: null, time: '22:00',
+    id: 'F', round: 'Grand Final', teamA: 'Winner SF1', teamB: 'Winner SF2', scoreA: null, scoreB: null, time: '20:30',
   },
 };
 

@@ -24,28 +24,35 @@ export const signup = async (req, res, next) => {
   }
 
   try {
-    // 1) Verify the Riot account exists BEFORE creating the user
-    let riotAccount;
+    // 1) Try to verify the Riot account BEFORE creating the user.
+    // If the Riot API is unavailable (expired key, rate limit, outage) we
+    // don't block signup — we create the account without Riot data and let
+    // verification work again once the API is back. We only reject when the
+    // API actually answered and the account genuinely doesn't exist.
+    let riotAccount = null;
+    let riotApiDown = false;
     try {
       riotAccount = await getAccountByRiotId(username, tagLine);
     } catch (err) {
-      console.error('[riot] verify failed:', err.message);
-      return next(errorHandler(503, 'Could not verify Riot account. Please try again in a moment.'));
+      console.error('[riot] verify failed (proceeding without verification):', err.message);
+      riotApiDown = true;
     }
-    if (!riotAccount) {
+    if (!riotApiDown && !riotAccount) {
       return next(errorHandler(404, `Riot account ${username}#${tagLine} not found. Check spelling.`));
     }
 
-    // 2) Create the user with verified Riot data attached
+    // 2) Create the user, attaching verified Riot data when available
     const hashedPassword = bcrypt.hashSync(password, 10);
     const newUser = await prisma.user.create({
       data: {
         username,
         email,
         password: hashedPassword,
-        riotPuuid:    riotAccount.puuid,
-        riotGameName: riotAccount.gameName,
-        riotTagLine:  riotAccount.tagLine,
+        ...(riotAccount && {
+          riotPuuid:    riotAccount.puuid,
+          riotGameName: riotAccount.gameName,
+          riotTagLine:  riotAccount.tagLine,
+        }),
       },
     });
 

@@ -95,15 +95,13 @@ export default function Home() {
       <VideoBackground />
       <section className="relative z-[2] min-h-[calc(100vh-100px)] pt-[120px] sm:pt-[200px] px-4 flex">
         <div className="mx-auto flex flex-col items-center">
-          <h2 className="font-body text-[24px] sm:text-[35px] text-secondary animate-fade-in-down mb-2">
-            Welcome to
-          </h2>
+          
 
-          <h1 className="select-none text-center text-[clamp(36px,12vw,100px)] font-bold leading-none text-transparent bg-clip-text bg-[linear-gradient(90deg,rgba(15,15,15,1)_0%,rgba(123,26,26,1)_50%,rgba(10,10,10,1)_100%)] [filter:drop-shadow(0_1px_6px_rgba(0,0,0,0.5))_drop-shadow(0_1px_2px_rgba(0,0,0,0.8))]">
+          <h1 className="select-none text-center text-[clamp(36px,12vw,100px)] font-bold leading-[1.2] text-transparent bg-clip-text bg-[linear-gradient(90deg,rgba(123,26,26,1)_50%)] [filter:drop-shadow(0_1px_6px_rgba(0,0,0,0.5))_drop-shadow(0_1px_2px_rgba(0,0,0,0.8))] animate-fade-in-up">
             Atakhan League
           </h1>
 
-          <h3 className="text-[15px] sm:text-[20px] md:text-[25px] text-center text-secondary font-orbitron [text-shadow:0_1px_6px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.8)] animate-fade-in-up max-w-2xl">
+          <h3 className=" text-[15px] sm:text-[20px] md:text-[25px] text-center text-white font-orbitron [text-shadow:0_1px_6px_rgba(0,0,0,0.7),0_1px_2px_rgba(0,0,0,0.8)] animate-fade-in-up max-w-2xl">
             Where every player gets a chance to fight, every team gets a shot at glory,
             and the Rift remembers the name of every champion who dared to compete.
           </h3>

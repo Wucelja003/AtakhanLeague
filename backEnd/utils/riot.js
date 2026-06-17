@@ -93,21 +93,29 @@ export async function getMatchDetail(matchId, routing) {
 
 // ---- Data Dragon (static champion data) ----------------------------------
 
-// Cache champion ID → name map. Fetched once at first request, lives forever.
+// Cache static maps. Fetched once at first request, live forever.
 // Riot's Data Dragon is a free static CDN — no API key needed.
 let _championMap = null;
+let _spellMap = null;
+let _runeMap = null;
 let _dataDragonVersion = null;
+
+// Resolve (and cache) the latest Data Dragon version. Safe to call from
+// multiple loaders concurrently — first one fetches, rest reuse.
+async function ensureVersion() {
+  if (!_dataDragonVersion) {
+    const versions = await fetch('https://ddragon.leagueoflegends.com/api/versions.json').then((r) => r.json());
+    _dataDragonVersion = versions[0];
+  }
+  return _dataDragonVersion;
+}
 
 export async function getChampionMap() {
   if (_championMap) return _championMap;
 
-  // Get latest data dragon version
-  const versions = await fetch('https://ddragon.leagueoflegends.com/api/versions.json').then((r) => r.json());
-  _dataDragonVersion = versions[0];
-
-  // Fetch champion list
+  const ver = await ensureVersion();
   const data = await fetch(
-    `https://ddragon.leagueoflegends.com/cdn/${_dataDragonVersion}/data/en_US/champion.json`
+    `https://ddragon.leagueoflegends.com/cdn/${ver}/data/en_US/champion.json`
   ).then((r) => r.json());
 
   const map = {};
@@ -119,6 +127,48 @@ export async function getChampionMap() {
     };
   }
   _championMap = map;
+  return map;
+}
+
+// Summoner-spell map: numeric key (e.g. 4) → image id (e.g. "SummonerFlash").
+// Image: img/spell/{imageId}.png
+export async function getSummonerSpellMap() {
+  if (_spellMap) return _spellMap;
+
+  const ver = await ensureVersion();
+  const data = await fetch(
+    `https://ddragon.leagueoflegends.com/cdn/${ver}/data/en_US/summoner.json`
+  ).then((r) => r.json());
+
+  const map = {};
+  for (const spell of Object.values(data.data)) {
+    map[parseInt(spell.key, 10)] = spell.id;
+  }
+  _spellMap = map;
+  return map;
+}
+
+// Runes map: id → icon path, for BOTH style ids (e.g. 8000) and individual
+// rune ids (keystones etc.). Rune images use the version-less /cdn/img/ path:
+// https://ddragon.leagueoflegends.com/cdn/img/{iconPath}
+export async function getRunesMap() {
+  if (_runeMap) return _runeMap;
+
+  const ver = await ensureVersion();
+  const styles = await fetch(
+    `https://ddragon.leagueoflegends.com/cdn/${ver}/data/en_US/runesReforged.json`
+  ).then((r) => r.json());
+
+  const map = {};
+  for (const style of styles) {
+    map[style.id] = style.icon; // e.g. perk-images/Styles/7201_Precision.png
+    for (const slot of style.slots) {
+      for (const rune of slot.runes) {
+        map[rune.id] = rune.icon; // e.g. perk-images/Styles/Precision/Conqueror/Conqueror.png
+      }
+    }
+  }
+  _runeMap = map;
   return map;
 }
 

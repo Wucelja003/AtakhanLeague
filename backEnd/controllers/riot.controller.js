@@ -4,6 +4,7 @@ import {
   inferPlatform, platformToRouting,
   getSummonerByPuuid, getRankedEntries, getTopMastery,
   getMatchIds, getMatchDetail, getChampionMap, getDataDragonVersion,
+  getSummonerSpellMap, getRunesMap,
 } from '../utils/riot.js';
 
 // In-memory cache (per-process) so we don't burn rate limit on every refresh.
@@ -32,12 +33,14 @@ export const getMyStats = async (req, res, next) => {
     const routing  = platformToRouting(platform);
 
     // Run independent calls in parallel
-    const [summoner, rankedEntries, topMastery, matchIds, champMap] = await Promise.all([
+    const [summoner, rankedEntries, topMastery, matchIds, champMap, spellMap, runeMap] = await Promise.all([
       getSummonerByPuuid(user.riotPuuid, platform),
       getRankedEntries(user.riotPuuid, platform),
       getTopMastery(user.riotPuuid, platform, 3),
       getMatchIds(user.riotPuuid, routing, 10),
       getChampionMap(),
+      getSummonerSpellMap(),
+      getRunesMap(),
     ]);
 
     // Fetch each match in parallel (only IDs returned, need to look up details)
@@ -59,13 +62,23 @@ export const getMyStats = async (req, res, next) => {
         championId: me.championId,
         championName: champMap[me.championId]?.id || `Champion${me.championId}`,
         championDisplayName: champMap[me.championId]?.name || `Champion ${me.championId}`,
+        champLevel: me.champLevel,
         kills: me.kills,
         deaths: me.deaths,
         assists: me.assists,
         totalDamageDealtToChampions: me.totalDamageDealtToChampions,
         totalMinionsKilled: me.totalMinionsKilled + (me.neutralMinionsKilled || 0),
         goldEarned: me.goldEarned,
+        visionScore: me.visionScore,
         teamPosition: me.teamPosition, // TOP/JUNGLE/MIDDLE/BOTTOM/UTILITY
+        // 6 items + trinket; 0 = empty slot (client filters)
+        items: [me.item0, me.item1, me.item2, me.item3, me.item4, me.item5, me.item6],
+        // Summoner spells → Data Dragon image ids (e.g. "SummonerFlash")
+        spells: [spellMap[me.summoner1Id] || null, spellMap[me.summoner2Id] || null],
+        // Runes: keystone + primary/secondary style ids (client maps to icons)
+        keystoneId: me.perks?.styles?.[0]?.selections?.[0]?.perk ?? null,
+        primaryStyleId: me.perks?.styles?.[0]?.style ?? null,
+        subStyleId: me.perks?.styles?.[1]?.style ?? null,
       };
     }).filter(Boolean);
 
@@ -95,6 +108,7 @@ export const getMyStats = async (req, res, next) => {
       ranked,
       mastery,
       recentMatches,
+      runeMap,  // rune/style id → Data Dragon icon path
       dataDragonVersion: getDataDragonVersion(),
     };
 

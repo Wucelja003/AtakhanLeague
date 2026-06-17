@@ -175,7 +175,8 @@ and Railway. **Don't change this** unless you're aware it'll break auth.
 - `RESEND_API_KEY`
 - `ADMIN_EMAIL`
 - `FRONTEND_URL` (= `https://atakhanleague.com`)
-- `RIOT_API_KEY` (RGAPI-... — Dev key expires every 24h, applying for Personal)
+- `RIOT_API_KEY` (RGAPI-... — Personal/Production key APPROVED (App ID 846268),
+  does NOT expire every 24h. Rate limits: 20 req/s, 100 req/2min)
 
 **Frontend (Vercel):**
 - `VITE_API_URL` (= `https://api.atakhanleague.com`)
@@ -254,7 +255,8 @@ If a Write/Edit tool errors with `EPERM`, fall back to Bash heredoc.
 - Email verification for new signups (currently anyone can use any email)
 - Rate limiting on auth routes
 - Multi-tournament support (currently hardcoded for 28.06.2026)
-- Riot Personal API Key (applied — waiting 1-3 weeks for approval)
+- ~~Riot Personal API Key~~ ✅ APPROVED & deployed (App ID 846268, key on
+  Railway + local .env). Verification works at full strength; key is persistent.
 
 ## Development workflow
 

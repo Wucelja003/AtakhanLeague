@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 
-// Rank tier colors
+// ---- helpers --------------------------------------------------------------
+
 const tierColor = (tier) => {
   switch ((tier || '').toUpperCase()) {
     case 'IRON': return 'text-[#5e5b5a]';
@@ -24,16 +25,23 @@ const positionLabel = (p) => {
   return map[p] || p;
 };
 
+const queueLabel = (queueId, gameMode) => {
+  const map = {
+    420: 'Ranked Solo', 440: 'Ranked Flex',
+    400: 'Normal Draft', 430: 'Normal Blind', 490: 'Quickplay', 480: 'Swiftplay',
+    450: 'ARAM', 700: 'Clash', 900: 'URF', 1020: 'One for All',
+    1700: 'Arena', 1900: 'URF',
+  };
+  return map[queueId] || (gameMode ? gameMode[0] + gameMode.slice(1).toLowerCase() : 'Custom');
+};
+
 const formatDuration = (sec) => {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${m}:${String(s).padStart(2, '0')}`;
 };
 
-const formatPoints = (n) => {
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return n.toString();
-};
+const formatPoints = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n.toString());
 
 const timeAgo = (ms) => {
   const sec = Math.floor((Date.now() - ms) / 1000);
@@ -43,98 +51,172 @@ const timeAgo = (ms) => {
   return `${Math.floor(sec / 86400)}d ago`;
 };
 
+const kdaRatio = (k, d, a) => (d === 0 ? (k + a).toFixed(1) : ((k + a) / d).toFixed(2));
+
+// Data Dragon image URL builders
+const champUrl = (ver, name) => `https://ddragon.leagueoflegends.com/cdn/${ver}/img/champion/${name}.png`;
+const itemUrl = (ver, id) => `https://ddragon.leagueoflegends.com/cdn/${ver}/img/item/${id}.png`;
+const spellUrl = (ver, id) => `https://ddragon.leagueoflegends.com/cdn/${ver}/img/spell/${id}.png`;
+const profileIconUrl = (ver, id) => `https://ddragon.leagueoflegends.com/cdn/${ver}/img/profileicon/${id}.png`;
+const runeUrl = (iconPath) => `https://ddragon.leagueoflegends.com/cdn/img/${iconPath}`;
+const emblemUrl = (tier) =>
+  `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/${(tier || '').toLowerCase()}.png`;
+
+const hideImg = (e) => { e.target.style.visibility = 'hidden'; };
+
+// ---- sub-components --------------------------------------------------------
+
 function RankCard({ label, entry }) {
   if (!entry) {
     return (
-      <div className="flex-1 min-w-[180px] rounded-xl bg-black/40 border border-dashed border-[rgba(102,0,0,0.35)] px-4 py-4 text-center">
-        <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-500 mb-2">{label}</p>
-        <p className="font-heading text-[18px] text-neutral-600">Unranked</p>
+      <div className="flex-1 min-w-[180px] rounded-xl bg-black/40 border border-dashed border-[rgba(102,0,0,0.35)] px-4 py-4 flex items-center gap-3">
+        <div className="w-11 h-11 rounded-full bg-black/40 border border-[rgba(102,0,0,0.3)] shrink-0" />
+        <div>
+          <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-500 mb-1">{label}</p>
+          <p className="font-heading text-[18px] text-neutral-600">Unranked</p>
+        </div>
       </div>
     );
   }
-  const winRate = entry.wins + entry.losses > 0
-    ? Math.round((entry.wins / (entry.wins + entry.losses)) * 100)
-    : 0;
+  const total = entry.wins + entry.losses;
+  const winRate = total > 0 ? Math.round((entry.wins / total) * 100) : 0;
 
   return (
-    <div className="flex-1 min-w-[180px] rounded-xl bg-black/40 border border-[rgba(102,0,0,0.35)] px-4 py-4">
-      <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-400 mb-2">{label}</p>
-      <p className={`font-heading text-[22px] leading-none ${tierColor(entry.tier)}`}>
-        {entry.tier} {entry.rank}
-      </p>
-      <p className="font-slogan text-[13px] text-white mt-1">{entry.leaguePoints} LP</p>
-      <div className="flex items-baseline gap-2 mt-2 font-slogan text-[11px]">
-        <span className="text-[#4ade80]">{entry.wins}W</span>
-        <span className="text-[#ef4444]">{entry.losses}L</span>
-        <span className="text-neutral-400">{winRate}% WR</span>
-      </div>
-      {entry.hotStreak && (
-        <span className="inline-block mt-2 px-2 py-0.5 rounded font-slogan text-[9px] tracking-wider uppercase bg-[rgba(220,20,60,0.15)] border border-[rgba(220,20,60,0.4)] text-[#DC143C]">
-          🔥 Hot Streak
-        </span>
-      )}
-    </div>
-  );
-}
-
-function MasteryCard({ m, ddVer }) {
-  return (
-    <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-black/40 border border-[rgba(102,0,0,0.25)]">
+    <div className="flex-1 min-w-[180px] rounded-xl bg-black/40 border border-[rgba(102,0,0,0.35)] px-4 py-4 flex items-center gap-3">
       <img
-        src={`https://ddragon.leagueoflegends.com/cdn/${ddVer}/img/champion/${m.championName}.png`}
-        alt={m.championDisplayName}
-        className="w-10 h-10 rounded-md object-cover"
-        onError={(e) => { e.target.style.visibility = 'hidden'; }}
+        src={emblemUrl(entry.tier)}
+        alt={entry.tier}
+        className="w-11 h-11 object-contain shrink-0"
+        onError={hideImg}
       />
-      <div className="flex-1 min-w-0">
-        <p className="font-slogan text-[13px] font-bold text-white truncate">{m.championDisplayName}</p>
-        <p className="font-slogan text-[10px] uppercase tracking-wider text-neutral-500">
-          M{m.championLevel} · {formatPoints(m.championPoints)} pts
+      <div className="min-w-0">
+        <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-400 mb-1">{label}</p>
+        <p className={`font-heading text-[20px] leading-none ${tierColor(entry.tier)}`}>
+          {entry.tier} {entry.rank}
         </p>
+        <p className="font-slogan text-[12px] text-white mt-1">{entry.leaguePoints} LP</p>
+        <div className="flex items-baseline gap-2 mt-1 font-slogan text-[11px]">
+          <span className="text-[#4ade80]">{entry.wins}W</span>
+          <span className="text-[#ef4444]">{entry.losses}L</span>
+          <span className="text-neutral-400">{winRate}%</span>
+        </div>
+        {entry.hotStreak && (
+          <span className="inline-block mt-1.5 px-2 py-0.5 rounded font-slogan text-[9px] tracking-wider uppercase bg-[rgba(220,20,60,0.15)] border border-[rgba(220,20,60,0.4)] text-[#DC143C]">
+            🔥 Hot Streak
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
-function MatchRow({ m, ddVer }) {
-  const kda = m.deaths === 0
-    ? `${(m.kills + m.assists).toFixed(1)}`
-    : ((m.kills + m.assists) / m.deaths).toFixed(2);
-
+function ChampRow({ c, ddVer }) {
+  const wr = c.games > 0 ? Math.round((c.wins / c.games) * 100) : 0;
+  const avgKda = kdaRatio(c.k / c.games, c.d / c.games, c.a / c.games);
   return (
-    <div className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border ${m.win
-      ? 'bg-[rgba(74,222,128,0.06)] border-[rgba(74,222,128,0.2)]'
-      : 'bg-[rgba(239,68,68,0.06)] border-[rgba(239,68,68,0.2)]'}`}>
+    <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-black/40 border border-[rgba(102,0,0,0.25)]">
       <img
-        src={`https://ddragon.leagueoflegends.com/cdn/${ddVer}/img/champion/${m.championName}.png`}
-        alt={m.championDisplayName}
-        className="w-10 h-10 rounded-md object-cover shrink-0"
-        onError={(e) => { e.target.style.visibility = 'hidden'; }}
+        src={champUrl(ddVer, c.name)}
+        alt={c.display}
+        className="w-9 h-9 rounded-md object-cover shrink-0"
+        onError={hideImg}
       />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 font-slogan text-[13px] font-bold">
-          <span className={m.win ? 'text-[#4ade80]' : 'text-[#ef4444]'}>{m.win ? 'WIN' : 'LOSS'}</span>
-          <span className="text-white truncate">{m.championDisplayName}</span>
-        </div>
-        <div className="flex items-center gap-2 font-slogan text-[11px] text-neutral-400 mt-0.5">
-          <span>{positionLabel(m.teamPosition)}</span>
-          <span>·</span>
-          <span>{formatDuration(m.gameDuration)}</span>
-          <span>·</span>
-          <span>{timeAgo(m.gameEndTimestamp)}</span>
-        </div>
+        <p className="font-slogan text-[12px] font-bold text-white truncate">{c.display}</p>
+        <p className="font-slogan text-[10px] text-neutral-500">{c.games} games · {avgKda} KDA</p>
       </div>
       <div className="text-right shrink-0">
-        <p className="font-slogan text-[13px] font-bold text-white">
-          {m.kills}/{m.deaths}/{m.assists}
-        </p>
-        <p className="font-slogan text-[10px] uppercase tracking-wider text-neutral-500">
-          {kda} KDA
+        <p className={`font-slogan text-[13px] font-bold ${wr >= 60 ? 'text-[#4ade80]' : wr >= 50 ? 'text-white' : 'text-neutral-400'}`}>{wr}%</p>
+        <p className="font-slogan text-[10px]">
+          <span className="text-[#4ade80]">{c.wins}W</span>
+          <span className="text-neutral-600 mx-0.5">·</span>
+          <span className="text-[#ef4444]">{c.games - c.wins}L</span>
         </p>
       </div>
     </div>
   );
 }
+
+function MatchRow({ m, ddVer, runeMap }) {
+  const kda = kdaRatio(m.kills, m.deaths, m.assists);
+  const csPerMin = m.gameDuration > 0 ? (m.totalMinionsKilled / (m.gameDuration / 60)).toFixed(1) : '0';
+  const items = (m.items || []).slice(0, 6);
+  const trinket = (m.items || [])[6];
+
+  return (
+    <div className={`relative overflow-hidden rounded-lg border ${m.win
+      ? 'bg-[rgba(74,222,128,0.05)] border-[rgba(74,222,128,0.25)]'
+      : 'bg-[rgba(239,68,68,0.05)] border-[rgba(239,68,68,0.25)]'}`}>
+      {/* result accent strip */}
+      <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${m.win ? 'bg-[#4ade80]' : 'bg-[#ef4444]'}`} />
+
+      <div className="flex items-center gap-3 pl-4 pr-3 py-3 flex-wrap sm:flex-nowrap">
+        {/* queue + meta */}
+        <div className="w-[88px] shrink-0">
+          <p className={`font-slogan text-[11px] font-bold ${m.win ? 'text-[#4ade80]' : 'text-[#ef4444]'}`}>
+            {m.win ? 'Victory' : 'Defeat'}
+          </p>
+          <p className="font-slogan text-[10px] text-neutral-400 leading-tight">{queueLabel(m.queueId, m.gameMode)}</p>
+          <p className="font-slogan text-[9px] text-neutral-600 mt-0.5">{formatDuration(m.gameDuration)} · {timeAgo(m.gameEndTimestamp)}</p>
+        </div>
+
+        {/* champion + spells + runes */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div className="relative">
+            <img src={champUrl(ddVer, m.championName)} alt={m.championDisplayName} className="w-12 h-12 rounded-md object-cover" onError={hideImg} />
+            {m.champLevel != null && (
+              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-black/85 border border-[rgba(102,0,0,0.5)] flex items-center justify-center font-slogan text-[9px] font-bold text-white">
+                {m.champLevel}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            {m.spells?.map((s, i) =>
+              s ? <img key={i} src={spellUrl(ddVer, s)} alt="" className="w-[22px] h-[22px] rounded" onError={hideImg} />
+                : <span key={i} className="w-[22px] h-[22px] rounded bg-black/40" />
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            {m.keystoneId && runeMap?.[m.keystoneId] && (
+              <img src={runeUrl(runeMap[m.keystoneId])} alt="" className="w-[22px] h-[22px] rounded-full bg-black/60 p-px" onError={hideImg} />
+            )}
+            {m.subStyleId && runeMap?.[m.subStyleId] && (
+              <img src={runeUrl(runeMap[m.subStyleId])} alt="" className="w-[22px] h-[22px] rounded-full p-[3px]" onError={hideImg} />
+            )}
+          </div>
+        </div>
+
+        {/* KDA */}
+        <div className="shrink-0 text-center min-w-[78px]">
+          <p className="font-slogan text-[14px] font-bold text-white">
+            {m.kills} <span className="text-neutral-500">/</span> <span className="text-[#ef4444]">{m.deaths}</span> <span className="text-neutral-500">/</span> {m.assists}
+          </p>
+          <p className="font-slogan text-[10px] uppercase tracking-wider text-neutral-500">{kda} KDA</p>
+        </div>
+
+        {/* stats */}
+        <div className="shrink-0 font-slogan text-[10px] text-neutral-400 leading-relaxed min-w-[92px]">
+          <p>{positionLabel(m.teamPosition)}</p>
+          <p>{m.totalMinionsKilled} CS ({csPerMin})</p>
+          <p>{formatPoints(m.totalDamageDealtToChampions)} dmg</p>
+        </div>
+
+        {/* items */}
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 ml-auto shrink-0">
+          {items.map((id, i) =>
+            id ? <img key={i} src={itemUrl(ddVer, id)} alt="" className="w-6 h-6 rounded bg-black/40" onError={hideImg} />
+              : <span key={i} className="w-6 h-6 rounded bg-black/30 border border-[rgba(102,0,0,0.15)]" />
+          )}
+          {trinket
+            ? <img src={itemUrl(ddVer, trinket)} alt="" className="w-6 h-6 rounded bg-black/40" onError={hideImg} />
+            : <span className="w-6 h-6 rounded bg-black/30 border border-[rgba(102,0,0,0.15)]" />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- main component --------------------------------------------------------
 
 export default function RiotStats() {
   const [stats, setStats] = useState(null);
@@ -157,8 +239,8 @@ export default function RiotStats() {
 
   if (loading) {
     return (
-      <div className="mt-8 pt-8 border-t border-[rgba(102,0,0,0.3)]">
-        <p className="font-slogan text-[11px] uppercase tracking-[3px] text-neutral-500 text-center py-6">
+      <div className="rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-8 py-10 backdrop-blur-md">
+        <p className="font-slogan text-[11px] uppercase tracking-[3px] text-neutral-500 text-center">
           Loading Riot stats...
         </p>
       </div>
@@ -167,98 +249,132 @@ export default function RiotStats() {
 
   if (error || !stats) {
     return (
-      <div className="mt-8 pt-8 border-t border-[rgba(102,0,0,0.3)]">
-        <div className="rounded-xl bg-[rgba(220,20,60,0.06)] border border-[rgba(220,20,60,0.25)] px-5 py-4 text-center">
-          <p className="font-slogan text-[11px] uppercase tracking-[2px] text-[#DC143C] mb-1">
-            Riot stats unavailable
-          </p>
-          <p className="font-body text-[12px] text-neutral-400">
-            {error || 'Could not load Riot data right now.'}
-          </p>
-        </div>
+      <div className="rounded-2xl bg-[rgba(220,20,60,0.06)] border border-[rgba(220,20,60,0.25)] px-8 py-6 text-center backdrop-blur-md">
+        <p className="font-slogan text-[11px] uppercase tracking-[2px] text-[#DC143C] mb-1">
+          Riot stats unavailable
+        </p>
+        <p className="font-body text-[12px] text-neutral-400">
+          {error || 'Could not load Riot data right now.'}
+        </p>
       </div>
     );
   }
 
-  const { profile, ranked, mastery, recentMatches, dataDragonVersion } = stats;
+  const { profile, ranked, mastery, recentMatches, runeMap, dataDragonVersion } = stats;
   const wins = recentMatches.filter((m) => m.win).length;
   const losses = recentMatches.length - wins;
+  const recentWr = recentMatches.length > 0 ? Math.round((wins / recentMatches.length) * 100) : 0;
+
+  // Aggregate recently-played champions client-side
+  const champAgg = Object.values(
+    recentMatches.reduce((acc, m) => {
+      const e = acc[m.championId] || (acc[m.championId] = {
+        championId: m.championId, name: m.championName, display: m.championDisplayName,
+        games: 0, wins: 0, k: 0, d: 0, a: 0,
+      });
+      e.games++; if (m.win) e.wins++;
+      e.k += m.kills; e.d += m.deaths; e.a += m.assists;
+      return acc;
+    }, {})
+  ).sort((a, b) => b.games - a.games).slice(0, 5);
 
   return (
-    <div className="mt-8 pt-8 border-t border-[rgba(102,0,0,0.3)]">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <p className="font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#DC143C] mb-1">
-            Riot Stats
-          </p>
-          <h3 className="font-heading text-white text-[22px] leading-none tracking-wide">
-            {profile.gameName}
-            <span className="text-neutral-500 text-[16px]">#{profile.tagLine}</span>
-          </h3>
-        </div>
-      </div>
+    <div className="flex flex-col gap-5">
+      {/* Hero header */}
+      <div className="rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-6 sm:px-8 py-7 backdrop-blur-md shadow-[0_0_48px_rgba(102,0,0,0.22),inset_0_0_24px_rgba(102,0,0,0.06)]">
+        <div className="flex flex-col sm:flex-row items-center gap-5">
+          {/* Avatar = Riot profile icon */}
+          <div className="relative shrink-0">
+            {profile.profileIconId != null ? (
+              <img
+                src={profileIconUrl(dataDragonVersion, profile.profileIconId)}
+                alt="Summoner icon"
+                className="w-24 h-24 rounded-2xl object-cover border-[3px] border-[#DC143C] shadow-[0_0_24px_rgba(220,20,60,0.4)]"
+                onError={hideImg}
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-2xl border-[3px] border-[#DC143C] bg-black/50" />
+            )}
+            {profile.summonerLevel != null && (
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-black/90 border border-[rgba(220,20,60,0.5)] font-slogan text-[11px] font-bold text-white shadow-[0_0_12px_rgba(220,20,60,0.4)]">
+                {profile.summonerLevel}
+              </span>
+            )}
+          </div>
 
-      {/* Profile bar */}
-      <div className="flex items-center gap-4 px-4 py-3.5 rounded-xl bg-black/40 border border-[rgba(102,0,0,0.3)] mb-5">
-        {profile.profileIconId != null && (
-          <img
-            src={`https://ddragon.leagueoflegends.com/cdn/${dataDragonVersion}/img/profileicon/${profile.profileIconId}.png`}
-            alt="icon"
-            className="w-14 h-14 rounded-lg border-2 border-[#DC143C]"
-            onError={(e) => { e.target.style.visibility = 'hidden'; }}
-          />
-        )}
-        <div className="flex-1">
-          <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-500">Level</p>
-          <p className="font-heading text-white text-[26px] leading-none">{profile.summonerLevel ?? '—'}</p>
-        </div>
-        <div className="text-right">
-          <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-500">Region</p>
-          <p className="font-heading text-secondary text-[22px] leading-none uppercase">{profile.platform}</p>
-        </div>
-      </div>
-
-      {/* Ranked */}
-      <div className="flex flex-wrap gap-3 mb-5">
-        <RankCard label="Solo / Duo" entry={ranked.solo} />
-        <RankCard label="Flex" entry={ranked.flex} />
-      </div>
-
-      {/* Top mastery */}
-      {mastery.length > 0 && (
-        <div className="mb-5">
-          <p className="font-slogan text-[10px] font-bold uppercase tracking-[3px] text-neutral-400 mb-2">
-            Top Champions
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {mastery.map((m) => (
-              <MasteryCard key={m.championId} m={m} ddVer={dataDragonVersion} />
-            ))}
+          {/* Name + region */}
+          <div className="text-center sm:text-left flex-1">
+            <p className="font-slogan text-[10px] font-bold uppercase tracking-[3px] text-[#DC143C] mb-1.5">
+              Summoner
+            </p>
+            <h2 className="font-heading text-white text-[32px] sm:text-[40px] leading-none tracking-wide [text-shadow:0_0_18px_rgba(139,0,0,0.7)]">
+              {profile.gameName}
+              <span className="text-neutral-500 text-[20px] sm:text-[24px]"> #{profile.tagLine}</span>
+            </h2>
+            <div className="flex items-center justify-center sm:justify-start gap-2 mt-3">
+              <span className="px-3 py-1 rounded-full font-slogan text-[11px] font-bold uppercase tracking-[2px] text-secondary border border-[rgba(102,0,0,0.45)] bg-black/40">
+                {profile.platform}
+              </span>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Recent matches */}
-      <div>
-        <div className="flex items-baseline justify-between mb-2">
-          <p className="font-slogan text-[10px] font-bold uppercase tracking-[3px] text-neutral-400">
-            Last {recentMatches.length} Matches
-          </p>
-          <p className="font-slogan text-[11px] tracking-wider">
-            <span className="text-[#4ade80]">{wins}W</span>
-            <span className="text-neutral-600 mx-1">·</span>
-            <span className="text-[#ef4444]">{losses}L</span>
-          </p>
+        {/* Rank cards */}
+        <div className="flex flex-wrap gap-3 mt-6">
+          <RankCard label="Ranked Solo / Duo" entry={ranked.solo} />
+          <RankCard label="Ranked Flex" entry={ranked.flex} />
         </div>
+      </div>
+
+      {/* Recently played + Top mastery */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {champAgg.length > 0 && (
+          <div className="rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-5 py-5 backdrop-blur-md">
+            <div className="flex items-baseline justify-between mb-3">
+              <p className="font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#DC143C]">Recently Played</p>
+              <p className="font-slogan text-[11px] tracking-wider">
+                <span className="text-[#4ade80]">{wins}W</span>
+                <span className="text-neutral-600 mx-1">·</span>
+                <span className="text-[#ef4444]">{losses}L</span>
+                <span className="text-neutral-400 ml-1.5">{recentWr}%</span>
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              {champAgg.map((c) => <ChampRow key={c.championId} c={c} ddVer={dataDragonVersion} />)}
+            </div>
+          </div>
+        )}
+
+        {mastery.length > 0 && (
+          <div className="rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-5 py-5 backdrop-blur-md">
+            <p className="font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#DC143C] mb-3">Top Mastery</p>
+            <div className="flex flex-col gap-2">
+              {mastery.map((m) => (
+                <div key={m.championId} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-black/40 border border-[rgba(102,0,0,0.25)]">
+                  <img src={champUrl(dataDragonVersion, m.championName)} alt={m.championDisplayName} className="w-9 h-9 rounded-md object-cover shrink-0" onError={hideImg} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-slogan text-[12px] font-bold text-white truncate">{m.championDisplayName}</p>
+                    <p className="font-slogan text-[10px] uppercase tracking-wider text-neutral-500">Mastery {m.championLevel}</p>
+                  </div>
+                  <p className="font-slogan text-[12px] font-bold text-accent-gold shrink-0">{formatPoints(m.championPoints)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Match history */}
+      <div className="rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-5 py-5 backdrop-blur-md">
+        <p className="font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#DC143C] mb-3">
+          Match History
+        </p>
         {recentMatches.length === 0 ? (
-          <p className="font-body text-[12px] text-neutral-500 text-center py-4">
-            No recent matches found.
-          </p>
+          <p className="font-body text-[12px] text-neutral-500 text-center py-4">No recent matches found.</p>
         ) : (
           <div className="flex flex-col gap-2">
             {recentMatches.map((m) => (
-              <MatchRow key={m.matchId} m={m} ddVer={dataDragonVersion} />
+              <MatchRow key={m.matchId} m={m} ddVer={dataDragonVersion} runeMap={runeMap} />
             ))}
           </div>
         )}

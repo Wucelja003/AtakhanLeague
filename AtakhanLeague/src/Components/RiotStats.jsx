@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { signOut } from '../redux/user/userSlice';
 import { api } from '../api';
 
 // ---- helpers --------------------------------------------------------------
@@ -222,10 +225,19 @@ export default function RiotStats() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(api('/riot/me'), { credentials: 'include' })
       .then(async (r) => {
+        // Session gone/expired — clear the stale persisted login and bounce to
+        // sign-in instead of showing a broken half-logged-in profile.
+        if (r.status === 401) {
+          dispatch(signOut());
+          navigate('/sign-in');
+          throw new Error('Session expired — please sign in again.');
+        }
         if (!r.ok) {
           const data = await r.json().catch(() => ({}));
           throw new Error(data.message || `HTTP ${r.status}`);
@@ -235,7 +247,7 @@ export default function RiotStats() {
       .then(setStats)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [dispatch, navigate]);
 
   if (loading) {
     return (

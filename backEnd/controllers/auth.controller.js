@@ -14,6 +14,10 @@ const cookieOpts = {
   httpOnly: true,
   secure: true,
   sameSite: 'none',
+  // Persist for 7 days (matches the JWT expiry below). Without maxAge this is a
+  // session cookie that dies on browser close, leaving redux-persist thinking
+  // the user is still logged in while the backend rejects them with 401.
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
 export const signup = async (req, res, next) => {

@@ -62,8 +62,19 @@ const itemUrl = (ver, id) => `https://ddragon.leagueoflegends.com/cdn/${ver}/img
 const spellUrl = (ver, id) => `https://ddragon.leagueoflegends.com/cdn/${ver}/img/spell/${id}.png`;
 const profileIconUrl = (ver, id) => `https://ddragon.leagueoflegends.com/cdn/${ver}/img/profileicon/${id}.png`;
 const runeUrl = (iconPath) => `https://ddragon.leagueoflegends.com/cdn/img/${iconPath}`;
-const emblemUrl = (tier) =>
-  `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/${(tier || '').toLowerCase()}.png`;
+// Rank emblems: prefer self-hosted files in public/Icons/ranks/{tier}.png,
+// fall back to Community Dragon CDN (see onEmblemError), then hide.
+const emblemUrl = (tier) => `/Icons/ranks/${(tier || '').toLowerCase()}.png`;
+const cdnEmblemUrl = (tier) =>
+  `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-crests/${(tier || '').toLowerCase()}.png`;
+const onEmblemError = (e, tier) => {
+  if (!e.target.dataset.fallback) {
+    e.target.dataset.fallback = '1';
+    e.target.src = cdnEmblemUrl(tier);
+  } else {
+    e.target.style.visibility = 'hidden';
+  }
+};
 
 const hideImg = (e) => { e.target.style.visibility = 'hidden'; };
 
@@ -73,7 +84,12 @@ function RankCard({ label, entry }) {
   if (!entry) {
     return (
       <div className="flex-1 min-w-[180px] rounded-xl bg-black/40 border border-dashed border-[rgba(102,0,0,0.35)] px-4 py-4 flex items-center gap-3">
-        <div className="w-11 h-11 rounded-full bg-black/40 border border-[rgba(102,0,0,0.3)] shrink-0" />
+        <img
+          src="/Icons/ranks/unranked.png"
+          alt="Unranked"
+          className="w-11 h-11 object-contain shrink-0 opacity-60"
+          onError={hideImg}
+        />
         <div>
           <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-500 mb-1">{label}</p>
           <p className="font-heading text-[18px] text-neutral-600">Unranked</p>
@@ -90,7 +106,7 @@ function RankCard({ label, entry }) {
         src={emblemUrl(entry.tier)}
         alt={entry.tier}
         className="w-11 h-11 object-contain shrink-0"
-        onError={hideImg}
+        onError={(e) => onEmblemError(e, entry.tier)}
       />
       <div className="min-w-0">
         <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-400 mb-1">{label}</p>

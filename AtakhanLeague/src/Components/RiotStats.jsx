@@ -81,48 +81,39 @@ const hideImg = (e) => { e.target.style.visibility = 'hidden'; };
 // ---- sub-components --------------------------------------------------------
 
 function RankCard({ label, entry }) {
-  if (!entry) {
-    return (
-      <div className="flex-1 min-w-[180px] rounded-xl bg-black/40 border border-dashed border-[rgba(102,0,0,0.35)] px-4 py-4 flex items-center gap-3">
-        <img
-          src="/Icons/ranks/unranked.png"
-          alt="Unranked"
-          className="w-11 h-11 object-contain shrink-0 opacity-60"
-          onError={hideImg}
-        />
-        <div>
-          <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-500 mb-1">{label}</p>
-          <p className="font-heading text-[18px] text-neutral-600">Unranked</p>
-        </div>
-      </div>
-    );
-  }
-  const total = entry.wins + entry.losses;
+  const unranked = !entry;
+  const total = unranked ? 0 : entry.wins + entry.losses;
   const winRate = total > 0 ? Math.round((entry.wins / total) * 100) : 0;
 
   return (
-    <div className="flex-1 min-w-[180px] rounded-xl bg-black/40 border border-[rgba(102,0,0,0.35)] px-4 py-4 flex items-center gap-3">
+    <div className="flex-1 min-w-[210px] rounded-2xl bg-gradient-to-br from-[rgba(102,0,0,0.10)] to-black/30 border border-[rgba(102,0,0,0.3)] px-5 py-4 flex items-center gap-4">
       <img
-        src={emblemUrl(entry.tier)}
-        alt={entry.tier}
-        className="w-11 h-11 object-contain shrink-0"
-        onError={(e) => onEmblemError(e, entry.tier)}
+        src={unranked ? '/Icons/ranks/unranked.png' : emblemUrl(entry.tier)}
+        alt={unranked ? 'Unranked' : entry.tier}
+        className={`w-[84px] h-[84px] object-contain shrink-0 ${unranked ? 'opacity-50' : ''}`}
+        onError={unranked ? hideImg : (e) => onEmblemError(e, entry.tier)}
       />
       <div className="min-w-0">
-        <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-400 mb-1">{label}</p>
-        <p className={`font-heading text-[20px] leading-none ${tierColor(entry.tier)}`}>
-          {entry.tier} {entry.rank}
-        </p>
-        <p className="font-slogan text-[12px] text-white mt-1">{entry.leaguePoints} LP</p>
-        <div className="flex items-baseline gap-2 mt-1 font-slogan text-[11px]">
-          <span className="text-[#4ade80]">{entry.wins}W</span>
-          <span className="text-[#ef4444]">{entry.losses}L</span>
-          <span className="text-neutral-400">{winRate}%</span>
-        </div>
-        {entry.hotStreak && (
-          <span className="inline-block mt-1.5 px-2 py-0.5 rounded font-slogan text-[9px] tracking-wider uppercase bg-[rgba(220,20,60,0.15)] border border-[rgba(220,20,60,0.4)] text-[#DC143C]">
-            🔥 Hot Streak
-          </span>
+        <p className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-400 mb-1.5">{label}</p>
+        {unranked ? (
+          <p className="font-heading text-[22px] text-neutral-500 leading-none">Unranked</p>
+        ) : (
+          <>
+            <p className={`font-heading text-[26px] leading-none ${tierColor(entry.tier)}`}>
+              {entry.tier} {entry.rank}
+            </p>
+            <p className="font-slogan text-[13px] text-white mt-1.5">{entry.leaguePoints} LP</p>
+            <div className="flex items-center gap-2 mt-1.5 font-slogan text-[11px]">
+              <span className="text-neutral-300">{entry.wins}W {entry.losses}L</span>
+              <span className="text-neutral-600">·</span>
+              <span className={winRate >= 50 ? 'text-[#4ade80]' : 'text-[#ef4444]'}>{winRate}% WR</span>
+            </div>
+            {entry.hotStreak && (
+              <span className="inline-block mt-2 px-2 py-0.5 rounded font-slogan text-[9px] tracking-wider uppercase bg-[rgba(220,20,60,0.15)] border border-[rgba(220,20,60,0.4)] text-[#DC143C]">
+                🔥 Hot Streak
+              </span>
+            )}
+          </>
         )}
       </div>
     </div>

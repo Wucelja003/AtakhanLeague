@@ -28,7 +28,7 @@ export default function Registration() {
             Next Tournament
           </span>
           <h2 className="mt-3 font-heading text-[52px] leading-none tracking-[2px] text-transparent bg-clip-text bg-[linear-gradient(90deg,#660000,#DC143C,#660000)] [filter:drop-shadow(0_0_18px_rgba(139,0,0,0.5))]">
-            28. June 2026.
+            15 - 16. August 2026.
           </h2>
           <span className="mt-5 h-[2px] w-24 rounded-full bg-[linear-gradient(90deg,transparent,#DC143C,transparent)]" />
         </div>

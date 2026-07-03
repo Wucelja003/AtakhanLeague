@@ -78,10 +78,10 @@ export default function Tournaments() {
             </span>
           </div>
           <h1 className="font-heading text-white text-[clamp(2.5rem,5vw,4rem)] leading-none tracking-wide [text-shadow:0_0_18px_rgba(139,0,0,0.8),0_0_40px_rgba(102,0,0,0.4)]">
-            28.06.2026.
+            15 - 16. August.2026.
           </h1>
           <p className="font-body text-base text-neutral-400 mt-4 max-w-md mx-auto">
-            Single-elimination bracket. 4 teams enter — only one will be crowned.
+            Single-elimination bracket. 8 teams enter — only one will be crowned.
           </p>
         </div>
 

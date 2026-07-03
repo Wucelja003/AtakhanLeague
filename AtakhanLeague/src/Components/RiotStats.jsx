@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from '../redux/user/userSlice';
 import { api } from '../api';
 
-// ---- helpers --------------------------------------------------------------
 
 const tierColor = (tier) => {
   switch ((tier || '').toUpperCase()) {

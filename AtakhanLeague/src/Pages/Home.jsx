@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import SEO from '../Components/SEO';
 import VideoBackground from '../Components/VideoBackground';
 import Introduce from '../Components/Introduce';
-import Journey from '../Components/Journey';
+import HowItWorks from '../Components/HowItWorks';
 import TournamentInfo from '../Components/TournamentInfo';
 import Registration from '../Components/Registration';
 import TournamentBoard from '../Components/TournamentBoard';
@@ -123,7 +123,7 @@ export default function Home() {
         </div>
       </section>
       <Introduce />
-      <Journey />
+      <HowItWorks />
       <TournamentInfo />
       <div id="registration-section">
         <Registration />

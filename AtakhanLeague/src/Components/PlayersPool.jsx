@@ -9,8 +9,11 @@ const roles = [
   { key: 'support', label: 'Support', img: '/Icons/Support_icon.png' },
 ];
 
-const TEAM_NAMES = ['Team Alpha', 'Team Beta',];
-const SLOTS_PER_ROLE = TEAM_NAMES.length; // 5
+const TEAM_NAMES = [
+  'Team Alpha', 'Team Beta', 'Team Gamma', 'Team Delta',
+  'Team Epsilon', 'Team Zeta', 'Team Eta', 'Team Theta',
+];
+const SLOTS_PER_ROLE = TEAM_NAMES.length; // 8 teams
 
 export default function PlayersPool() {
   const [registrations, setRegistrations] = useState([]);

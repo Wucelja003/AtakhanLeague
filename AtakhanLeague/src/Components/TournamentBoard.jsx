@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 
-const TOTAL_SLOTS = 4; // Number of teams competing in the tournament
+const TOTAL_SLOTS = 8; // Number of teams competing in the tournament
 
 export default function TournamentBoard() {
   const [teams, setTeams] = useState([]);

@@ -11,8 +11,8 @@ import TournamentBoard from '../Components/TournamentBoard';
 import PlayersPool from '../Components/PlayersPool';
 import DiscordSection from '../Components/DiscordSection';
 
-// Target: 28 June 2026 at 19:00 (Belgrade / Central European Summer Time)
-const TOURNAMENT_DATE = new Date('2026-06-28T19:00:00+02:00');
+// Target: 15 August 2026 at 18:00 (Belgrade / Central European Summer Time)
+const TOURNAMENT_DATE = new Date('2026-08-15T18:00:00+02:00');
 
 function getTimeLeft() {
   const diff = TOURNAMENT_DATE.getTime() - Date.now();
@@ -108,7 +108,7 @@ export default function Home() {
 
           <div className="mt-[30px] sm:mt-[50px] flex flex-col items-center gap-4 sm:gap-5">
             <p className="px-5 sm:px-[30px] py-2.5 sm:py-3 rounded-full font-slogan text-[11px] sm:text-[14px] font-bold uppercase tracking-[2px] sm:tracking-[3px] text-[#cc3333] border border-[rgba(139,0,0,0.6)] bg-[rgba(123,26,26,0.12)] backdrop-blur-md shadow-[0_0_16px_rgba(139,0,0,0.25),inset_0_0_12px_rgba(139,0,0,0.08)] animate-fade-in-up-delayed text-center">
-              Next Tournament: 15 - 16. August 2026 · 19:00
+              Next Tournament: 15 August 2026 · 18:00
             </p>
 
             <Countdown />

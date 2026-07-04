@@ -1,20 +1,24 @@
 import SEO from '../Components/SEO';
 
-// Mock bracket — 4 teams, single elimination.
-// Round 1 (semifinals): SF1 (Team A vs Team B), SF2 (Team C vs Team D)
-// Final: Winner SF1 vs Winner SF2
 const bracket = {
+  quarterfinals: [
+    { id: 'QF1', round: 'Quarterfinal 1', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:00' },
+    { id: 'QF2', round: 'Quarterfinal 2', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:00' },
+    { id: 'QF3', round: 'Quarterfinal 3', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:20' },
+    { id: 'QF4', round: 'Quarterfinal 4', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:20' },
+  ],
   semifinals: [
-    { id: 'SF1', round: 'Semifinal 1', teamA: 'Team Alpha', teamB: 'Team Beta', scoreA: null, scoreB: null, time: '19:00' },
-    { id: 'SF2', round: 'Semifinal 2', teamA: 'Team Gamma', teamB: 'Team Delta', scoreA: null, scoreB: null, time: '19:00' },
+    { id: 'SF1', round: 'Semifinal 1', teamA: 'Winner QF1', teamB: 'Winner QF2', scoreA: null, scoreB: null, time: '20:00' },
+    { id: 'SF2', round: 'Semifinal 2', teamA: 'Winner QF3', teamB: 'Winner QF4', scoreA: null, scoreB: null, time: '20:00' },
   ],
   final: {
-    id: 'F', round: 'Grand Final', teamA: 'Winner SF1', teamB: 'Winner SF2', scoreA: null, scoreB: null, time: '20:30',
+    id: 'F', round: 'Grand Final', teamA: 'Winner SF1', teamB: 'Winner SF2', scoreA: null, scoreB: null, time: '22:00',
   },
 };
 
 // Flat schedule list (chronological by time)
 const schedule = [
+  ...bracket.quarterfinals,
   ...bracket.semifinals,
   bracket.final,
 ];
@@ -25,6 +29,10 @@ function MatchCard({ match }) {
 
   return (
     <div className="w-full rounded-xl bg-[rgba(10,10,10,0.7)] border border-[rgba(102,0,0,0.35)] backdrop-blur-md shadow-[0_0_24px_rgba(102,0,0,0.18)] overflow-hidden transition-all duration-300 hover:border-[#DC143C] hover:shadow-[0_0_32px_rgba(220,20,60,0.35)]">
+      {/* Time */}
+      <div className="flex items-center justify-end px-4 py-1 bg-[rgba(102,0,0,0.12)] border-b border-[rgba(102,0,0,0.25)]">
+        <span className="font-slogan text-[10px] font-bold tracking-wider text-[#DC143C]">{match.time} CET</span>
+      </div>
       {/* Team A */}
       <div className={`flex items-center justify-between px-4 py-2.5 border-b border-[rgba(102,0,0,0.25)] ${aWon ? 'bg-[rgba(220,20,60,0.12)]' : ''}`}>
         <span className={`font-slogan text-[13px] font-bold tracking-wider truncate ${aWon ? 'text-white' : 'text-neutral-300'}`}>
@@ -66,7 +74,7 @@ export default function Tournaments() {
       <SEO
         title="Tournaments"
         path="/tournaments"
-        description="View the upcoming Atakhan League tournament bracket — semifinals and grand final. 4 teams battle for the Rift."
+        description="View the upcoming Atakhan League tournament bracket — quarterfinals, semifinals and grand final. 8 teams battle for the Rift."
       />
       <div className="mx-auto max-w-5xl">
         {/* Heading */}
@@ -78,7 +86,7 @@ export default function Tournaments() {
             </span>
           </div>
           <h1 className="font-heading text-white text-[clamp(2.5rem,5vw,4rem)] leading-none tracking-wide [text-shadow:0_0_18px_rgba(139,0,0,0.8),0_0_40px_rgba(102,0,0,0.4)]">
-            15 - 16. August.2026.
+            15. August 2026.
           </h1>
           <p className="font-body text-base text-neutral-400 mt-4 max-w-md mx-auto">
             Single-elimination bracket. 8 teams enter — only one will be crowned.
@@ -113,6 +121,12 @@ export default function Tournaments() {
         {/* Bracket */}
         <div className="rounded-2xl bg-[rgba(10,10,10,0.4)] border border-[rgba(102,0,0,0.2)] p-6 lg:p-10 backdrop-blur-sm animate-form-fade-in">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-6 min-h-[450px]">
+            <RoundColumn label="Quarterfinals">
+              {bracket.quarterfinals.map((m) => (
+                <MatchCard key={m.id} match={m} />
+              ))}
+            </RoundColumn>
+
             <RoundColumn label="Semifinals">
               {bracket.semifinals.map((m) => (
                 <MatchCard key={m.id} match={m} />

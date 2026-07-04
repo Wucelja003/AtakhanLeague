@@ -10,8 +10,7 @@ const roles = [
 ];
 
 const TEAM_NAMES = [
-  'Team Alpha', 'Team Beta', 'Team Gamma', 'Team Delta',
-  'Team Epsilon', 'Team Zeta', 'Team Eta', 'Team Theta',
+  'Team Alpha', 'Team Beta'
 ];
 const SLOTS_PER_ROLE = TEAM_NAMES.length; // 8 teams
 

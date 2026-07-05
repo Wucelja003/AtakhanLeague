@@ -104,15 +104,6 @@ export default function Tournaments() {
           return (
             <div className="text-center mb-10 animate-fade-in-up">
               <div className="inline-flex flex-col items-center gap-3">
-                <svg className="w-14 h-14 text-[#d4af37] [filter:drop-shadow(0_0_20px_rgba(212,175,55,0.6))]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M5 4V2h14v2h3v3a4 4 0 01-4 4h-.46A6.99 6.99 0 0113 14.92V17h4v2h2v2H5v-2h2v-2h4v-2.08A6.99 6.99 0 016.46 11H6a4 4 0 01-4-4V4h3zm-1 3a2 2 0 002 2V6H4v1zm14 2a2 2 0 002-2V6h-2v3z" />
-                </svg>
-                <span className="font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#d4af37]">
-                  Champion
-                </span>
-                <span className="font-heading text-[32px] leading-none tracking-wide text-[#d4af37] [text-shadow:0_0_18px_rgba(212,175,55,0.6)]">
-                  {champion ?? 'TBD'}
-                </span>
               </div>
             </div>
           );

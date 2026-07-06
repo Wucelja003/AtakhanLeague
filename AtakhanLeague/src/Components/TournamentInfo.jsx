@@ -26,7 +26,7 @@ export default function TournamentInfo() {
         {/* ===== HERO BANNER ===== */}
         <div className="relative overflow-hidden rounded-2xl border border-[rgba(220,20,60,0.4)] shadow-[0_0_70px_rgba(139,0,0,0.4)] animate-form-fade-in">
           <img
-            src="/summerSplitTournament.jpg"
+            src="ThumbnailTournament.jpg"
             alt="Summer Split Tournament"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -39,7 +39,7 @@ export default function TournamentInfo() {
               Atakhan League Presents
             </p>
             <h2 className="font-heading text-white text-[46px] sm:text-[78px] leading-[0.85] tracking-[2px] uppercase [text-shadow:0_0_26px_rgba(139,0,0,0.9),0_0_64px_rgba(220,20,60,0.55)]">
-              Summer Split<br />
+              The Chaos Begins<br />
               <span className="text-[#DC143C]">Tournament</span>
             </h2>
             <div className="flex flex-wrap items-center gap-2.5 mt-6">

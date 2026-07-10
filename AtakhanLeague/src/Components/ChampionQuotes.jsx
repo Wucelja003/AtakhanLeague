@@ -16,7 +16,6 @@ const quotes = [
   { text: 'Hesitation is the seed of defeat.', champion: 'Akali' },
   { text: 'Everybody dies. Some just need a little help.', champion: 'Lucian' },
   { text: 'Ok.', champion: 'Rammus' },
-  { text: 'Boop.', champion: 'Aurelion Sol' },
   { text: 'Precision is the difference between a butcher and a surgeon.', champion: 'Camille' },
   { text: 'In carnage, I bloom, like a flower in the dawn.', champion: 'Jhin' },
   { text: 'Never one without the other.', champion: 'Kindred' },
@@ -52,7 +51,7 @@ const quotes = [
   { text: 'Monsters are born when people forget the face behind the mask.', champion: 'Nocturne' },
   { text: 'Balance does not mean silence. It means knowing which voice to follow.', champion: 'Lee Sin' },
   { text: 'Hope is a fragile weapon, but it is the only one that cuts through despair.', champion: 'Senna' },
-];
+];  
 const FADE_MS = 550;
 const HOLD_MS = 6000;
 

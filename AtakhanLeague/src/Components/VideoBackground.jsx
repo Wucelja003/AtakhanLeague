@@ -16,9 +16,9 @@ export default function VideoBackground() {
           ready ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <source src="/AtakhanMovie.mp4" type="video/mp4" />
+        <source src="Timeline 1.mp4" type="video/mp4" />
       </video>
-      <div className="absolute inset-0 bg-black/70" />
+      <div className="absolute inset-0 bg-black/85" />
     </div>
   );
 }

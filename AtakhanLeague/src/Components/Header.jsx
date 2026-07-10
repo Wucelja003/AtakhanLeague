@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { useDispatch, useSelector } from 'react-redux';
 import { signOut } from '../redux/user/userSlice';
+import LogoutConfirm from './LogoutConfirm';
 import './Header.css';
 
 const navLinks = [
@@ -22,6 +23,7 @@ export default function Header() {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.user);
   const [open, setOpen] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
 
   // Auto-close menu on route change
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function Header() {
   }, [open]);
 
   async function handleSignOut() {
+    setShowLogout(false);
     try {
       await fetch(api('/auth/signout'), { method: 'POST', credentials: 'include' });
     } catch (_) {}
@@ -83,7 +86,7 @@ export default function Header() {
                 {currentUser.username || 'Profile'}
               </button>
               <button
-                onClick={handleSignOut}
+                onClick={() => setShowLogout(true)}
                 className={`${btnBase} text-neutral-300 border border-[rgba(102,0,0,0.4)] bg-[length:300%_300%] bg-[linear-gradient(270deg,#1a1a1a,#2d2d2d,#3a3a3a,#2d2d2d,#1a1a1a)] animate-wind-flow-register hover:animate-wind-flow-fast hover:text-white hover:border-[#660000] hover:shadow-[0_0_20px_rgba(102,0,0,0.4)]`}
               >
                 Logout
@@ -177,7 +180,7 @@ export default function Header() {
                   {currentUser.username || 'Profile'}
                 </button>
                 <button
-                  onClick={handleSignOut}
+                  onClick={() => setShowLogout(true)}
                   className={`${btnBase} w-full text-neutral-300 border border-[rgba(102,0,0,0.4)] bg-[length:300%_300%] bg-[linear-gradient(270deg,#1a1a1a,#2d2d2d,#3a3a3a,#2d2d2d,#1a1a1a)] animate-wind-flow-register`}
                 >
                   Logout
@@ -209,6 +212,12 @@ export default function Header() {
           to { opacity: 1; transform: translateX(0); }
         }
       `}</style>
+
+      <LogoutConfirm
+        open={showLogout}
+        onConfirm={handleSignOut}
+        onCancel={() => setShowLogout(false)}
+      />
     </header>
   );
 }

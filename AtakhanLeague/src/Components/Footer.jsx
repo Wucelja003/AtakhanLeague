@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+// Lazy — keeps three.js out of the main bundle
+const RisingLines = lazy(() => import('./RisingLines'));
 
 const socials = [
   { label: 'Discord', img: '/Icons/Discord-icon.svg', href: 'https://discord.gg/WuNn2G8PxY' },
@@ -22,8 +25,15 @@ const legalLinks = [
 
 export default function Footer() {
   return (
-    <footer className="relative z-[2] mt-24 px-5 pt-14 border-t-2 border-[rgba(139,0,0,0.4)] shadow-[0_-1px_30px_rgba(139,0,0,0.15)]">
-      <div className="mx-auto max-w-6xl grid gap-12 md:grid-cols-[1fr_auto] items-start pb-10">
+    <footer className="relative z-[2] mt-24 px-5 pt-14 border-t-2 border-[rgba(139,0,0,0.4)] shadow-[0_-1px_30px_rgba(139,0,0,0.15)] overflow-hidden">
+      {/* Rising-lines animation band, all the way at the bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-[300px] z-0 pointer-events-none">
+        <Suspense fallback={null}>
+          <RisingLines color="#DC143C" horizonColor="#8B0000" haloColor="#FF3B57" />
+        </Suspense>
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-6xl grid gap-12 md:grid-cols-[1fr_auto] items-start pb-10">
         {/* Left: logo + socials */}
         <div className="flex flex-col items-start gap-7">
           <Link to="/">
@@ -95,7 +105,7 @@ export default function Footer() {
       </div>
 
       {/* Big brand watermark */}
-      <h2 className="select-none text-center text-[clamp(48px,12vw,100px)] font-bold leading-none text-transparent bg-clip-text bg-[linear-gradient(90deg,rgba(0,0,0,0.5)_0%,rgba(123,26,26,1)_50%,rgba(0,0,0,0.5)_100%)] [filter:drop-shadow(0_1px_6px_rgba(0,0,0,0.5))_drop-shadow(0_1px_2px_rgba(0,0,0,0.8))]">
+      <h2 className="relative z-10 select-none text-center text-[clamp(48px,12vw,100px)] font-bold leading-none text-transparent bg-clip-text bg-[linear-gradient(90deg,rgba(0,0,0,0.5)_0%,rgba(123,26,26,1)_50%,rgba(0,0,0,0.5)_100%)] [filter:drop-shadow(0_1px_6px_rgba(0,0,0,0.5))_drop-shadow(0_1px_2px_rgba(0,0,0,0.8))]">
         Atakhan League
       </h2>
     </footer>

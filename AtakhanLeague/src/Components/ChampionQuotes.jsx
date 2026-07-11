@@ -106,20 +106,6 @@ export default function ChampionQuotes() {
             — {q.champion}
           </p>
         </div>
-
-        {/* Progress dots */}
-        <div className="flex items-center justify-center gap-2 mt-8">
-          {quotes.map((_, i) => (
-            <span
-              key={i}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === index
-                  ? 'w-6 bg-[#DC143C] shadow-[0_0_8px_rgba(220,20,60,0.7)]'
-                  : 'w-1.5 bg-[rgba(102,0,0,0.5)]'
-              }`}
-            />
-          ))}
-        </div>
       </div>
     </section>
   );

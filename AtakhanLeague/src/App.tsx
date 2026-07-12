@@ -12,6 +12,8 @@ import Profile from './Pages/Profile';
 import Rankings from './Pages/Rankings';
 import ForgotPassword from './Pages/ForgotPassword';
 import ResetPassword from './Pages/ResetPassword';
+import PaymentSuccess from './Pages/PaymentSuccess';
+import PaymentCancel from './Pages/PaymentCancel';
 import PrivateRoute from './Components/PrivateRoute';
 import Footer from './Components/Footer';
 
@@ -46,6 +48,8 @@ export default function App() {
         <Route path='/rankings' element={<Rankings />} />
         <Route path='/forgot-password' element={<ForgotPassword />} />
         <Route path='/reset-password/:token' element={<ResetPassword />} />
+        <Route path='/payment/success' element={<PaymentSuccess />} />
+        <Route path='/payment/cancel' element={<PaymentCancel />} />
 
         <Route element={<PrivateRoute />}>
           <Route path='/profile' element={<Profile />} />

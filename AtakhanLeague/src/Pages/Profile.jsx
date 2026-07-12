@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import TeamRoster from '../Components/TeamRoster';
 import RiotStats from '../Components/RiotStats';
+import PaymentPanel from '../Components/PaymentPanel';
 
 const roleIcons = {
   top: '/Icons/Top_icon.png',
@@ -105,6 +106,7 @@ export default function Profile() {
                   Cancel
                 </button>
               </div>
+              <PaymentPanel paid={registration.individual.paid} fee="6€" />
             </div>
           )}
 
@@ -136,6 +138,7 @@ export default function Profile() {
                   Cancel
                 </button>
               </div>
+              <PaymentPanel paid={registration.team.paid} fee="30€" />
             </div>
           )}
 

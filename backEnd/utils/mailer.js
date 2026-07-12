@@ -233,7 +233,25 @@ export async function sendTournamentConfirmation(to, { username, type, teamName,
           Tournament Date
         </p>
         <p style="color: #DC143C; font-size: 22px; font-weight: bold; margin: 0;">
-          28. June 2026.
+          15. August 2026.
+        </p>
+      </div>
+
+      <div style="text-align: center; background: #1a1a1a; border: 1px solid rgba(220,20,60,0.35); border-radius: 8px; padding: 24px; margin: 24px 0;">
+        <p style="color: #DC143C; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 6px;">
+          Entry Fee
+        </p>
+        <p style="color: #fff; font-size: 26px; font-weight: bold; margin: 0 0 4px;">
+          ${isTeam ? '30 €' : '6 €'}
+        </p>
+        <p style="color: #999; font-size: 13px; margin: 0 0 18px;">
+          ${isTeam ? 'One payment covers your whole team.' : 'Secure your spot in the pool.'}
+        </p>
+        <a href="${FRONTEND_URL}/profile" style="display: inline-block; background: #DC143C; color: #fff; text-decoration: none; font-size: 14px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; padding: 13px 32px; border-radius: 8px;">
+          Pay entry fee
+        </a>
+        <p style="color: #777; font-size: 12px; margin: 14px 0 0;">
+          Pay securely with PayPal or crypto. Your spot isn't final until the fee is paid.
         </p>
       </div>
 

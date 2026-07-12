@@ -92,6 +92,14 @@ export default function TournamentBoard() {
                     <span className="font-slogan text-[14px] sm:text-[16px] font-bold tracking-wide text-white truncate">
                       {team.name}
                     </span>
+                    {team.paid && (
+                      <span className="ml-2.5 inline-flex items-center gap-1 shrink-0 rounded px-1.5 py-0.5 font-slogan text-[9px] font-bold uppercase tracking-[1px] text-[#4ade80] bg-[rgba(74,222,128,0.12)] border border-[rgba(74,222,128,0.35)]">
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Paid
+                      </span>
+                    )}
                     <span className="hidden sm:inline ml-3 font-slogan text-[10px] uppercase tracking-wider text-neutral-500">
                       {team.division}
                     </span>

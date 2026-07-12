@@ -9,6 +9,7 @@ import contactRouter from './routes/contact.routes.js'
 import registrationRouter from './routes/registration.routes.js'
 import teamRouter from './routes/team.routes.js'
 import riotRouter from './routes/riot.routes.js'
+import paymentRouter from './routes/payment.routes.js'
 
 const app = express();
 
@@ -27,6 +28,10 @@ app.use(cors({
   credentials: true,
 }));
 
+// Payment webhooks need the RAW body for signature verification, so parse them
+// as a Buffer BEFORE the global JSON parser consumes the stream.
+app.use('/api/payment/webhook', express.raw({ type: '*/*' }));
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -37,6 +42,7 @@ app.use('/api/contact', contactRouter);
 app.use('/api/registration', registrationRouter);
 app.use('/api/team', teamRouter);
 app.use('/api/riot', riotRouter);
+app.use('/api/payment', paymentRouter);
 
 app.get('/', (req, res) => {
   res.json({

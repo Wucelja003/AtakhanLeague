@@ -172,6 +172,7 @@ export const listIndividuals = async (req, res, next) => {
         username: r.username,
         role: r.role.toLowerCase(),
         division: r.division,
+        paid: r.paid,
       }))
     );
   } catch (error) {
@@ -191,6 +192,7 @@ export const listTeams = async (req, res, next) => {
         name: t.name,
         captainUsername: t.captainUsername,
         division: t.division,
+        paid: t.paid,
       }))
     );
   } catch (error) {

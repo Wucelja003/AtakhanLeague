@@ -48,6 +48,8 @@ model Team {
   captainRole     LaneRole?    // captain's lane in the team
   captain         User         @relation(fields: [captainId], references: [id], onDelete: Cascade)
   members         TeamMember[] // the other 4 players the captain adds later
+  paid            Boolean      @default(false) // entry fee paid (set by payment webhook)
+  paidAt          DateTime?
   createdAt       DateTime     @default(now())
 }
 
@@ -74,7 +76,26 @@ model IndividualRegistration {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   division  String
   role      LaneRole
+  paid      Boolean  @default(false) // entry fee paid (set by payment webhook)
+  paidAt    DateTime?
   createdAt DateTime @default(now())
+}
+
+// One row per payment attempt. Reconciled by provider webhooks via orderId.
+model Payment {
+  id         String   @id @default(uuid())
+  orderId    String   @unique          // our reference passed to the provider
+  provider   String                    // 'paypal' | 'nowpayments'
+  externalId String?                   // provider's order/invoice id
+  status     String   @default("pending") // pending | paid | failed | expired
+  amount     Int                       // cents: 3000 (team) or 600 (individual)
+  currency   String   @default("EUR")
+  kind       String                    // 'team' | 'individual'
+  userId     String                    // the paying user (captain or solo)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
 }
 
 enum LaneRole {

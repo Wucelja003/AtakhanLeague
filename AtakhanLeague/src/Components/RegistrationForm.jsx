@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import RoleDropdown from './RoleDropdown';
 
 export default function RegistrationForm({
@@ -15,6 +16,7 @@ export default function RegistrationForm({
   const [serverError, setServerError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   function inputClass(name) {
     if (errors[name] === true)
@@ -62,6 +64,8 @@ export default function RegistrationForm({
       setValues({});
       setRole('');
       setErrors({});
+      // Send them straight to their profile to pay the entry fee.
+      setTimeout(() => navigate('/profile'), 1500);
     } catch (err) {
       setServerError(err.message);
     } finally {

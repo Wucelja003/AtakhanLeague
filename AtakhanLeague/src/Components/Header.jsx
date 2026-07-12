@@ -24,11 +24,31 @@ export default function Header() {
   const { currentUser } = useSelector((state) => state.user);
   const [open, setOpen] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
+  const [hasUnpaid, setHasUnpaid] = useState(false);
 
   // Auto-close menu on route change
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
+
+  // Flag an unpaid entry fee so we can nudge the user toward their profile.
+  useEffect(() => {
+    if (!currentUser) {
+      setHasUnpaid(false);
+      return;
+    }
+    let alive = true;
+    fetch(api('/registration/me'), { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!alive || !d) return;
+        const unpaid =
+          (d.team && !d.team.paid) || (d.individual && !d.individual.paid);
+        setHasUnpaid(!!unpaid);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [currentUser, location.pathname]);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -79,12 +99,20 @@ export default function Header() {
         <div className="hidden md:flex gap-3 lg:gap-5">
           {currentUser ? (
             <>
-              <button
-                onClick={() => navigate('/profile')}
-                className={`${btnBase} text-white bg-[length:300%_300%] bg-[linear-gradient(270deg,#660000,#8B0000,#DC143C,#8B0000,#660000)] animate-wind-flow-login hover:animate-wind-flow-fast hover:shadow-[0_0_20px_rgba(102,0,0,0.8)] max-w-[180px] truncate`}
-              >
-                {currentUser.username || 'Profile'}
-              </button>
+              <span className="relative">
+                <button
+                  onClick={() => navigate('/profile')}
+                  className={`${btnBase} text-white bg-[length:300%_300%] bg-[linear-gradient(270deg,#660000,#8B0000,#DC143C,#8B0000,#660000)] animate-wind-flow-login hover:animate-wind-flow-fast hover:shadow-[0_0_20px_rgba(102,0,0,0.8)] max-w-[180px] truncate`}
+                >
+                  {currentUser.username || 'Profile'}
+                </button>
+                {hasUnpaid && (
+                  <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5" title="Entry fee pending">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DC143C] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#DC143C] border-2 border-black" />
+                  </span>
+                )}
+              </span>
               <button
                 onClick={() => setShowLogout(true)}
                 className={`${btnBase} text-neutral-300 border border-[rgba(102,0,0,0.4)] bg-[length:300%_300%] bg-[linear-gradient(270deg,#1a1a1a,#2d2d2d,#3a3a3a,#2d2d2d,#1a1a1a)] animate-wind-flow-register hover:animate-wind-flow-fast hover:text-white hover:border-[#660000] hover:shadow-[0_0_20px_rgba(102,0,0,0.4)]`}
@@ -173,12 +201,20 @@ export default function Header() {
           <div className="mt-8 flex flex-col gap-3">
             {currentUser ? (
               <>
-                <button
-                  onClick={() => navigate('/profile')}
-                  className={`${btnBase} w-full text-white bg-[length:300%_300%] bg-[linear-gradient(270deg,#660000,#8B0000,#DC143C,#8B0000,#660000)] animate-wind-flow-login`}
-                >
-                  {currentUser.username || 'Profile'}
-                </button>
+                <span className="relative block">
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className={`${btnBase} w-full text-white bg-[length:300%_300%] bg-[linear-gradient(270deg,#660000,#8B0000,#DC143C,#8B0000,#660000)] animate-wind-flow-login`}
+                  >
+                    {currentUser.username || 'Profile'}
+                  </button>
+                  {hasUnpaid && (
+                    <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5" title="Entry fee pending">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DC143C] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#DC143C] border-2 border-black" />
+                    </span>
+                  )}
+                </span>
                 <button
                   onClick={() => setShowLogout(true)}
                   className={`${btnBase} w-full text-neutral-300 border border-[rgba(102,0,0,0.4)] bg-[length:300%_300%] bg-[linear-gradient(270deg,#1a1a1a,#2d2d2d,#3a3a3a,#2d2d2d,#1a1a1a)] animate-wind-flow-register`}

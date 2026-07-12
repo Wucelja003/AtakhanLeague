@@ -50,9 +50,35 @@ export default function Profile() {
 
   if (!currentUser) return null;
 
+  const unpaidTeam = registration.team && !registration.team.paid;
+  const unpaidIndividual = registration.individual && !registration.individual.paid;
+  const unpaidFee = unpaidTeam ? '30€' : unpaidIndividual ? '6€' : null;
+
   return (
     <div className="relative min-h-screen px-5 py-12">
       <div className="mx-auto max-w-3xl flex flex-col gap-5">
+        {/* Unpaid entry-fee alert — the first thing they see */}
+        {unpaidFee && (
+          <div className="rounded-2xl bg-[rgba(220,20,60,0.08)] border border-[rgba(220,20,60,0.45)] px-6 py-5 shadow-[0_0_32px_rgba(220,20,60,0.2)] animate-form-fade-in">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 shrink-0 w-8 h-8 rounded-full grid place-items-center bg-[rgba(220,20,60,0.15)] border border-[rgba(220,20,60,0.5)] animate-pulse">
+                <svg className="w-4 h-4 text-[#DC143C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+              </span>
+              <div className="flex-1">
+                <p className="font-slogan text-[13px] font-bold uppercase tracking-[2px] text-[#DC143C]">
+                  Entry fee pending — {unpaidFee}
+                </p>
+                <p className="font-body text-[13px] text-neutral-300 mt-1">
+                  Your spot isn't final until the entry fee is paid. Complete it below to lock it in.
+                </p>
+                <PaymentPanel paid={false} fee={unpaidFee} />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Riot profile (op.gg-style) — or fallback if no linked Riot account */}
         {currentUser.riotPuuid ? (
           <RiotStats />

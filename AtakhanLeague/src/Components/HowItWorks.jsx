@@ -167,7 +167,7 @@ export default function HowItWorks() {
           only adds glow and never darkens the copy. */}
       <Suspense fallback={null}>
         <LightPillar
-          className="z-0 pointer-events-none opacity-70"
+          className="z-0 pointer-events-none opacity-70 [mask-image:linear-gradient(to_bottom,transparent_0%,black_22%,black_78%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_22%,black_78%,transparent_100%)]"
           topColor="#DC143C"
           bottomColor="#7B1A1A"
           intensity={0.65}

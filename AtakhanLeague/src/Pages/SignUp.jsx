@@ -1,11 +1,9 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import { api } from '../api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice';
 import SEO from '../Components/SEO';
-// Lazy — keeps three.js out of the main bundle; loads only on this page
-const GlitterWarp = lazy(() => import('../Components/GlitterWarp'));
 
 const passwordRules = [
   { test: (v) => v.length >= 6, label: 'At least 6 characters' },
@@ -73,22 +71,9 @@ export default function SignUp() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center px-6 py-16 overflow-hidden">
+    <div className="relative min-h-screen flex flex-col items-center px-6 py-16">
       <SEO title="Sign Up" path="/sign-up" noindex />
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <Suspense fallback={null}>
-          <GlitterWarp
-            color="#DC143C"
-            speed={1.4}
-            density={16}
-            brightness={1.8}
-            starSize={0.11}
-            focalDepth={0.04}
-            turbulence={0.7}
-          />
-        </Suspense>
-      </div>
-      <div className="relative z-10 w-full max-w-md">
+      <div className="w-full max-w-md">
         {/* Top: heading */}
         <div className="text-center mb-10 animate-fade-in-down">
           <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-5 border border-[rgba(220,20,60,0.4)] bg-[rgba(220,20,60,0.12)]">
@@ -106,7 +91,7 @@ export default function SignUp() {
         </div>
 
         {/* Form card */}
-        <div className="rounded-2xl bg-transparent border border-[rgba(220,20,60,0.35)] px-10 py-10 shadow-[0_0_60px_rgba(139,0,0,0.3)] [text-shadow:0_1px_6px_rgba(0,0,0,0.9)] animate-form-fade-in">
+        <div className="rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-10 py-10 backdrop-blur-md shadow-[0_0_48px_rgba(102,0,0,0.22),inset_0_0_24px_rgba(102,0,0,0.06)] animate-form-fade-in">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {/* Riot ID: Summoner Name + Tag */}
             <div className="animate-field-slide-in" style={{ animationDelay: '0.15s' }}>
@@ -123,7 +108,7 @@ export default function SignUp() {
                   required
                   placeholder="Summoner Name"
                   onChange={handleChange}
-                  className="flex-1 min-w-0 px-4 py-3 rounded-lg bg-transparent focus:bg-[rgba(10,10,10,0.3)] border border-[rgba(220,20,60,0.32)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-neutral-500 focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
+                  className="flex-1 min-w-0 px-4 py-3 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
                 />
                 <span className="font-heading text-[#DC143C] text-[20px] leading-none">#</span>
                 <input
@@ -133,7 +118,7 @@ export default function SignUp() {
                   placeholder="EUW"
                   maxLength={5}
                   onChange={handleChange}
-                  className="w-20 px-3 py-3 rounded-lg bg-transparent focus:bg-[rgba(10,10,10,0.3)] border border-[rgba(220,20,60,0.32)] text-white font-slogan text-sm text-center uppercase outline-none transition-all duration-300 placeholder:text-neutral-500 focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
+                  className="w-20 px-3 py-3 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm text-center uppercase outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
                 />
               </div>
               <p className="font-slogan text-[10px] tracking-wider text-neutral-500 mt-1.5">
@@ -155,7 +140,7 @@ export default function SignUp() {
                 required
                 placeholder="you@example.com"
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg bg-transparent focus:bg-[rgba(10,10,10,0.3)] border border-[rgba(220,20,60,0.32)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-neutral-500 focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
+                className="w-full px-4 py-3 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
               />
             </div>
 
@@ -174,7 +159,7 @@ export default function SignUp() {
                   required
                   placeholder="At least 6 characters"
                   onChange={handleChange}
-                  className="w-full px-4 py-3 pr-12 rounded-lg bg-transparent focus:bg-[rgba(10,10,10,0.3)] border border-[rgba(220,20,60,0.32)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-neutral-500 focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
+                  className="w-full px-4 py-3 pr-12 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
                 />
                 <button
                   type="button"
@@ -242,9 +227,9 @@ export default function SignUp() {
                   required
                   placeholder="Re-enter your password"
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 pr-12 rounded-lg bg-transparent focus:bg-[rgba(10,10,10,0.3)] border text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-neutral-500 focus:shadow-[0_0_10px_rgba(220,20,60,0.3)] ${
+                  className={`w-full px-4 py-3 pr-12 rounded-lg bg-black/50 border text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)] ${
                     confirmPassword.length === 0
-                      ? 'border-[rgba(220,20,60,0.32)] focus:border-[#DC143C]'
+                      ? 'border-[rgba(102,0,0,0.3)] focus:border-[#DC143C]'
                       : passwordsMatch
                         ? 'border-[#4ade80] focus:border-[#4ade80]'
                         : 'border-[#DC143C] focus:border-[#DC143C]'

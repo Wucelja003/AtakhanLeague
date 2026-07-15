@@ -1,11 +1,9 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import { api } from '../api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice';
 import SEO from '../Components/SEO';
-// Lazy — keeps three.js out of the main bundle; loads only on this page
-const GlitterWarp = lazy(() => import('../Components/GlitterWarp'));
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
@@ -41,22 +39,9 @@ export default function SignIn() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center px-6 py-16 overflow-hidden">
+    <div className="relative min-h-screen flex flex-col items-center px-6 py-16">
       <SEO title="Sign In" path="/sign-in" noindex />
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <Suspense fallback={null}>
-          <GlitterWarp
-            color="#DC143C"
-            speed={1.4}
-            density={16}
-            brightness={1.8}
-            starSize={0.11}
-            focalDepth={0.04}
-            turbulence={0.7}
-          />
-        </Suspense>
-      </div>
-      <div className="relative z-10 w-full max-w-md">
+      <div className="w-full max-w-md">
         {/* Top: heading */}
         <div className="text-center mb-10 animate-fade-in-down">
           <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-5 border border-[rgba(220,20,60,0.4)] bg-[rgba(220,20,60,0.12)]">
@@ -74,7 +59,7 @@ export default function SignIn() {
         </div>
 
         {/* Form card */}
-        <div className="rounded-2xl bg-transparent border border-[rgba(220,20,60,0.35)] px-10 py-10 shadow-[0_0_60px_rgba(139,0,0,0.3)] [text-shadow:0_1px_6px_rgba(0,0,0,0.9)] animate-form-fade-in">
+        <div className="rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-10 py-10 backdrop-blur-md shadow-[0_0_48px_rgba(102,0,0,0.22),inset_0_0_24px_rgba(102,0,0,0.06)] animate-form-fade-in">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {/* Summoner Name */}
             <div className="animate-field-slide-in" style={{ animationDelay: '0.15s' }}>
@@ -90,7 +75,7 @@ export default function SignIn() {
                 placeholder="YourSummonerName"
                 required
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg bg-transparent focus:bg-[rgba(10,10,10,0.3)] border border-[rgba(220,20,60,0.32)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-neutral-500 focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
+                className="w-full px-4 py-3 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
               />
             </div>
 
@@ -108,7 +93,7 @@ export default function SignIn() {
                 placeholder="you@example.com"
                 required
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg bg-transparent focus:bg-[rgba(10,10,10,0.3)] border border-[rgba(220,20,60,0.32)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-neutral-500 focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
+                className="w-full px-4 py-3 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
               />
             </div>
 
@@ -134,7 +119,7 @@ export default function SignIn() {
                   id="password"
                   placeholder="••••••••"
                   onChange={handleChange}
-                  className="w-full px-4 py-3 pr-12 rounded-lg bg-transparent focus:bg-[rgba(10,10,10,0.3)] border border-[rgba(220,20,60,0.32)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-neutral-500 focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
+                  className="w-full px-4 py-3 pr-12 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]"
                 />
                 <button
                   type="button"

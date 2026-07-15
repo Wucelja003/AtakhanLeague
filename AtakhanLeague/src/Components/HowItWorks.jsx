@@ -1,6 +1,8 @@
 import { motion, useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { ClipboardList, MailCheck, Users, CalendarDays, BadgeCheck, Swords } from "lucide-react";
+// Lazy — keeps three.js out of the main bundle
+const LightPillar = lazy(() => import("./LightPillar"));
 
 const steps = [
   {
@@ -161,7 +163,27 @@ export default function HowItWorks() {
 
   return (
     <section className="relative z-[2] w-full flex items-start py-16 sm:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="relative max-w-[1200px] mx-auto w-full flex flex-col items-center">
+      {/* Crimson light-pillar backdrop — behind the text, screen-blended so it
+          only adds glow and never darkens the copy. */}
+      <Suspense fallback={null}>
+        <LightPillar
+          className="z-0 pointer-events-none opacity-70"
+          topColor="#DC143C"
+          bottomColor="#7B1A1A"
+          intensity={0.65}
+          rotationSpeed={0.22}
+          glowAmount={0.004}
+          pillarWidth={3}
+          pillarHeight={0.4}
+          noiseIntensity={0.35}
+          pillarRotation={20}
+          interactive={false}
+          mixBlendMode="screen"
+          quality="medium"
+        />
+      </Suspense>
+
+      <div className="relative z-10 max-w-[1200px] mx-auto w-full flex flex-col items-center">
         <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}

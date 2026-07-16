@@ -1,39 +1,48 @@
 import { motion, useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
 import { useEffect, useRef, useState, lazy, Suspense } from "react";
-import { ClipboardList, MailCheck, Users, CalendarDays, BadgeCheck, Swords } from "lucide-react";
+import { Fingerprint, ClipboardList, MailCheck, CreditCard, Users, CalendarDays, KeyRound, Swords } from "lucide-react";
 // Lazy — keeps three.js out of the main bundle
 const LightPillar = lazy(() => import("./LightPillar"));
 
 const steps = [
   {
-    title: "Register",
-    copy: "Fill out the registration form — as a full team or as an individual looking to compete.",
+    title: "Sign in with your Summoner ID",
+    copy: "Create your account and log in with your Riot Summoner ID. We verify it live through Riot's official API, so every player on the Rift is rank-verified and real — no smurfs, no fakes.",
+    icon: Fingerprint,
+  },
+  {
+    title: "Register for the tournament",
+    copy: "Fill out the registration form to officially enter. Sign up as a team captain and bring your squad, or enter solo — our organizers place solo players onto a team before the draw.",
     icon: ClipboardList,
   },
   {
-    title: "Confirmation",
-    copy: "Receive an email confirmation with your registration details and payment information.",
+    title: "Get your confirmation email",
+    copy: "The moment you register, a confirmation email lands in your inbox with all your details — proof that your entry is locked into the system.",
     icon: MailCheck,
   },
   {
-    title: "Team Assignment",
-    tag: "Individual players",
-    copy: "Solo registrants get assigned to a team by our organizers before the tournament kicks off.",
+    title: "Pay the entry fee",
+    copy: "Secure your spot with the entry fee — pay whichever way suits you, PayPal or crypto, nothing else required. Your place isn't final until the fee clears; once it does, you're fully in.",
+    icon: CreditCard,
+  },
+  {
+    title: "You're on the board & in the bracket",
+    copy: "Once you're confirmed and paid, your team appears on the live Tournament Board and gets drawn into the single-elimination bracket for the whole community to see.",
     icon: Users,
   },
   {
     title: "Draw & Schedule",
-    copy: "Teams are drawn and the full match schedule is published. Study your bracket, Summoner.",
+    copy: "Teams are drawn and the full match schedule is published. Study your bracket, Summoner — know exactly when and who you play.",
     icon: CalendarDays,
   },
   {
-    title: "Check-In",
-    copy: "Check in on Discord or the site at least 30 minutes before your scheduled match.",
-    icon: BadgeCheck,
+    title: "Check in & get your code",
+    copy: "Check in on the site or Discord at least 30 minutes before your match. You'll receive your lobby code — join the custom game, lock in your champion, and get ready.",
+    icon: KeyRound,
   },
   {
-    title: "Play",
-    copy: "The Rift awaits. Give everything you've got. Good luck, Summoner.",
+    title: "Play & climb the bracket",
+    copy: "The Rift awaits. Win your matches, advance round by round, and battle for the crown and the prize pool. Give it everything, Summoner.",
     icon: Swords,
   },
 ];

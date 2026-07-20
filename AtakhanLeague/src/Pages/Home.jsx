@@ -5,6 +5,7 @@ import SEO from '../Components/SEO';
 import VideoBackground from '../Components/VideoBackground';
 import Introduce from '../Components/Introduce';
 import TournamentJourney from '../Components/TournamentJourney';
+import GlowDivider from '../Components/GlowDivider';
 import ChampionQuotes from '../Components/ChampionQuotes';
 import TournamentInfo from '../Components/TournamentInfo';
 import Registration from '../Components/Registration';
@@ -125,8 +126,10 @@ export default function Home() {
       </section>
       <Introduce />
       <TournamentJourney />
+      <GlowDivider />
       <TournamentInfo />
       <ChampionQuotes />
+      <GlowDivider />
       <div id="registration-section">
         <Registration />
       </div>

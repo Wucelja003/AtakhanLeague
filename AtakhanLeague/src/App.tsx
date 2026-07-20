@@ -14,6 +14,8 @@ import ForgotPassword from './Pages/ForgotPassword';
 import ResetPassword from './Pages/ResetPassword';
 import PaymentSuccess from './Pages/PaymentSuccess';
 import PaymentCancel from './Pages/PaymentCancel';
+import Admin from './Pages/Admin';
+import AdminRoute from './Components/AdminRoute';
 import PrivateRoute from './Components/PrivateRoute';
 import Footer from './Components/Footer';
 
@@ -53,6 +55,10 @@ export default function App() {
 
         <Route element={<PrivateRoute />}>
           <Route path='/profile' element={<Profile />} />
+        </Route>
+
+        <Route element={<AdminRoute />}>
+          <Route path='/admin' element={<Admin />} />
         </Route>
       </Routes>
       <Footer />

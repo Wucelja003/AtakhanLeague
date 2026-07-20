@@ -105,3 +105,19 @@ enum LaneRole {
   ADC
   SUPPORT
 }
+
+// Single-elimination bracket: 7 fixed matches (QF1-4, SF1-2, F).
+// Admin seeds team names into the QFs and enters scores; winners propagate.
+model Match {
+  id         String   @id @default(uuid())
+  code       String   @unique  // QF1..QF4, SF1, SF2, F
+  round      String            // quarterfinal | semifinal | final
+  order      Int               // display order within a round
+  time       String            // e.g. "18:00"
+  teamAName  String?
+  teamBName  String?
+  scoreA     Int?
+  scoreB     Int?
+  winnerName String?
+  updatedAt  DateTime @updatedAt
+}

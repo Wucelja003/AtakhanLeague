@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react';
+import { api } from '../api';
 import SEO from '../Components/SEO';
 
-const bracket = {
+// Shown until the live bracket loads (and if the API is unavailable).
+const FALLBACK_BRACKET = {
   quarterfinals: [
     { id: 'QF1', round: 'Quarterfinal 1', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:00' },
     { id: 'QF2', round: 'Quarterfinal 2', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:00' },
@@ -15,13 +18,6 @@ const bracket = {
     id: 'F', round: 'Grand Final', teamA: 'Winner SF1', teamB: 'Winner SF2', scoreA: null, scoreB: null, time: '22:00',
   },
 };
-
-// Flat schedule list (chronological by time)
-const schedule = [
-  ...bracket.quarterfinals,
-  ...bracket.semifinals,
-  bracket.final,
-];
 
 function MatchCard({ match }) {
   const aWon = match.scoreA != null && match.scoreB != null && match.scoreA > match.scoreB;
@@ -69,6 +65,17 @@ function RoundColumn({ label, children }) {
 }
 
 export default function Tournaments() {
+  const [bracket, setBracket] = useState(FALLBACK_BRACKET);
+
+  useEffect(() => {
+    fetch(api('/tournament/bracket'))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d && d.quarterfinals && d.final) setBracket(d); })
+      .catch(() => {});
+  }, []);
+
+  const schedule = [...bracket.quarterfinals, ...bracket.semifinals, bracket.final];
+
   return (
     <section className="relative z-[2] min-h-[calc(100vh-200px)] px-5 py-16">
       <SEO

@@ -1,0 +1,116 @@
+import { prisma } from '../db.js';
+import { errorHandler } from '../utils/error.js';
+import { ensureBracket, ADVANCE } from '../utils/bracket.js';
+
+// ---- GET /api/admin/registrations ----
+export const getRegistrations = async (req, res, next) => {
+  try {
+    const [teams, individuals] = await Promise.all([
+      prisma.team.findMany({
+        include: { members: true, captain: { select: { email: true } } },
+        orderBy: { createdAt: 'asc' },
+      }),
+      prisma.individualRegistration.findMany({
+        include: { user: { select: { email: true } } },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+    res.json({ teams, individuals });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- POST /api/admin/payment/toggle ----  body: { kind, userId, paid }
+export const togglePayment = async (req, res, next) => {
+  const { kind, userId, paid } = req.body || {};
+  try {
+    const data = { paid: !!paid, paidAt: paid ? new Date() : null };
+    if (kind === 'team') {
+      await prisma.team.updateMany({ where: { captainId: userId }, data });
+    } else if (kind === 'individual') {
+      await prisma.individualRegistration.updateMany({ where: { userId }, data });
+    } else {
+      return next(errorHandler(400, 'Invalid kind'));
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- DELETE /api/admin/registration/:type/:id ----
+export const cancelRegistration = async (req, res, next) => {
+  const { type, id } = req.params;
+  try {
+    if (type === 'team') await prisma.team.delete({ where: { id } });
+    else if (type === 'individual') await prisma.individualRegistration.delete({ where: { id } });
+    else return next(errorHandler(400, 'Invalid type'));
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- POST /api/admin/bracket/seed ----  body: { teams: [8 names] }
+// Resets the bracket and assigns the 8 team names into the quarterfinals.
+export const seedBracket = async (req, res, next) => {
+  const teams = Array.isArray(req.body?.teams) ? req.body.teams : [];
+  try {
+    await ensureBracket();
+    // Re-seeding invalidates any prior results.
+    await prisma.match.updateMany({ data: { scoreA: null, scoreB: null, winnerName: null } });
+    await prisma.match.updateMany({
+      where: { code: { in: ['SF1', 'SF2', 'F'] } },
+      data: { teamAName: null, teamBName: null },
+    });
+
+    const pairs = {
+      QF1: [teams[0], teams[1]],
+      QF2: [teams[2], teams[3]],
+      QF3: [teams[4], teams[5]],
+      QF4: [teams[6], teams[7]],
+    };
+    for (const [code, [a, b]] of Object.entries(pairs)) {
+      await prisma.match.update({ where: { code }, data: { teamAName: a || null, teamBName: b || null } });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- POST /api/admin/match/:code/result ----  body: { scoreA, scoreB }
+// Sets scores, decides the winner, and propagates it to the next match slot.
+export const setMatchResult = async (req, res, next) => {
+  const { code } = req.params;
+  try {
+    const match = await prisma.match.findUnique({ where: { code } });
+    if (!match) return next(errorHandler(404, 'Match not found'));
+
+    const parse = (v) => (v === '' || v == null ? null : Number(v));
+    const a = parse(req.body?.scoreA);
+    const b = parse(req.body?.scoreB);
+
+    let winnerName = null;
+    if (a != null && b != null) {
+      if (a > b) winnerName = match.teamAName;
+      else if (b > a) winnerName = match.teamBName;
+    }
+
+    await prisma.match.update({ where: { code }, data: { scoreA: a, scoreB: b, winnerName } });
+
+    // Push the winner (or null, to clear) into the fed slot.
+    const adv = ADVANCE[code];
+    if (adv) {
+      const [nextCode, slot] = adv;
+      await prisma.match.update({
+        where: { code: nextCode },
+        data: slot === 'A' ? { teamAName: winnerName } : { teamBName: winnerName },
+      });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+};

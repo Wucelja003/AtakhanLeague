@@ -10,6 +10,8 @@ import registrationRouter from './routes/registration.routes.js'
 import teamRouter from './routes/team.routes.js'
 import riotRouter from './routes/riot.routes.js'
 import paymentRouter from './routes/payment.routes.js'
+import adminRouter from './routes/admin.routes.js'
+import tournamentRouter from './routes/tournament.routes.js'
 
 const app = express();
 
@@ -43,6 +45,8 @@ app.use('/api/registration', registrationRouter);
 app.use('/api/team', teamRouter);
 app.use('/api/riot', riotRouter);
 app.use('/api/payment', paymentRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/tournament', tournamentRouter);
 
 app.get('/', (req, res) => {
   res.json({

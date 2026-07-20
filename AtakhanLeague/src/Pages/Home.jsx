@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import SEO from '../Components/SEO';
 import VideoBackground from '../Components/VideoBackground';
 import Introduce from '../Components/Introduce';
+
+// Atakhan demon that swims across the screen between the hero and Introduce.
+const AtakhanFlyby = lazy(() => import('../Components/AtakhanFlyby'));
 import HowItWorks from '../Components/HowItWorks';
 import ChampionQuotes from '../Components/ChampionQuotes';
 import TournamentInfo from '../Components/TournamentInfo';
@@ -123,6 +126,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Atakhan demon swims left → right between the hero and the intro */}
+      <section aria-hidden="true" className="relative z-[2] h-[240px] sm:h-[320px] overflow-hidden pointer-events-none">
+        <Suspense fallback={null}>
+          <AtakhanFlyby height="100%" speed={0.14} />
+        </Suspense>
+      </section>
+
       <Introduce />
       <HowItWorks />
       <TournamentInfo />

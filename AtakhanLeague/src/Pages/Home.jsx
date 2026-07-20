@@ -128,7 +128,7 @@ export default function Home() {
       </section>
 
       {/* Atakhan demon swims left → right between the hero and the intro */}
-      <section aria-hidden="true" className="relative z-[2] h-[240px] sm:h-[320px] overflow-hidden pointer-events-none">
+      <section aria-hidden="true" className="relative z-[2] h-[140px] sm:h-[160px] overflow-hidden pointer-events-none">
         <Suspense fallback={null}>
           <AtakhanFlyby height="100%" speed={0.14} />
         </Suspense>

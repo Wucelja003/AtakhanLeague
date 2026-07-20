@@ -26,9 +26,9 @@ export default function AtakhanFlyby({
   className = '',
   speed = 0.18,
   height = '100%',
-  modelSize = 2.4,
+  modelSize = 2.05,
   facing = Math.PI / 2, // full right-facing profile — leads with the head, wings trailing
-  yOffset = -1.2, // sit low in the band
+  yOffset = -0.05, // roughly centered in the compact band
 }: Props) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const runningRef = useRef(true);

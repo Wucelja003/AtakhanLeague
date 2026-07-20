@@ -14,16 +14,18 @@ const TEAM_NAMES = [
 ];
 const SLOTS_PER_ROLE = TEAM_NAMES.length; // 8 teams
 
-export default function PlayersPool() {
-  const [registrations, setRegistrations] = useState([]);
+// `registrations` — pass static data (e.g. the tutorial demo) to skip the live fetch.
+export default function PlayersPool({ registrations: regProp }) {
+  const [fetched, setFetched] = useState([]);
 
   // Fetch on mount + poll every 15s so new registrations show up live
   useEffect(() => {
+    if (regProp) return; // static data provided — don't fetch
     let alive = true;
     const fetchData = () =>
       fetch(api('/registration/individuals'))
         .then((r) => r.json())
-        .then((data) => alive && setRegistrations(Array.isArray(data) ? data : []))
+        .then((data) => alive && setFetched(Array.isArray(data) ? data : []))
         .catch(() => {});
     fetchData();
     const id = setInterval(fetchData, 15000);
@@ -31,7 +33,9 @@ export default function PlayersPool() {
       alive = false;
       clearInterval(id);
     };
-  }, []);
+  }, [regProp]);
+
+  const registrations = regProp ?? fetched;
 
   // Group registrations by role → array of usernames
   const byRole = roles.reduce((acc, r) => {

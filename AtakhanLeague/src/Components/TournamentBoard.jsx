@@ -3,16 +3,18 @@ import { api } from '../api';
 
 const TOTAL_SLOTS = 8; // Number of teams competing in the tournament
 
-export default function TournamentBoard() {
-  const [teams, setTeams] = useState([]);
+// `teams` — pass static data (e.g. the tutorial demo) to skip the live fetch.
+export default function TournamentBoard({ teams: teamsProp }) {
+  const [fetched, setFetched] = useState([]);
 
   // Fetch on mount + poll every 15s so new team registrations show up live
   useEffect(() => {
+    if (teamsProp) return; // static data provided — don't fetch
     let alive = true;
     const fetchData = () =>
       fetch(api('/registration/teams'))
         .then((r) => r.json())
-        .then((data) => alive && setTeams(Array.isArray(data) ? data : []))
+        .then((data) => alive && setFetched(Array.isArray(data) ? data : []))
         .catch(() => {});
     fetchData();
     const id = setInterval(fetchData, 15000);
@@ -20,7 +22,9 @@ export default function TournamentBoard() {
       alive = false;
       clearInterval(id);
     };
-  }, []);
+  }, [teamsProp]);
+
+  const teams = teamsProp ?? fetched;
 
   const filled = Math.min(teams.length, TOTAL_SLOTS);
   const remaining = TOTAL_SLOTS - filled;

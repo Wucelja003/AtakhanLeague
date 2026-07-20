@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import Home from './Pages/Home';
 import SignIn from './Pages/SignIn';
@@ -60,6 +60,9 @@ export default function App() {
         <Route element={<AdminRoute />}>
           <Route path='/admin' element={<Admin />} />
         </Route>
+
+        {/* Any unknown path returns to the site instead of a blank page */}
+        <Route path='*' element={<Navigate to='/' replace />} />
       </Routes>
       <Footer />
     </BrowserRouter>

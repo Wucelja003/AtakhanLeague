@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
+import { FaDiscord, FaInstagram, FaTiktok } from 'react-icons/fa6';
 // Lazy — keeps three.js out of the main bundle
 const RisingLines = lazy(() => import('./RisingLines'));
 
 const socials = [
-  { label: 'Discord', img: '/Icons/Discord-icon.svg', href: 'https://discord.gg/WuNn2G8PxY' },
-  { label: 'Instagram', img: '/Icons/Instragram-icon.svg', href: 'https://www.instagram.com/atakhanleague' },
-  { label: 'TikTok', img: '/Icons/tiktok-icon.svg', href: 'https://www.tiktok.com/@atakhanleague' },
+  { label: 'Discord', Icon: FaDiscord, href: 'https://discord.gg/WuNn2G8PxY' },
+  { label: 'Instagram', Icon: FaInstagram, href: 'https://www.instagram.com/atakhanleague' },
+  { label: 'TikTok', Icon: FaTiktok, href: 'https://www.tiktok.com/@atakhanleague' },
 ];
 
 const navLinks = [
@@ -34,29 +35,35 @@ export default function Footer() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl grid gap-12 md:grid-cols-[1fr_auto] items-start pb-10">
-        {/* Left: logo + socials */}
-        <div className="flex flex-col items-start gap-7">
-          <Link to="/">
+        {/* Left: logo + name + socials */}
+        <div className="flex flex-col items-start gap-6">
+          <Link to="/" className="flex items-center gap-3">
             <img
               src="/MainLogoAtakhan-2.svg"
               alt="Atakhan League"
-              className="w-[120px] h-auto [filter:drop-shadow(0_0_20px_rgba(139,0,0,0.5))] transition-[filter] duration-300 hover:[filter:drop-shadow(0_0_32px_rgba(139,0,0,0.85))]"
+              className="w-[60px] h-auto [filter:drop-shadow(0_0_20px_rgba(139,0,0,0.5))] transition-[filter] duration-300 hover:[filter:drop-shadow(0_0_32px_rgba(139,0,0,0.85))]"
             />
+            <span className="font-heading text-white text-[26px] sm:text-[30px] tracking-[3px] uppercase leading-none [text-shadow:0_0_18px_rgba(139,0,0,0.7),0_0_40px_rgba(102,0,0,0.4)]">
+              Atakhan <span className="text-secondary">League</span>
+            </span>
           </Link>
 
-          <div className="flex gap-7">
+          <p className="font-body text-[14px] text-neutral-400 max-w-xs">
+            Community-run League of Legends tournaments. Compete, climb, conquer the Rift.
+          </p>
+
+          <div className="flex items-center gap-4">
             {socials.map((s) => (
               <a
                 key={s.label}
                 href={s.href}
-                className="group flex flex-col items-center gap-2 font-body text-[13px] text-neutral-400 transition-colors duration-300 hover:text-secondary"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                title={s.label}
+                className="group grid place-items-center w-12 h-12 rounded-xl text-[#DC143C] bg-[rgba(139,0,0,0.08)] border border-[rgba(220,20,60,0.35)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#DC143C] hover:bg-[rgba(220,20,60,0.15)] hover:shadow-[0_0_22px_rgba(220,20,60,0.5)]"
               >
-                <img
-                  src={s.img}
-                  alt={s.label}
-                  className="w-10 h-10 object-contain grayscale opacity-70 transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110"
-                />
-                <span>{s.label}</span>
+                <s.Icon className="w-[22px] h-[22px] transition-transform duration-300 group-hover:scale-110" />
               </a>
             ))}
           </div>

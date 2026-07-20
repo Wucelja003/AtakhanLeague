@@ -20,6 +20,30 @@ const QF_SLOTS = [
 const card = 'rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-6 py-6 backdrop-blur-md';
 const heading = 'font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#DC143C] mb-4';
 
+// Online-payment attempt status, straight from the Payment table.
+const PAY_STATUS = {
+  paid: ['Paid', 'text-[#4ade80] border-[rgba(74,222,128,0.4)] bg-[rgba(74,222,128,0.1)]'],
+  pending: ['Pending', 'text-[#f59e0b] border-[rgba(245,158,11,0.4)] bg-[rgba(245,158,11,0.1)]'],
+  failed: ['Failed', 'text-[#ef4444] border-[rgba(239,68,68,0.4)] bg-[rgba(239,68,68,0.1)]'],
+  expired: ['Expired', 'text-neutral-400 border-[rgba(102,0,0,0.4)] bg-black/40'],
+};
+
+function PayStatus({ status }) {
+  if (!status) {
+    return (
+      <span className="font-slogan text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border text-neutral-600 border-[rgba(102,0,0,0.25)] bg-black/30">
+        No attempt
+      </span>
+    );
+  }
+  const [label, cls] = PAY_STATUS[status] || [status, 'text-neutral-400 border-[rgba(102,0,0,0.4)] bg-black/40'];
+  return (
+    <span className={`font-slogan text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
 export default function Admin() {
   const [regs, setRegs] = useState({ teams: [], individuals: [] });
   const [bracket, setBracket] = useState(null);
@@ -102,6 +126,7 @@ export default function Admin() {
               {regs.teams.map((t) => (
                 <div key={t.id} className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-lg bg-black/30 border border-[rgba(102,0,0,0.25)]">
                   <span className="font-slogan text-[14px] font-bold text-white">{t.name}</span>
+                  <PayStatus status={t.paymentStatus} />
                   <span className="font-slogan text-[11px] text-neutral-500">{t.captainUsername} · {t.captain?.email}</span>
                   <span className="font-slogan text-[10px] text-neutral-600">{t.members?.length ?? 0}/4 members</span>
                   <div className="ml-auto flex items-center gap-2">
@@ -139,6 +164,7 @@ export default function Admin() {
               {regs.individuals.map((r) => (
                 <div key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-lg bg-black/30 border border-[rgba(102,0,0,0.25)]">
                   <span className="font-slogan text-[14px] font-bold text-white">{r.username}</span>
+                  <PayStatus status={r.paymentStatus} />
                   <span className="font-slogan text-[11px] uppercase text-[#DC143C]">{String(r.role)}</span>
                   <span className="font-slogan text-[11px] text-neutral-500">{r.user?.email}</span>
                   <div className="ml-auto flex items-center gap-2">

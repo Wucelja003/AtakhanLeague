@@ -47,6 +47,15 @@ async function markPaymentPaid(orderId, externalId) {
   return true;
 }
 
+// Record a failed/expired attempt. Never downgrades a payment that already paid.
+async function markPaymentStatus(orderId, status) {
+  if (!orderId) return false;
+  const payment = await prisma.payment.findUnique({ where: { orderId } });
+  if (!payment || payment.status === 'paid') return false;
+  await prisma.payment.update({ where: { orderId }, data: { status } });
+  return true;
+}
+
 // ---- POST /api/payment/create -------------------------------------------
 export const createPayment = async (req, res, next) => {
   const userId = req.user.id;
@@ -60,12 +69,26 @@ export const createPayment = async (req, res, next) => {
     if (!reg) return next(errorHandler(404, 'You have no registration to pay for'));
     if (reg.registration.paid) return next(errorHandler(409, 'Entry fee is already paid'));
 
-    const orderId = crypto.randomUUID();
     const provider = method === 'paypal' ? 'paypal' : 'nowpayments';
 
-    await prisma.payment.create({
-      data: { orderId, provider, amount: reg.amount, kind: reg.kind, userId, status: 'pending' },
+    // Reuse an unfinished attempt so pending rows don't pile up for the same user.
+    const existing = await prisma.payment.findFirst({
+      where: { userId, status: 'pending' },
+      orderBy: { createdAt: 'desc' },
     });
+    let orderId;
+    if (existing) {
+      orderId = existing.orderId;
+      await prisma.payment.update({
+        where: { orderId },
+        data: { provider, amount: reg.amount, kind: reg.kind, externalId: null },
+      });
+    } else {
+      orderId = crypto.randomUUID();
+      await prisma.payment.create({
+        data: { orderId, provider, amount: reg.amount, kind: reg.kind, userId, status: 'pending' },
+      });
+    }
 
     let url;
     let externalId;
@@ -121,6 +144,10 @@ export const nowpaymentsWebhook = async (req, res) => {
     const status = event.payment_status;
     if (status === 'finished' || status === 'confirmed') {
       await markPaymentPaid(event.order_id, event.payment_id);
+    } else if (status === 'failed' || status === 'refunded') {
+      await markPaymentStatus(event.order_id, 'failed');
+    } else if (status === 'expired') {
+      await markPaymentStatus(event.order_id, 'expired');
     }
     res.status(200).send('ok');
   } catch (err) {
@@ -135,9 +162,15 @@ export const paypalWebhook = async (req, res) => {
     const ok = await verifyPaypalWebhook(req.headers, req.body);
     if (!ok) return res.status(401).send('Invalid signature');
     const event = JSON.parse(req.body.toString('utf8'));
+    const orderId = event.resource?.custom_id;
     if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
-      const orderId = event.resource?.custom_id;
       if (orderId) await markPaymentPaid(orderId, event.resource?.id);
+    } else if (
+      event.event_type === 'PAYMENT.CAPTURE.DENIED' ||
+      event.event_type === 'PAYMENT.CAPTURE.DECLINED' ||
+      event.event_type === 'CHECKOUT.ORDER.DECLINED'
+    ) {
+      if (orderId) await markPaymentStatus(orderId, 'failed');
     }
     res.status(200).send('ok');
   } catch (err) {

@@ -15,7 +15,26 @@ export const getRegistrations = async (req, res, next) => {
         orderBy: { createdAt: 'asc' },
       }),
     ]);
-    res.json({ teams, individuals });
+
+    // Attach the online-payment attempt status per registration (paid wins,
+    // otherwise the most recent attempt: pending | failed | expired | null).
+    const userIds = [...teams.map((t) => t.captainId), ...individuals.map((i) => i.userId)];
+    const payments = userIds.length
+      ? await prisma.payment.findMany({
+          where: { userId: { in: userIds } },
+          orderBy: { createdAt: 'desc' },
+        })
+      : [];
+    const statusByUser = {};
+    for (const p of payments) {
+      if (p.status === 'paid') statusByUser[p.userId] = 'paid';
+      else if (!statusByUser[p.userId]) statusByUser[p.userId] = p.status;
+    }
+
+    res.json({
+      teams: teams.map((t) => ({ ...t, paymentStatus: statusByUser[t.captainId] || null })),
+      individuals: individuals.map((i) => ({ ...i, paymentStatus: statusByUser[i.userId] || null })),
+    });
   } catch (err) {
     next(err);
   }

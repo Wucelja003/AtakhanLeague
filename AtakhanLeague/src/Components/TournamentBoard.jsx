@@ -100,9 +100,6 @@ export default function TournamentBoard() {
                         Paid
                       </span>
                     )}
-                    <span className="hidden sm:inline ml-3 font-slogan text-[10px] uppercase tracking-wider text-neutral-500">
-                      {team.division}
-                    </span>
                   </>
                 ) : (
                   <span className="font-slogan text-[12px] sm:text-[13px] uppercase tracking-wider text-neutral-600 italic">

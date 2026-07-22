@@ -1,5 +1,6 @@
 const rows = [
   { key: 'Date', val: '15 August 2026' },
+  { key: 'Server' , val: 'EUNE'},
   { key: 'Start', val: '18:00 CET' },
   { key: 'Number of Teams', val: '8' },
   { key: 'Format', val: 'Single Elimination' },

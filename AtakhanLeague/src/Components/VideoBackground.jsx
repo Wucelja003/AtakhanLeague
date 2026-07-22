@@ -10,13 +10,14 @@ export default function VideoBackground() {
         loop
         muted
         playsInline
-        preload="auto"
+        preload="none"
+        poster="atakhan-bg-poster.jpg"
         onCanPlay={() => setReady(true)}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
           ready ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <source src="Timeline 1.mp4" type="video/mp4" />
+        <source src="atakhan-bg.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-black/80" />
     </div>

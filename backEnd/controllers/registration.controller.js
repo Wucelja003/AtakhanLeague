@@ -1,6 +1,7 @@
 import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { sendTournamentConfirmation } from '../utils/mailer.js';
+import { parseDivision } from '../utils/rank.js';
 
 // Map frontend role values (lowercase) → Prisma enum (uppercase)
 const roleMap = {
@@ -53,6 +54,17 @@ export const registerTeam = async (req, res, next) => {
       },
     });
 
+    // Put the captain on the leaderboard right away (team members are not added).
+    // Existing points are never reset — only the team/rank snapshot is refreshed.
+    const { tier, division: div } = parseDivision(team.division);
+    await prisma.ranking
+      .upsert({
+        where: { username: captain.username },
+        update: { team: team.name, tier, division: div },
+        create: { username: captain.username, team: team.name, tier, division: div, points: 0 },
+      })
+      .catch((err) => console.error('[ranking] captain upsert failed:', err.message));
+
     // Send confirmation email — don't block on failure
     sendTournamentConfirmation(captain.email, {
       username: captain.username,
@@ -100,6 +112,17 @@ export const registerIndividual = async (req, res, next) => {
     const reg = await prisma.individualRegistration.create({
       data: { userId, username: user.username, division, role: dbRole },
     });
+
+    // Solo players land on the leaderboard too (no team yet — the organizer
+    // fills that in once they're placed). Existing points are never reset.
+    const { tier: soloTier, division: soloDiv } = parseDivision(reg.division);
+    await prisma.ranking
+      .upsert({
+        where: { username: user.username },
+        update: { tier: soloTier, division: soloDiv },
+        create: { username: user.username, tier: soloTier, division: soloDiv, points: 0 },
+      })
+      .catch((err) => console.error('[ranking] solo upsert failed:', err.message));
 
     // Send confirmation email — don't block on failure
     sendTournamentConfirmation(user.email, {

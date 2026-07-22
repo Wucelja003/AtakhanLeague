@@ -1,6 +1,7 @@
 import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { ensureBracket, ADVANCE } from '../utils/bracket.js';
+import { parseDivision } from '../utils/rank.js';
 
 // ---- GET /api/admin/registrations ----
 export const getRegistrations = async (req, res, next) => {
@@ -65,6 +66,76 @@ export const cancelRegistration = async (req, res, next) => {
     if (type === 'team') await prisma.team.delete({ where: { id } });
     else if (type === 'individual') await prisma.individualRegistration.delete({ where: { id } });
     else return next(errorHandler(400, 'Invalid type'));
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- POST /api/admin/ranking ----  body: { username, team, tier, division, points }
+// Creates or updates a leaderboard entry (keyed by summoner name).
+export const upsertRanking = async (req, res, next) => {
+  const username = (req.body?.username || '').trim();
+  const team = (req.body?.team || '').trim() || null;
+  const tier = (req.body?.tier || '').trim().toUpperCase() || null;
+  const division = (req.body?.division || '').trim().toUpperCase() || null;
+  const points = Number(req.body?.points);
+  try {
+    if (!username) return next(errorHandler(400, 'Summoner name is required'));
+    if (!Number.isFinite(points)) return next(errorHandler(400, 'Points must be a number'));
+
+    const data = { team, tier, division, points: Math.trunc(points) };
+    const entry = await prisma.ranking.upsert({
+      where: { username },
+      update: data,
+      create: { username, ...data },
+    });
+    res.json(entry);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- POST /api/admin/ranking/sync-players ----
+// Backfills the leaderboard with every team captain and every solo player
+// (team members are never added). Existing points are preserved.
+export const syncPlayers = async (req, res, next) => {
+  try {
+    const [teams, solos] = await Promise.all([
+      prisma.team.findMany(),
+      prisma.individualRegistration.findMany(),
+    ]);
+    let added = 0;
+
+    const put = async (username, data) => {
+      const existing = await prisma.ranking.findUnique({ where: { username } });
+      if (!existing) added += 1;
+      await prisma.ranking.upsert({
+        where: { username },
+        update: data,
+        create: { username, ...data, points: 0 },
+      });
+    };
+
+    for (const team of teams) {
+      const { tier, division } = parseDivision(team.division);
+      await put(team.captainUsername, { team: team.name, tier, division });
+    }
+    for (const solo of solos) {
+      const { tier, division } = parseDivision(solo.division);
+      await put(solo.username, { tier, division }); // no team yet
+    }
+
+    res.json({ ok: true, captains: teams.length, solo: solos.length, added });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- DELETE /api/admin/ranking/:id ----
+export const deleteRanking = async (req, res, next) => {
+  try {
+    await prisma.ranking.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
   } catch (err) {
     next(err);

@@ -5,6 +5,9 @@ import {
   cancelRegistration,
   seedBracket,
   setMatchResult,
+  upsertRanking,
+  deleteRanking,
+  syncPlayers,
 } from '../controllers/admin.controller.js';
 import { verifyToken, verifyAdmin } from '../utils/verifyUser.js';
 
@@ -18,5 +21,8 @@ router.post('/payment/toggle', togglePayment);
 router.delete('/registration/:type/:id', cancelRegistration);
 router.post('/bracket/seed', seedBracket);
 router.post('/match/:code/result', setMatchResult);
+router.post('/ranking', upsertRanking);
+router.post('/ranking/sync-players', syncPlayers);
+router.delete('/ranking/:id', deleteRanking);
 
 export default router;

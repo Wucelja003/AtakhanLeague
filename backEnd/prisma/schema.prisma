@@ -121,3 +121,18 @@ model Match {
   winnerName String?
   updatedAt  DateTime @updatedAt
 }
+
+// Leaderboard entry — points the organizer awards for tournament performance.
+// Keyed by summoner name so players without an account can be ranked too.
+model Ranking {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  team      String?           // team they currently play for
+  tier      String?           // IRON..CHALLENGER — drives the rank emblem
+  division  String?           // I..IV (empty for Master+)
+  points    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([points])
+}

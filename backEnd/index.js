@@ -12,6 +12,7 @@ import riotRouter from './routes/riot.routes.js'
 import paymentRouter from './routes/payment.routes.js'
 import adminRouter from './routes/admin.routes.js'
 import tournamentRouter from './routes/tournament.routes.js'
+import rankingRouter from './routes/ranking.routes.js'
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/api/riot', riotRouter);
 app.use('/api/payment', paymentRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/tournament', tournamentRouter);
+app.use('/api/rankings', rankingRouter);
 
 app.get('/', (req, res) => {
   res.json({

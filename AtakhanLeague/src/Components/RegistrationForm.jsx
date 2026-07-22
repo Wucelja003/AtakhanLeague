@@ -9,9 +9,11 @@ export default function RegistrationForm({
   buttonLabel,
   endpoint,           // '/api/registration/team' or '/api/registration/individual'
   needsRole = false,  // role dropdown shown + required only for individual
+  needsServer = true, // server picker — this tournament is EUNE only
 }) {
   const [values, setValues] = useState({});
   const [role, setRole] = useState('');
+  const [server, setServer] = useState('');
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -41,6 +43,14 @@ export default function RegistrationForm({
     });
     setErrors(next);
 
+    if (needsServer && !server) {
+      setServerError('Please select your server');
+      return;
+    }
+    if (needsServer && server !== 'EUNE') {
+      setServerError('This tournament is for EUNE only — your account is on another server.');
+      return;
+    }
     if (needsRole && !role) {
       setServerError('Please select your role');
       return;
@@ -53,7 +63,7 @@ export default function RegistrationForm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ ...values, role }),
+        body: JSON.stringify({ ...values, role, server }),
       });
       const data = await res.json();
       if (!res.ok || data.success === false) {
@@ -63,6 +73,7 @@ export default function RegistrationForm({
       setSuccess(true);
       setValues({});
       setRole('');
+      setServer('');
       setErrors({});
       // Send them straight to their profile to pay the entry fee.
       setTimeout(() => navigate('/profile'), 1500);
@@ -109,6 +120,41 @@ export default function RegistrationForm({
         </div>
       ))}
 
+      {needsServer && (
+        <div className="mb-6 animate-field-slide-in" style={{ animationDelay: `${0.15 + fields.length * 0.1}s` }}>
+          <label
+            htmlFor={`${title}-server`}
+            className="block font-slogan text-[11px] tracking-wider uppercase text-neutral-300 mb-2"
+          >
+            Server:
+          </label>
+          <select
+            id={`${title}-server`}
+            value={server}
+            onChange={(e) => setServer(e.target.value)}
+            className={`block w-full px-4 py-3 rounded-lg bg-black/50 border text-white font-slogan text-sm outline-none transition-all duration-300 ${
+              server && server !== 'EUNE'
+                ? 'border-[#DC143C] shadow-[0_0_10px_rgba(220,20,60,0.35)]'
+                : 'border-[rgba(102,0,0,0.3)] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]'
+            }`}
+          >
+            <option value="">— select your server —</option>
+            <option value="EUNE">EUNE (Europe Nordic &amp; East)</option>
+            <option value="EUW">EUW (Europe West)</option>
+            <option value="OTHER">Other region</option>
+          </select>
+
+          {server && server !== 'EUNE' && (
+            <p className="mt-2 flex items-start gap-2 px-4 py-3 rounded-lg bg-[rgba(220,20,60,0.08)] border border-[rgba(220,20,60,0.35)] font-body text-[13px] text-[#DC143C] animate-shake">
+              <span className="font-bold">This tournament is EUNE only.</span>
+              <span className="text-neutral-300">
+                Your account is on {server === 'EUW' ? 'EUW' : 'another region'}, so you can&apos;t enter this one.
+              </span>
+            </p>
+          )}
+        </div>
+      )}
+
       {needsRole && (
         <div className="mb-6 animate-field-slide-in" style={{ animationDelay: `${0.15 + fields.length * 0.1}s` }}>
           <RoleDropdown value={role} onChange={setRole} />
@@ -135,7 +181,7 @@ export default function RegistrationForm({
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || (needsServer && !!server && server !== 'EUNE')}
         className="btn-ripple block ml-auto mt-5 relative overflow-hidden rounded-[20px] px-6 py-[15px] font-slogan text-[11px] font-bold uppercase tracking-[2px] cursor-pointer border-0 text-white bg-[length:300%_300%] bg-[linear-gradient(270deg,#660000,#8B0000,#DC143C,#8B0000,#660000)] animate-wind-flow-login transition-all duration-300 hover:-translate-y-0.5 hover:animate-wind-flow-fast hover:shadow-[0_0_20px_rgba(102,0,0,0.8)] disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loading ? 'Submitting...' : buttonLabel}

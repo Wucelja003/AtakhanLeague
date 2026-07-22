@@ -2,6 +2,32 @@ import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { sendTournamentConfirmation } from '../utils/mailer.js';
 import { parseDivision } from '../utils/rank.js';
+import { getSummonerByPuuid } from '../utils/riot.js';
+
+// This tournament is EUNE only. The form sends the server the player picked;
+// reject anything else here too so the check can't be skipped client-side.
+const ALLOWED_SERVER = 'EUNE';
+const wrongServer = (server) =>
+  String(server || '').trim().toUpperCase() !== ALLOWED_SERVER;
+
+// Second line of defence: ask Riot whether the account really lives on EUNE,
+// so picking "EUNE" in the form isn't enough on its own.
+//   true  → confirmed on EUNE
+//   false → Riot says the account isn't there (404) — block
+//   null  → couldn't check (no linked Riot account, or the API is down) — allow,
+//           we never punish players for our own outage
+async function isOnEune(puuid) {
+  if (!puuid) return null;
+  try {
+    return !!(await getSummonerByPuuid(puuid, 'eun1'));
+  } catch (err) {
+    console.error('[riot] EUNE check unavailable (allowing):', err.message);
+    return null;
+  }
+}
+
+const NOT_EUNE_MSG =
+  'Your Riot account is not on EUNE — this tournament is for EUNE players only.';
 
 // Map frontend role values (lowercase) → Prisma enum (uppercase)
 const roleMap = {
@@ -14,11 +40,14 @@ const roleMap = {
 
 // --- POST /api/registration/team ---
 export const registerTeam = async (req, res, next) => {
-  const { teamName, division, role } = req.body;
+  const { teamName, division, role, server } = req.body;
   const captainId = req.user.id; // from verifyToken middleware
 
   if (!teamName || !division) {
     return next(errorHandler(400, 'Team name and division are required'));
+  }
+  if (wrongServer(server)) {
+    return next(errorHandler(400, 'This tournament is for EUNE only.'));
   }
 
   // Captain's role is optional but if provided must be a valid LaneRole
@@ -43,6 +72,10 @@ export const registerTeam = async (req, res, next) => {
     // Look up captain's username to snapshot
     const captain = await prisma.user.findUnique({ where: { id: captainId } });
     if (!captain) return next(errorHandler(404, 'User not found'));
+
+    if ((await isOnEune(captain.riotPuuid)) === false) {
+      return next(errorHandler(400, NOT_EUNE_MSG));
+    }
 
     const team = await prisma.team.create({
       data: {
@@ -86,11 +119,14 @@ export const registerTeam = async (req, res, next) => {
 
 // --- POST /api/registration/individual ---
 export const registerIndividual = async (req, res, next) => {
-  const { division, role } = req.body;
+  const { division, role, server } = req.body;
   const userId = req.user.id;
 
   if (!division || !role) {
     return next(errorHandler(400, 'Division and role are required'));
+  }
+  if (wrongServer(server)) {
+    return next(errorHandler(400, 'This tournament is for EUNE only.'));
   }
   const dbRole = roleMap[role];
   if (!dbRole) return next(errorHandler(400, 'Invalid role'));
@@ -108,6 +144,10 @@ export const registerIndividual = async (req, res, next) => {
     // Look up username to snapshot
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return next(errorHandler(404, 'User not found'));
+
+    if ((await isOnEune(user.riotPuuid)) === false) {
+      return next(errorHandler(400, NOT_EUNE_MSG));
+    }
 
     const reg = await prisma.individualRegistration.create({
       data: { userId, username: user.username, division, role: dbRole },

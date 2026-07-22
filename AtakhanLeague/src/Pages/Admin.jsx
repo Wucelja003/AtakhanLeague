@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import SEO from '../Components/SEO';
+import { TIERS, DIVISIONS, hasDivision, emblemUrl, onEmblemError, tierColor, rankLabel } from '../utils/ranks';
 
 const post = (path, body) =>
   fetch(api(path), {
@@ -50,6 +51,9 @@ export default function Admin() {
   const [seed, setSeed] = useState({}); // { QF1A: name, ... }
   const [scores, setScores] = useState({}); // { QF1: {a,b} }
   const [busy, setBusy] = useState('');
+  const [rankings, setRankings] = useState([]);
+  const [rankEdits, setRankEdits] = useState({}); // { id: points }
+  const [newRank, setNewRank] = useState({ username: '', team: '', tier: '', division: '', points: '' });
 
   const loadRegs = () =>
     fetch(api('/admin/registrations'), { credentials: 'include' })
@@ -69,7 +73,45 @@ export default function Admin() {
       })
       .catch(() => {});
 
-  useEffect(() => { loadRegs(); loadBracket(); }, []);
+  const loadRankings = () =>
+    fetch(api('/rankings'))
+      .then((r) => r.json())
+      .then((d) => {
+        const list = Array.isArray(d) ? d : [];
+        setRankings(list);
+        setRankEdits(list.reduce((acc, e) => ({ ...acc, [e.id]: e.points }), {}));
+      })
+      .catch(() => {});
+
+  useEffect(() => { loadRegs(); loadBracket(); loadRankings(); }, []);
+
+  async function saveRanking(entry) {
+    if (!entry.username?.trim()) return;
+    setBusy(`rank-${entry.username}`);
+    await post('/admin/ranking', { ...entry, username: entry.username.trim() });
+    await loadRankings();
+    setBusy('');
+  }
+
+  async function removeRanking(id) {
+    if (!confirm('Remove this player from the leaderboard?')) return;
+    setBusy(`rank-del-${id}`);
+    await fetch(api(`/admin/ranking/${id}`), { method: 'DELETE', credentials: 'include' });
+    await loadRankings();
+    setBusy('');
+  }
+
+  async function syncPlayers() {
+    setBusy('rank-sync');
+    await post('/admin/ranking/sync-players', {});
+    await loadRankings();
+    setBusy('');
+  }
+
+  async function addRanking() {
+    await saveRanking({ ...newRank, points: Number(newRank.points) || 0 });
+    setNewRank({ username: '', team: '', tier: '', division: '', points: '' });
+  }
 
   const teamNames = regs.teams.map((t) => t.name);
 
@@ -251,6 +293,116 @@ export default function Admin() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Summoner Rankings — award points */}
+        <div className={card}>
+          <div className="flex items-center justify-between mb-4">
+            <p className={`${heading} mb-0`}>Summoner Rankings ({rankings.length})</p>
+            <button
+              onClick={syncPlayers}
+              disabled={busy === 'rank-sync'}
+              title="Add every registered captain and solo player to the leaderboard (points are kept)"
+              className="font-slogan text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C] disabled:opacity-50"
+            >
+              {busy === 'rank-sync' ? 'Syncing…' : 'Sync players'}
+            </button>
+          </div>
+
+          {/* Add a player */}
+          <div className="flex flex-wrap items-center gap-2 mb-4 px-4 py-3 rounded-lg bg-[rgba(220,20,60,0.06)] border border-[rgba(220,20,60,0.25)]">
+            <input
+              value={newRank.username}
+              onChange={(e) => setNewRank((p) => ({ ...p, username: e.target.value }))}
+              placeholder="Summoner name"
+              className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none focus:border-[#DC143C]"
+            />
+            <input
+              value={newRank.team}
+              onChange={(e) => setNewRank((p) => ({ ...p, team: e.target.value }))}
+              placeholder="Team"
+              className="w-36 px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none focus:border-[#DC143C]"
+            />
+            <select
+              value={newRank.tier}
+              onChange={(e) => setNewRank((p) => ({ ...p, tier: e.target.value, division: hasDivision(e.target.value) ? p.division : '' }))}
+              className="w-36 px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none focus:border-[#DC143C]"
+            >
+              <option value="">— rank —</option>
+              {TIERS.map((t) => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
+            </select>
+            <select
+              value={newRank.division}
+              onChange={(e) => setNewRank((p) => ({ ...p, division: e.target.value }))}
+              disabled={!hasDivision(newRank.tier) || !newRank.tier}
+              className="w-20 px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none focus:border-[#DC143C] disabled:opacity-40"
+            >
+              <option value="">—</option>
+              {DIVISIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <input
+              type="number"
+              value={newRank.points}
+              onChange={(e) => setNewRank((p) => ({ ...p, points: e.target.value }))}
+              placeholder="Pts"
+              className="w-20 px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white text-center outline-none focus:border-[#DC143C]"
+            />
+            <button
+              onClick={addRanking}
+              disabled={!newRank.username.trim() || busy.startsWith('rank-')}
+              className="font-slogan text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-lg text-white bg-[length:300%_300%] bg-[linear-gradient(270deg,#660000,#8B0000,#DC143C,#8B0000,#660000)] animate-wind-flow-login disabled:opacity-50"
+            >
+              Add
+            </button>
+          </div>
+
+          {rankings.length === 0 ? (
+            <p className="font-body text-[13px] text-neutral-500">No players on the leaderboard yet.</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {rankings.map((e, i) => (
+                <div key={e.id} className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-lg bg-black/30 border border-[rgba(102,0,0,0.25)]">
+                  <span className="font-heading text-[18px] leading-none w-6 text-neutral-400">{i + 1}</span>
+                  {e.tier && (
+                    <img
+                      src={emblemUrl(e.tier)}
+                      alt={e.tier}
+                      onError={(ev) => onEmblemError(ev, e.tier)}
+                      className="w-7 h-7 object-contain shrink-0"
+                    />
+                  )}
+                  <span className="font-slogan text-[14px] font-bold text-white">{e.username}</span>
+                  {e.team && <span className="font-slogan text-[11px] text-neutral-500">{e.team}</span>}
+                  {e.tier && (
+                    <span className={`font-slogan text-[11px] font-bold ${tierColor(e.tier)}`}>
+                      {rankLabel(e.tier, e.division)}
+                    </span>
+                  )}
+                  <div className="ml-auto flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={rankEdits[e.id] ?? e.points}
+                      onChange={(ev) => setRankEdits((p) => ({ ...p, [e.id]: ev.target.value }))}
+                      className="w-20 px-2 py-1.5 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white text-center outline-none focus:border-[#DC143C]"
+                    />
+                    <button
+                      onClick={() => saveRanking({ username: e.username, team: e.team, tier: e.tier, division: e.division, points: Number(rankEdits[e.id]) || 0 })}
+                      disabled={busy === `rank-${e.username}`}
+                      className="font-slogan text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C]"
+                    >
+                      {busy === `rank-${e.username}` ? '…' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => removeRanking(e.id)}
+                      className="font-slogan text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg text-[#ef4444] bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.3)] hover:bg-[rgba(239,68,68,0.18)]"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

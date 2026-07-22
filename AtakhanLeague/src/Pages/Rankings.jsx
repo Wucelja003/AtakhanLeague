@@ -1,19 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import SEO from '../Components/SEO';
-
-// Empty leaderboard — players appear here after they play tournament matches
-const mockPlayers = [];
-
-// Map rank to a color
-const rankColor = (rank) => {
-  if (rank.startsWith('Challenger')) return 'text-[#DC143C]';
-  if (rank.startsWith('Grandmaster')) return 'text-[#ff6b6b]';
-  if (rank.startsWith('Master')) return 'text-[#c084fc]';
-  if (rank.startsWith('Diamond')) return 'text-[#60a5fa]';
-  if (rank.startsWith('Emerald')) return 'text-[#4ade80]';
-  if (rank.startsWith('Platinum')) return 'text-[#22d3ee]';
-  return 'text-neutral-300';
-};
+import { api } from '../api';
+import { emblemUrl, onEmblemError, tierColor, rankLabel } from '../utils/ranks';
 
 // Top 3 medal colors
 const positionStyles = {
@@ -24,15 +12,27 @@ const positionStyles = {
 
 export default function Rankings() {
   const [search, setSearch] = useState('');
+  const [entries, setEntries] = useState([]);
+
+  // Leaderboard is maintained by the organizer from the admin panel
+  useEffect(() => {
+    fetch(api('/rankings'))
+      .then((r) => r.json())
+      .then((d) => setEntries(Array.isArray(d) ? d : []))
+      .catch(() => {});
+  }, []);
 
   // Sort by points desc, then filter
   const players = useMemo(() => {
-    const sorted = [...mockPlayers].sort((a, b) => b.points - a.points);
+    const sorted = [...entries].sort((a, b) => b.points - a.points);
     if (!search.trim()) return sorted;
-    return sorted.filter((p) =>
-      p.username.toLowerCase().includes(search.trim().toLowerCase())
+    const q = search.trim().toLowerCase();
+    return sorted.filter(
+      (p) =>
+        p.username.toLowerCase().includes(q) ||
+        (p.team || '').toLowerCase().includes(q)
     );
-  }, [search]);
+  }, [search, entries]);
 
   return (
     <section className="relative z-[2] min-h-[calc(100vh-200px)] px-5 py-16">
@@ -93,6 +93,9 @@ export default function Rankings() {
                     Summoner Name
                   </th>
                   <th className="text-left font-slogan text-[11px] font-bold uppercase tracking-[2px] text-[#DC143C] px-6 py-4 hidden sm:table-cell">
+                    Team
+                  </th>
+                  <th className="text-left font-slogan text-[11px] font-bold uppercase tracking-[2px] text-[#DC143C] px-6 py-4 hidden sm:table-cell">
                     Rank
                   </th>
                   <th className="text-right font-slogan text-[11px] font-bold uppercase tracking-[2px] text-[#DC143C] px-6 py-4">
@@ -103,7 +106,7 @@ export default function Rankings() {
               <tbody>
                 {players.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-16 text-center">
+                    <td colSpan={5} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <svg className="w-12 h-12 text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
@@ -142,9 +145,31 @@ export default function Rankings() {
                       </td>
                       <td className="px-6 py-4 font-slogan text-[15px] font-bold text-white tracking-wide">
                         {p.username}
+                        {p.team && (
+                          <span className="sm:hidden block font-slogan text-[11px] font-normal uppercase tracking-wider text-neutral-500 mt-0.5">
+                            {p.team}
+                          </span>
+                        )}
                       </td>
-                      <td className={`px-6 py-4 font-slogan text-[13px] font-bold uppercase tracking-wider hidden sm:table-cell ${rankColor(p.rank)}`}>
-                        {p.rank}
+                      <td className="px-6 py-4 font-slogan text-[13px] text-neutral-400 tracking-wide hidden sm:table-cell">
+                        {p.team || '—'}
+                      </td>
+                      <td className="px-6 py-4 hidden sm:table-cell">
+                        {p.tier ? (
+                          <span className="flex items-center gap-2">
+                            <img
+                              src={emblemUrl(p.tier)}
+                              alt={p.tier}
+                              onError={(e) => onEmblemError(e, p.tier)}
+                              className="w-8 h-8 object-contain shrink-0"
+                            />
+                            <span className={`font-slogan text-[13px] font-bold uppercase tracking-wider ${tierColor(p.tier)}`}>
+                              {rankLabel(p.tier, p.division)}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="font-slogan text-[13px] text-neutral-600">Unranked</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right font-heading text-[22px] leading-none text-white">
                         {p.points.toLocaleString('en-US')}

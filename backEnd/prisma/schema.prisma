@@ -92,6 +92,8 @@ model Payment {
   currency   String   @default("EUR")
   kind       String                    // 'team' | 'individual'
   userId     String                    // the paying user (captain or solo)
+  username   String?                   // snapshot of the payer's summoner name
+  email      String?                   // snapshot of the payer's email
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

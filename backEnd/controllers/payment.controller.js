@@ -71,6 +71,15 @@ export const createPayment = async (req, res, next) => {
 
     const provider = method === 'paypal' ? 'paypal' : 'nowpayments';
 
+    // Snapshot who is paying so the Payment row is identifiable on its own
+    // (the raw table only had a userId UUID otherwise).
+    const payer = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { username: true, email: true },
+    });
+    const username = payer?.username || null;
+    const email = payer?.email || null;
+
     // Reuse an unfinished attempt so pending rows don't pile up for the same user.
     const existing = await prisma.payment.findFirst({
       where: { userId, status: 'pending' },
@@ -81,12 +90,12 @@ export const createPayment = async (req, res, next) => {
       orderId = existing.orderId;
       await prisma.payment.update({
         where: { orderId },
-        data: { provider, amount: reg.amount, kind: reg.kind, externalId: null },
+        data: { provider, amount: reg.amount, kind: reg.kind, externalId: null, username, email },
       });
     } else {
       orderId = crypto.randomUUID();
       await prisma.payment.create({
-        data: { orderId, provider, amount: reg.amount, kind: reg.kind, userId, status: 'pending' },
+        data: { orderId, provider, amount: reg.amount, kind: reg.kind, userId, status: 'pending', username, email },
       });
     }
 

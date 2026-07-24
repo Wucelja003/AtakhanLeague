@@ -96,7 +96,7 @@ export default function Terms() {
                 href="mailto:admin@atakhanleague.com"
                 className="text-secondary hover:text-[#DC143C] transition-colors"
               >
-                admin@atakhanleague.com
+                atakhanleague@gmail.com
               </a>
               .
             </p>

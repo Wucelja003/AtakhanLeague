@@ -4,25 +4,8 @@ import crypto from 'crypto';
 import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { sendResetPasswordEmail, sendWelcomeEmail } from '../utils/mailer.js';
-import { getAccountByRiotId, getRankedEntries, inferPlatform } from '../utils/riot.js';
-import { rankFromEntries } from '../utils/rank.js';
-
-// Best-effort: pull a new player's live rank from Riot and put them on the
-// Summoner Rankings leaderboard. Runs fire-and-forget after signup — never
-// blocks or fails account creation. Existing points are preserved; only the
-// rank snapshot is refreshed. Unranked players still get an entry (no emblem).
-async function enrolOnLeaderboard(user) {
-  if (!user.riotPuuid) return; // no verified Riot account → nothing to pull
-  const platform = inferPlatform(user.riotTagLine);
-  const entries = await getRankedEntries(user.riotPuuid, platform);
-  const { tier, division } = rankFromEntries(entries);
-
-  await prisma.ranking.upsert({
-    where: { username: user.username },
-    update: { tier, division },
-    create: { username: user.username, tier, division, points: 0 },
-  });
-}
+import { getAccountByRiotId } from '../utils/riot.js';
+import { fetchAndSyncRank } from '../utils/leaderboard.js';
 
 // Cookie options — always secure + sameSite:'none' so cookie travels from
 // the Vercel frontend (atakhanleague.com) to the Railway backend (api.atakhanleague.com).
@@ -85,9 +68,7 @@ export const signup = async (req, res, next) => {
 
     // Put every new player on the leaderboard with their live Riot rank.
     // Fire-and-forget: a Riot outage must never break signup.
-    enrolOnLeaderboard(newUser).catch((err) => {
-      console.error('[ranking] signup leaderboard enrol failed:', err.message);
-    });
+    fetchAndSyncRank(newUser);
 
     // Auto-login: set cookie + return user so frontend can route to /profile
     const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: '7d' });

@@ -6,6 +6,7 @@ import {
   getMatchIds, getMatchDetail, getChampionMap, getDataDragonVersion,
   getSummonerSpellMap, getRunesMap,
 } from '../utils/riot.js';
+import { syncRankFromEntries } from '../utils/leaderboard.js';
 
 // In-memory cache (per-process) so we don't burn rate limit on every refresh.
 // Key = userId, value = { data, expiry }. TTL = 5 min.
@@ -87,6 +88,12 @@ export const getMyStats = async (req, res, next) => {
       solo: rankedEntries.find((e) => e.queueType === 'RANKED_SOLO_5x5') || null,
       flex: rankedEntries.find((e) => e.queueType === 'RANKED_FLEX_SR')  || null,
     };
+
+    // We just pulled this player's live rank — keep their leaderboard row in
+    // step with it (tier/division only; points untouched). Fire-and-forget so
+    // a leaderboard hiccup never affects the profile response. This only runs
+    // on a cache miss, so it's naturally rate-limited to once per 5 min/user.
+    syncRankFromEntries(user.username, rankedEntries);
 
     // Enrich mastery with champion names
     const mastery = topMastery.map((m) => ({

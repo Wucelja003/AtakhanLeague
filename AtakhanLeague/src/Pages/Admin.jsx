@@ -108,6 +108,22 @@ export default function Admin() {
     setBusy('');
   }
 
+  async function refreshRanks() {
+    setBusy('rank-refresh');
+    try {
+      const res = await post('/admin/ranking/refresh-ranks', {});
+      const data = await res.json().catch(() => null);
+      if (res.ok && data) {
+        alert(`Ranks refreshed: ${data.updated} updated, ${data.skipped} skipped of ${data.scanned}.`);
+      } else {
+        alert(data?.message || 'Rank refresh failed.');
+      }
+    } finally {
+      await loadRankings();
+      setBusy('');
+    }
+  }
+
   async function addRanking() {
     await saveRanking({ ...newRank, points: Number(newRank.points) || 0 });
     setNewRank({ username: '', team: '', tier: '', division: '', points: '' });
@@ -299,14 +315,24 @@ export default function Admin() {
         <div className={card}>
           <div className="flex items-center justify-between mb-4">
             <p className={`${heading} mb-0`}>Summoner Rankings ({rankings.length})</p>
-            <button
-              onClick={syncPlayers}
-              disabled={busy === 'rank-sync'}
-              title="Add every registered captain and solo player to the leaderboard (points are kept)"
-              className="font-slogan text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C] disabled:opacity-50"
-            >
-              {busy === 'rank-sync' ? 'Syncing…' : 'Sync players'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={refreshRanks}
+                disabled={busy === 'rank-refresh'}
+                title="Pull every linked player's live rank from Riot onto the leaderboard (points are kept). Paced under the rate limit — may take a moment."
+                className="font-slogan text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C] disabled:opacity-50"
+              >
+                {busy === 'rank-refresh' ? 'Refreshing…' : 'Refresh ranks'}
+              </button>
+              <button
+                onClick={syncPlayers}
+                disabled={busy === 'rank-sync'}
+                title="Add every registered captain and solo player to the leaderboard (points are kept)"
+                className="font-slogan text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C] disabled:opacity-50"
+              >
+                {busy === 'rank-sync' ? 'Syncing…' : 'Sync players'}
+              </button>
+            </div>
           </div>
 
           {/* Add a player */}

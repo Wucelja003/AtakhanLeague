@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { prisma } from './db.js';
+import { refreshAllRanks } from './utils/leaderboard.js';
 import authRouter from './routes/auth.routes.js'
 import userRouter from './routes/user.routes.js'
 import contactRouter from './routes/contact.routes.js'
@@ -77,3 +78,16 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// Keep the leaderboard in step with Riot even for players who never open their
+// profile: sweep everyone once a day. Paced under the rate limit and guarded
+// against overlap inside refreshAllRanks. Not run on boot (restarts shouldn't
+// each trigger a full sweep) and skipped when no Riot key is configured.
+if (process.env.RIOT_API_KEY) {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  setInterval(() => {
+    refreshAllRanks().catch((err) =>
+      console.error('[ranking] daily sweep failed:', err.message)
+    );
+  }, DAY_MS);
+}

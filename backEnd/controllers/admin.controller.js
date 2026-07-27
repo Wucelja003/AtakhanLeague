@@ -2,6 +2,7 @@ import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { ensureBracket, ADVANCE } from '../utils/bracket.js';
 import { parseDivision } from '../utils/rank.js';
+import { refreshAllRanks } from '../utils/leaderboard.js';
 
 // ---- GET /api/admin/registrations ----
 export const getRegistrations = async (req, res, next) => {
@@ -137,6 +138,22 @@ export const deleteRanking = async (req, res, next) => {
   try {
     await prisma.ranking.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- POST /api/admin/ranking/refresh-ranks ----
+// Sweep every user with a linked Riot account and pull their live rank onto the
+// leaderboard (tier/division only; points kept). Paced under Riot's rate limit,
+// so it can take a while — the response reports how many were updated/skipped.
+export const refreshRanks = async (req, res, next) => {
+  try {
+    const result = await refreshAllRanks();
+    if (result.alreadyRunning) {
+      return next(errorHandler(409, 'A rank refresh is already running. Try again shortly.'));
+    }
+    res.json(result);
   } catch (err) {
     next(err);
   }

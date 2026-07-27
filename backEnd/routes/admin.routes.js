@@ -8,6 +8,7 @@ import {
   upsertRanking,
   deleteRanking,
   syncPlayers,
+  refreshRanks,
 } from '../controllers/admin.controller.js';
 import { verifyToken, verifyAdmin } from '../utils/verifyUser.js';
 
@@ -23,6 +24,7 @@ router.post('/bracket/seed', seedBracket);
 router.post('/match/:code/result', setMatchResult);
 router.post('/ranking', upsertRanking);
 router.post('/ranking/sync-players', syncPlayers);
+router.post('/ranking/refresh-ranks', refreshRanks);
 router.delete('/ranking/:id', deleteRanking);
 
 export default router;

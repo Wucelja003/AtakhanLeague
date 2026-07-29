@@ -12,6 +12,9 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 // the concept art.
 
 type Props = {
+  /** URL of the GLB. Passed in so IntroSplash can start the download itself,
+   *  without importing this module (and three.js with it) up front. */
+  src: string;
   /** Play the clip from `startAt`. Held on the first frame until this is true. */
   playing: boolean;
   /** Seconds into the clip to start from. */
@@ -29,9 +32,8 @@ type Props = {
   onFail?: () => void;
 };
 
-const SRC = '/atakhan-spawn.glb';
-
 export default function IntroModel({
+  src,
   playing,
   startAt = 0,
   endAt,
@@ -43,6 +45,7 @@ export default function IntroModel({
   const hostRef = useRef<HTMLDivElement>(null);
   const actionRef = useRef<THREE.AnimationAction | null>(null);
   const yawRef = useRef(yawDeg);
+  const srcRef = useRef(src);
   // Kept in refs so the setup effect can stay mount-only — re-running it would
   // rebuild the whole WebGL context.
   const startAtRef = useRef(startAt);
@@ -96,7 +99,7 @@ export default function IntroModel({
     loader.setMeshoptDecoder(MeshoptDecoder);
 
     loader.load(
-      SRC,
+      srcRef.current,
       (gltf) => {
         if (disposed) return;
         root = gltf.scene;

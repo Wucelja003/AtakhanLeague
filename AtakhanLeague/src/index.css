@@ -30,33 +30,33 @@
      One animation per element (Tailwind's animate-* sets the `animation`
      shorthand, so two on the same node would clobber each other); the beats are
      sequenced by the delays baked in here. See Components/IntroSplash.jsx. */
-  --animate-intro-ground: introGround 1.4s ease-out both;
-  --animate-intro-rose: introRose 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
-  --animate-intro-charge: introCharge 0.7s ease-in 1.05s both;
-  --animate-intro-tremble: introTremble 0.7s ease-in-out 1.05s both;
+  --animate-intro-ground: introGround 0.9s ease-out both;
+  --animate-intro-rose: introRose 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  --animate-intro-charge: introCharge 0.45s ease-in 0.55s both;
+  --animate-intro-tremble: introTremble 0.45s ease-in-out 0.55s both;
   /* Tendrils climb out of the ground ahead of the creature. Each path draws
      itself via stroke-dashoffset; the group is torn away at the burst. */
-  --animate-intro-tendril: introTendril 0.55s ease-out both;
-  --animate-intro-tendrils-out: introTendrilsOut 0.5s ease-out 1.72s forwards;
-  --animate-intro-burst: introBurst 0.45s ease-out 1.7s both;
-  --animate-intro-flash: introFlash 0.5s ease-out 1.7s both;
+  --animate-intro-tendril: introTendril 0.4s ease-out both;
+  --animate-intro-tendrils-out: introTendrilsOut 0.4s ease-out 1.02s forwards;
+  --animate-intro-burst: introBurst 0.4s ease-out 1s both;
+  --animate-intro-flash: introFlash 0.45s ease-out 1s both;
   /* The dark whirl circling it on the ground. The fade-in and the endless spin
      are separate elements — one animation per element. */
-  --animate-intro-vortex-in: introVortexIn 1.1s ease-out 2.2s forwards;
+  --animate-intro-vortex-in: introVortexIn 1s ease-out 1.45s forwards;
   --animate-intro-spin-slow: introSpin 9s linear infinite;
   --animate-intro-spin-fast: introSpinReverse 6s linear infinite;
   /* Its crown catching light once it's up. */
-  --animate-intro-crown: introCrown 1.2s ease-out 2.35s forwards;
+  --animate-intro-crown: introCrown 1.1s ease-out 1.6s forwards;
   /* `forwards`, not `both`: these start mid-sequence, and a backwards fill
      would park the visible first keyframe on screen during the delay. The
      elements carry opacity-0 so they stay hidden until their beat. */
-  --animate-intro-shock: introShock 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.72s forwards;
-  --animate-intro-shock-late: introShock 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.88s forwards;
-  --animate-intro-smoke: introSmoke 1.7s ease-out 1.72s both;
-  --animate-intro-demon: introDemon 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.8s both;
-  --animate-intro-halo: introHalo 1.4s ease-out 1.95s both;
+  --animate-intro-shock: introShock 1.1s cubic-bezier(0.16, 1, 0.3, 1) 1.02s forwards;
+  --animate-intro-shock-late: introShock 1.1s cubic-bezier(0.16, 1, 0.3, 1) 1.16s forwards;
+  --animate-intro-smoke: introSmoke 1.6s ease-out 1.02s both;
+  --animate-intro-demon: introDemon 1.1s cubic-bezier(0.16, 1, 0.3, 1) 1.08s both;
+  --animate-intro-halo: introHalo 1.3s ease-out 1.2s both;
   --animate-intro-letter: introLetter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-intro-line: introLine 0.8s ease-out 4s both;
+  --animate-intro-line: introLine 0.8s ease-out 3.3s both;
   /* `backwards` so an ember isn't parked on screen as a static dot while it
      waits out its delay. */
   --animate-intro-ember: introEmber 2.6s ease-out infinite backwards;

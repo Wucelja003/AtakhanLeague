@@ -11,24 +11,28 @@ const IntroModel = lazy(() => import('./IntroModel'));
 // Beat sheet (seconds; the delays live in the --animate-intro-* vars in
 // index.css, so change them there and mirror the totals here):
 //   0.00  ground pool bleeds in
-//   0.25  rose pushes up
-//   1.05  charge — glow swells, rose trembles
-//   1.70  burst — flash, shockwave, rose torn apart
-//   1.80  Atakhan rises out of the smoke — the rigged spawn if it loaded in
+//   0.10  rose pushes up
+//   0.55  charge — glow swells, rose trembles
+//   1.00  burst — flash, shockwave, rose torn apart
+//   1.08  Atakhan rises out of the smoke — the rigged spawn if it loaded in
 //         time, otherwise the flat image
-//   3.60  wordmark lands letter by letter
-//   6.60  the spawn lands
-//   7.00  overlay fades away
+//   2.90  wordmark lands letter by letter
+//   5.95  the spawn lands
+//   6.20  overlay fades away
+//
+// The run-up is deliberately not shorter than this: it doubles as the model's
+// download window, and cutting it further just means more visitors get the flat
+// fallback instead of the rigged spawn.
 const SESSION_KEY = 'atakhan:intro-seen';
-// Sized so the spawn gets to finish: the burst hands over at 1.7s and the clip
-// slice runs 4.9s at its playback rate, landing at ~6.6s.
-const HOLD_MS = 7000; // full sequence...
+// Sized so the spawn gets to finish: the burst hands over at 1.0s and the clip
+// slice runs 4.9s at its playback rate, landing at ~5.95s.
+const HOLD_MS = 6200; // full sequence...
 const FADE_MS = 600;  // ...then the overlay fades out over this long
 
 // The moment the rose is torn apart and the creature takes over. Whether the
 // rigged model or the flat image plays is decided here, once, and then held —
 // so a model that finishes loading mid-rise can't swap in halfway through.
-const BURST_MS = 1700;
+const BURST_MS = 1000;
 // The source clip runs 8.33s. Sampling the rig frame by frame: it climbs out of
 // the ground until ~4.2s and rears up, drops, swings again at ~6.3s, and is
 // motionless from ~7.0s on. So everything up to 6.9s is worth showing and the
@@ -39,34 +43,35 @@ const CLIP_END_S = 6.9;
 const CLIP_RATE = 1.4;
 // Turned to face the other way.
 const MODEL_YAW_DEG = 180;
+const MODEL_SRC = '/atakhan-spawn.glb';
 
 const TITLE = 'ATAKHAN LEAGUE';
-const LETTER_START_S = 3.6;
+const LETTER_START_S = 2.9;
 const LETTER_STAGGER_S = 0.04;
 
 // Tendrils that climb out of the ground before the creature does. Each one
 // draws itself from the ground point (100,140) upward.
 const TENDRILS = [
-  { d: 'M100,140 C97,116 93,88 95,54',      w: 4,   delay: '1.2s' },
-  { d: 'M100,140 C96,114 88,98 76,76',      w: 3.5, delay: '1.22s' },
-  { d: 'M100,140 C103,118 108,96 112,48',   w: 3,   delay: '1.28s' },
-  { d: 'M100,140 C105,112 114,94 126,72',   w: 3,   delay: '1.3s' },
-  { d: 'M100,140 C109,119 126,104 144,92',  w: 2.5, delay: '1.34s' },
-  { d: 'M100,140 C92,120 76,106 58,94',     w: 2.5, delay: '1.36s' },
-  { d: 'M100,140 C107,123 118,113 132,110', w: 2,   delay: '1.4s' },
-  { d: 'M100,140 C94,122 84,112 70,108',    w: 2,   delay: '1.42s' },
+  { d: 'M100,140 C97,116 93,88 95,54',      w: 4,   delay: '0.6s' },
+  { d: 'M100,140 C96,114 88,98 76,76',      w: 3.5, delay: '0.62s' },
+  { d: 'M100,140 C103,118 108,96 112,48',   w: 3,   delay: '0.66s' },
+  { d: 'M100,140 C105,112 114,94 126,72',   w: 3,   delay: '0.68s' },
+  { d: 'M100,140 C109,119 126,104 144,92',  w: 2.5, delay: '0.71s' },
+  { d: 'M100,140 C92,120 76,106 58,94',     w: 2.5, delay: '0.73s' },
+  { d: 'M100,140 C107,123 118,113 132,110', w: 2,   delay: '0.76s' },
+  { d: 'M100,140 C94,122 84,112 70,108',    w: 2,   delay: '0.78s' },
 ];
 
 // Sparks thrown off by the burst. Fixed values (not random) so the layout is
 // identical on every render; delays start after the rose blows apart.
 const EMBERS = [
-  { left: '22%', size: 3, delay: '1.85s', duration: '2.6s' },
-  { left: '31%', size: 2, delay: '2.35s', duration: '3s' },
-  { left: '40%', size: 4, delay: '1.95s', duration: '2.4s' },
-  { left: '52%', size: 2, delay: '2.6s',  duration: '2.8s' },
-  { left: '61%', size: 3, delay: '2.1s',  duration: '2.6s' },
-  { left: '70%', size: 2, delay: '1.8s',  duration: '3.1s' },
-  { left: '79%', size: 3, delay: '2.45s', duration: '2.5s' },
+  { left: '22%', size: 3, delay: '1.1s',  duration: '2.6s' },
+  { left: '31%', size: 2, delay: '1.6s',  duration: '3s' },
+  { left: '40%', size: 4, delay: '1.2s',  duration: '2.4s' },
+  { left: '52%', size: 2, delay: '1.85s', duration: '2.8s' },
+  { left: '61%', size: 3, delay: '1.35s', duration: '2.6s' },
+  { left: '70%', size: 2, delay: '1.05s', duration: '3.1s' },
+  { left: '79%', size: 3, delay: '1.7s',  duration: '2.5s' },
 ];
 
 // Decided once, synchronously, so the splash can never flash in and back out.
@@ -92,6 +97,16 @@ export default function IntroSplash() {
   const [use3D, setUse3D] = useState(null);
   // Read by the burst timeout, so it always sees the latest load state.
   const modelReady = useRef(false);
+
+  // Start pulling the model down immediately, in parallel with the three.js
+  // chunks. GLTFLoader can't ask for it until those have loaded and IntroModel
+  // has mounted, and that serial wait is a big share of the one second before
+  // the burst. This only warms the HTTP cache — the loader's own request then
+  // hits it — so a failure here costs nothing but the fallback.
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    fetch(MODEL_SRC).catch(() => {});
+  }, [phase]);
 
   // Lock in which version plays, at the burst.
   useEffect(() => {
@@ -223,6 +238,7 @@ export default function IntroSplash() {
           >
             <Suspense fallback={null}>
               <IntroModel
+                src={MODEL_SRC}
                 playing={use3D === true}
                 startAt={CLIP_START_S}
                 endAt={CLIP_END_S}

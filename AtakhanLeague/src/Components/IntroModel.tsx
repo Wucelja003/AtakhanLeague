@@ -26,6 +26,13 @@ type Props = {
   timeScale?: number;
   /** Degrees to turn the creature about its vertical axis. */
   yawDeg?: number;
+  /** Replay the slice instead of holding the landed pose. The clip has no idle
+   *  worth looping — its tail carries about 4% of the spawn's motion, which is
+   *  the landing settling rather than the creature breathing — so keeping it
+   *  alive means playing the whole thing again. */
+  loop?: boolean;
+  /** How long to sit on the landed pose before replaying. */
+  loopHoldMs?: number;
   /** Fired once the model is loaded and the first frame is on screen. */
   onReady?: () => void;
   /** Fired if WebGL is unavailable or the model fails to load. */
@@ -39,6 +46,8 @@ export default function IntroModel({
   endAt,
   timeScale = 1,
   yawDeg = 0,
+  loop = false,
+  loopHoldMs = 1400,
   onReady,
   onFail,
 }: Props) {
@@ -52,6 +61,8 @@ export default function IntroModel({
   const endAtRef = useRef(endAt);
   const playingRef = useRef(playing);
   const timeScaleRef = useRef(timeScale);
+  const loopRef = useRef(loop);
+  const loopHoldRef = useRef(loopHoldMs);
   // useRef seeds these with the first render's values; keep them in step from an
   // effect rather than during render, which isn't safe under concurrent
   // rendering. They're only read from the loader callback and the render loop,
@@ -62,7 +73,9 @@ export default function IntroModel({
     yawRef.current = yawDeg;
     playingRef.current = playing;
     timeScaleRef.current = timeScale;
-  }, [startAt, endAt, yawDeg, playing, timeScale]);
+    loopRef.current = loop;
+    loopHoldRef.current = loopHoldMs;
+  }, [startAt, endAt, yawDeg, playing, timeScale, loop, loopHoldMs]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -228,6 +241,8 @@ export default function IntroModel({
     );
     visibility.observe(host);
 
+    // Set when the landed pose starts being held, cleared when it restarts.
+    let holdUntil = 0;
     let last = performance.now();
     const tick = (now: number) => {
       frame = requestAnimationFrame(tick);
@@ -240,13 +255,27 @@ export default function IntroModel({
       const delta = (now - last) / 1000;
       last = now;
       if (mixer) mixer.update(delta);
-      // Hold the last frame of the slice rather than drifting on into the idle
-      // the source clip tails off with.
+      // Stop at the end of the slice rather than drifting on into the idle the
+      // source clip tails off with. Wrapping happens here rather than through
+      // THREE.LoopRepeat because that would loop the whole 8.33s clip, dead
+      // tail and all.
       const action = actionRef.current;
       const stop = endAtRef.current;
       if (action && stop != null && action.time >= stop) {
-        action.time = stop;
-        action.paused = true;
+        if (!loopRef.current) {
+          action.time = stop;
+          action.paused = true;
+        } else if (!holdUntil) {
+          // Sit on the landed pose for a beat first — cutting straight back to
+          // an empty frame reads as a glitch rather than a loop.
+          action.time = stop;
+          action.paused = true;
+          holdUntil = now + loopHoldRef.current;
+        } else if (now >= holdUntil) {
+          holdUntil = 0;
+          action.time = startAtRef.current;
+          action.paused = false;
+        }
       }
       renderer!.render(scene, camera);
     };

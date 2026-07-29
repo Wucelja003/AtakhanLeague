@@ -64,8 +64,9 @@ export default function Introduce() {
           {arrived && (
             <div className="absolute inset-0">
               {/* Full speed here — unlike the splash there's no fade clock to
-                  squeeze the spawn into. */}
-              <SpawnScene clipRate={1} />
+                  squeeze the spawn into — and looped, so the section never
+                  settles into a frozen statue. */}
+              <SpawnScene clipRate={1} loop />
             </div>
           )}
         </div>

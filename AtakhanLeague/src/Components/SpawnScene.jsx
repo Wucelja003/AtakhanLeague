@@ -9,8 +9,10 @@ const IntroModel = lazy(() => import('./IntroModel'));
 
 export const MODEL_SRC = '/atakhan-spawn.glb';
 // The source clip runs 8.33s: the creature climbs out of the ground until
-// ~4.2s and rears up, drops, swings again at ~6.3s, and is motionless from
-// ~7.0s on. Everything past that is dead air.
+// ~4.2s and rears up, drops, then swings again at ~6.3s. Measuring the
+// keyframes, the tail past ~7.0s carries about 4% of the spawn's motion per
+// second — the landing settling rather than an idle worth keeping — so it's
+// cut here.
 export const CLIP_END_S = 6.9;
 export const MODEL_YAW_DEG = 180;
 
@@ -37,7 +39,7 @@ const TENDRILS = [
 
 let gradientSeq = 0;
 
-export default function SpawnScene({ clipRate = 1.4, onDecided }) {
+export default function SpawnScene({ clipRate = 1.4, loop = false, onDecided }) {
   // Each instance needs its own gradient id — two scenes on one page sharing
   // one id would both resolve to whichever was defined first.
   const [gradientId] = useState(() => `atk-tendril-${++gradientSeq}`);
@@ -127,6 +129,7 @@ export default function SpawnScene({ clipRate = 1.4, onDecided }) {
             playing={use3D === true}
             endAt={CLIP_END_S}
             timeScale={clipRate}
+            loop={loop}
             yawDeg={MODEL_YAW_DEG}
             onReady={() => setModelReady(true)}
             onFail={() => setModelReady(false)}

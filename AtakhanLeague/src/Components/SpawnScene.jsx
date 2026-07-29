@@ -14,7 +14,14 @@ export const MODEL_SRC = '/atakhan-spawn.glb';
 // second — the landing settling rather than an idle worth keeping — so it's
 // cut here.
 export const CLIP_END_S = 6.9;
+// Face-on, which suits the spawn's landing. The idle folds its four arms in
+// much closer, so that pose wants turning further — see IDLE_YAW_DEG below.
 export const MODEL_YAW_DEG = 180;
+// Measured rather than eyeballed: sampling the idle's hand and elbow bones
+// across the loop, dead-on leaves the four arms overlapping to within a
+// fraction of a unit on screen. Turning to 230° opens the silhouette by about
+// a sixth and pulls the closest pair apart by an order of magnitude.
+export const IDLE_YAW_DEG = 230;
 // Second clip in the same GLB, on the same skeleton — the creature standing
 // there breathing once the spawn has played through.
 export const IDLE_CLIP = 'Idle';
@@ -42,7 +49,13 @@ const TENDRILS = [
 
 let gradientSeq = 0;
 
-export default function SpawnScene({ clipRate = 1.4, clipEnd = CLIP_END_S, idleClip, onDecided }) {
+export default function SpawnScene({
+  clipRate = 1.4,
+  clipEnd = CLIP_END_S,
+  idleClip,
+  yawDeg = MODEL_YAW_DEG,
+  onDecided,
+}) {
   // Each instance needs its own gradient id — two scenes on one page sharing
   // one id would both resolve to whichever was defined first.
   const [gradientId] = useState(() => `atk-tendril-${++gradientSeq}`);
@@ -133,7 +146,7 @@ export default function SpawnScene({ clipRate = 1.4, clipEnd = CLIP_END_S, idleC
             endAt={clipEnd}
             idleClip={idleClip}
             timeScale={clipRate}
-            yawDeg={MODEL_YAW_DEG}
+            yawDeg={yawDeg}
             onReady={() => setModelReady(true)}
             onFail={() => setModelReady(false)}
           />

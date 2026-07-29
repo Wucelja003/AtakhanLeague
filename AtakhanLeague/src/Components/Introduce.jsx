@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import SpawnScene, { IDLE_CLIP } from './SpawnScene';
+import SpawnScene, { IDLE_CLIP, IDLE_YAW_DEG } from './SpawnScene';
 
 const HEADING = ['What', 'is', 'Atakhan', 'League?'];
 
@@ -179,7 +179,12 @@ export default function Introduce() {
                   squeeze the spawn into — and it hands over to the idle clip at
                   the end, so the creature stands there breathing rather than
                   freezing. */}
-              <SpawnScene clipRate={1} clipEnd={CLIP_DURATION_S} idleClip={IDLE_CLIP} />
+              <SpawnScene
+                clipRate={1}
+                clipEnd={CLIP_DURATION_S}
+                idleClip={IDLE_CLIP}
+                yawDeg={IDLE_YAW_DEG}
+              />
             </div>
           )}
         </div>

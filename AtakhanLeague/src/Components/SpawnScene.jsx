@@ -15,6 +15,9 @@ export const MODEL_SRC = '/atakhan-spawn.glb';
 // cut here.
 export const CLIP_END_S = 6.9;
 export const MODEL_YAW_DEG = 180;
+// Second clip in the same GLB, on the same skeleton — the creature standing
+// there breathing once the spawn has played through.
+export const IDLE_CLIP = 'Idle';
 
 // Earliest the creature can take over — the rose is torn apart here. Matches
 // the burst delays baked into the --animate-intro-* vars in index.css.
@@ -39,7 +42,7 @@ const TENDRILS = [
 
 let gradientSeq = 0;
 
-export default function SpawnScene({ clipRate = 1.4, clipEnd = CLIP_END_S, idleFrom, onDecided }) {
+export default function SpawnScene({ clipRate = 1.4, clipEnd = CLIP_END_S, idleClip, onDecided }) {
   // Each instance needs its own gradient id — two scenes on one page sharing
   // one id would both resolve to whichever was defined first.
   const [gradientId] = useState(() => `atk-tendril-${++gradientSeq}`);
@@ -128,7 +131,7 @@ export default function SpawnScene({ clipRate = 1.4, clipEnd = CLIP_END_S, idleF
             src={MODEL_SRC}
             playing={use3D === true}
             endAt={clipEnd}
-            idleFrom={idleFrom}
+            idleClip={idleClip}
             timeScale={clipRate}
             yawDeg={MODEL_YAW_DEG}
             onReady={() => setModelReady(true)}

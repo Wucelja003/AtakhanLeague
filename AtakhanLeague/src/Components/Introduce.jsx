@@ -1,14 +1,10 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import SpawnScene from './SpawnScene';
+import SpawnScene, { IDLE_CLIP } from './SpawnScene';
 
 const HEADING = ['What', 'is', 'Atakhan', 'League?'];
 
-// Full length of the spawn clip, and the point the idle sweeps back to. The
-// stretch from 6.3s carries about two thirds of the spawn's motion per second,
-// so played back and forth at reduced speed it reads as the creature swaying
-// rather than twitching.
+// Run the spawn out to its full length here, then hand over to the idle.
 const CLIP_DURATION_S = 8.33;
-const IDLE_FROM_S = 6.3;
 
 const PARAGRAPHS = [
   `In honor of Atakhan, the ancient demon of bloodshed who once roamed the
@@ -180,10 +176,10 @@ export default function Introduce() {
           {shown && animate && (
             <div className="absolute inset-0">
               {/* Full speed — unlike the splash there's no fade clock to
-                  squeeze the spawn into. Runs the clip out to the end, then
-                  sweeps back and forth over its last couple of seconds so the
-                  creature keeps moving instead of freezing. */}
-              <SpawnScene clipRate={1} clipEnd={CLIP_DURATION_S} idleFrom={IDLE_FROM_S} />
+                  squeeze the spawn into — and it hands over to the idle clip at
+                  the end, so the creature stands there breathing rather than
+                  freezing. */}
+              <SpawnScene clipRate={1} clipEnd={CLIP_DURATION_S} idleClip={IDLE_CLIP} />
             </div>
           )}
         </div>

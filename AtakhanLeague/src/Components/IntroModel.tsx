@@ -26,15 +26,12 @@ type Props = {
   timeScale?: number;
   /** Degrees to turn the creature about its vertical axis. */
   yawDeg?: number;
-  /** Where to fall back to once the spawn has played through, to idle instead
-   *  of freezing on the landed pose. The clip has no idle track, so the idle is
-   *  this stretch of it played back and forth — ping-ponging rather than
-   *  looping because the clip was never authored to join up, and reversing has
-   *  no seam by construction. Leave unset to stop at `endAt`. */
-  idleFrom?: number;
-  /** Idle speed, relative to `timeScale`. Below 1 turns the replayed stretch
-   *  into a slow sway rather than a twitch. */
-  idleRate?: number;
+  /** Name of a second clip to cross-fade into once the spawn has played
+   *  through, so the creature keeps moving instead of freezing on its landed
+   *  pose. Leave unset to stop at `endAt`. */
+  idleClip?: string;
+  /** Seconds to blend between the two. */
+  idleFadeS?: number;
   /** Fired once the model is loaded and the first frame is on screen. */
   onReady?: () => void;
   /** Fired if WebGL is unavailable or the model fails to load. */
@@ -48,8 +45,8 @@ export default function IntroModel({
   endAt,
   timeScale = 1,
   yawDeg = 0,
-  idleFrom,
-  idleRate = 0.45,
+  idleClip,
+  idleFadeS = 0.7,
   onReady,
   onFail,
 }: Props) {
@@ -63,8 +60,8 @@ export default function IntroModel({
   const endAtRef = useRef(endAt);
   const playingRef = useRef(playing);
   const timeScaleRef = useRef(timeScale);
-  const idleFromRef = useRef(idleFrom);
-  const idleRateRef = useRef(idleRate);
+  const idleClipRef = useRef(idleClip);
+  const idleFadeRef = useRef(idleFadeS);
   // useRef seeds these with the first render's values; keep them in step from an
   // effect rather than during render, which isn't safe under concurrent
   // rendering. They're only read from the loader callback and the render loop,
@@ -75,9 +72,9 @@ export default function IntroModel({
     yawRef.current = yawDeg;
     playingRef.current = playing;
     timeScaleRef.current = timeScale;
-    idleFromRef.current = idleFrom;
-    idleRateRef.current = idleRate;
-  }, [startAt, endAt, yawDeg, playing, timeScale, idleFrom, idleRate]);
+    idleClipRef.current = idleClip;
+    idleFadeRef.current = idleFadeS;
+  }, [startAt, endAt, yawDeg, playing, timeScale, idleClip, idleFadeS]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -87,6 +84,8 @@ export default function IntroModel({
     let frame = 0;
     let renderer: THREE.WebGLRenderer | null = null;
     let mixer: THREE.AnimationMixer | null = null;
+    let idleAction: THREE.AnimationAction | null = null;
+    let handedOver = false;
     let root: THREE.Object3D | null = null;
 
     try {
@@ -138,7 +137,11 @@ export default function IntroModel({
           if ((obj as THREE.Mesh).isMesh) obj.frustumCulled = false;
         });
 
-        const clip = gltf.animations[0];
+        // The GLB carries the spawn and a looping idle on the same skeleton.
+        const clips = gltf.animations;
+        const clip = clips[0];
+        const idleName = idleClipRef.current;
+        const idleSource = idleName ? clips.find((c) => c.name === idleName) : undefined;
         if (clip) {
           mixer = new THREE.AnimationMixer(root);
           const action = mixer.clipAction(clip);
@@ -148,6 +151,10 @@ export default function IntroModel({
           action.paused = true;
           action.time = startAtRef.current;
           actionRef.current = action;
+          if (idleSource) {
+            idleAction = mixer.clipAction(idleSource);
+            idleAction.setLoop(THREE.LoopRepeat, Infinity);
+          }
           // Pose the rig at its final frame to measure the model at full size —
           // at frame 0 it has barely spawned, which would frame it far too close.
           mixer.setTime(clip.duration);
@@ -169,10 +176,22 @@ export default function IntroModel({
         // shot we want anyway.
         const box = new THREE.Box3();
         if (mixer && clip && skinned.length) {
-          const to = Math.min(endAtRef.current ?? clip.duration, clip.duration);
+          // Measure whichever pose it will actually be holding: with an idle
+          // that's the idle, sampled across its loop, since that's what stays
+          // on screen. Without one, it's the landing.
+          const framing = idleSource ? mixer.clipAction(idleSource) : actionRef.current!;
+          const from = idleSource ? 0 : Math.max(0, (endAtRef.current ?? clip.duration) - 0.3);
+          const to = idleSource
+            ? idleSource.duration
+            : Math.min(endAtRef.current ?? clip.duration, clip.duration);
+          if (idleSource) {
+            actionRef.current!.setEffectiveWeight(0);
+            framing.setEffectiveWeight(1);
+            framing.play();
+          }
           const point = new THREE.Vector3();
           for (let i = 0; i <= 4; i++) {
-            actionRef.current!.time = Math.max(0, to - 0.3 + (i / 4) * 0.3);
+            framing.time = from + (i / 4) * (to - from);
             mixer.update(0);
             root.updateMatrixWorld(true);
             for (const mesh of skinned) {
@@ -208,6 +227,13 @@ export default function IntroModel({
         camera.far = distance * 10;
         camera.updateProjectionMatrix();
 
+        // The framing pass above borrows the idle to pose the rig; hand the
+        // rig back to the spawn before anything plays for real.
+        if (idleAction) {
+          idleAction.stop();
+          idleAction.setEffectiveWeight(0);
+          actionRef.current?.setEffectiveWeight(1);
+        }
         if (mixer) mixer.setTime(startAtRef.current);
 
         // Apply the CURRENT play state now the action finally exists. The
@@ -255,27 +281,22 @@ export default function IntroModel({
       const delta = (now - last) / 1000;
       last = now;
       if (mixer) mixer.update(delta);
-      // Stop at the end of the slice rather than drifting on into whatever
-      // follows. With an idle set, reverse instead of stopping and sweep back
-      // and forth over the tail so the creature keeps breathing.
+      // At the end of the spawn, hand over to the looping idle so the creature
+      // keeps moving. Without one, stop on the landed pose rather than drifting
+      // on into whatever follows in the clip.
       const action = actionRef.current;
       const stop = endAtRef.current;
-      const idleStart = idleFromRef.current;
-      if (action && stop != null) {
-        if (idleStart == null) {
-          if (action.time >= stop) {
-            action.time = stop;
-            action.paused = true;
-          }
-        } else {
-          const speed = Math.abs(timeScaleRef.current) * idleRateRef.current;
-          if (action.timeScale >= 0 && action.time >= stop) {
-            action.time = stop;
-            action.timeScale = -speed;
-          } else if (action.timeScale < 0 && action.time <= idleStart) {
-            action.time = idleStart;
-            action.timeScale = speed;
-          }
+      if (action && stop != null && action.time >= stop) {
+        if (!idleAction) {
+          action.time = stop;
+          action.paused = true;
+        } else if (!handedOver) {
+          handedOver = true;
+          idleAction.reset();
+          idleAction.setEffectiveTimeScale(1);
+          idleAction.setEffectiveWeight(1);
+          idleAction.play();
+          action.crossFadeTo(idleAction, idleFadeRef.current, false);
         }
       }
       renderer!.render(scene, camera);

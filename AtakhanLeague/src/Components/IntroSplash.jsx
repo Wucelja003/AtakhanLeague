@@ -1,4 +1,8 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+
+// three.js only ever loads for the intro, and only as a chunk of its own — the
+// splash itself is pure CSS and never waits on it.
+const IntroModel = lazy(() => import('./IntroModel'));
 
 // Full-screen intro shown once per session before the landing page: a rose
 // grows out of a crimson pool, something inside it charges until the rose is
@@ -10,12 +14,25 @@ import { useEffect, useState } from 'react';
 //   0.25  rose pushes up
 //   1.05  charge — glow swells, rose trembles
 //   1.70  burst — flash, shockwave, rose torn apart
-//   1.80  Atakhan rises out of the smoke
+//   1.80  Atakhan rises out of the smoke — the rigged spawn if it loaded in
+//         time, otherwise the flat image
 //   2.70  wordmark lands letter by letter
-//   3.90  overlay fades away
+//   4.40  overlay fades away
 const SESSION_KEY = 'atakhan:intro-seen';
-const HOLD_MS = 3900; // full sequence...
+const HOLD_MS = 4400; // full sequence...
 const FADE_MS = 600;  // ...then the overlay fades out over this long
+
+// The moment the rose is torn apart and the creature takes over. Whether the
+// rigged model or the flat image plays is decided here, once, and then held —
+// so a model that finishes loading mid-rise can't swap in halfway through.
+const BURST_MS = 1700;
+// The source clip runs 8.33s, but only the opening is the spawn proper:
+// sampling the rig shows it climbing out of the ground until ~4.2s, rearing up,
+// settling by ~5.4s, then idling in place for the rest. Played at 2.2× that
+// slice fills the window between the burst and the fade.
+const CLIP_START_S = 0;
+const CLIP_END_S = 5.4;
+const CLIP_RATE = 2.2;
 
 const TITLE = 'ATAKHAN LEAGUE';
 const LETTER_START_S = 2.7;
@@ -65,6 +82,17 @@ function shouldPlay() {
 export default function IntroSplash() {
   // playing → leaving → done. Each phase owns its own timer, so they can't overlap.
   const [phase, setPhase] = useState(() => (shouldPlay() ? 'playing' : 'done'));
+  // null until the burst decides; then true (rigged model) or false (flat image).
+  const [use3D, setUse3D] = useState(null);
+  // Read by the burst timeout, so it always sees the latest load state.
+  const modelReady = useRef(false);
+
+  // Lock in which version plays, at the burst.
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const id = setTimeout(() => setUse3D(modelReady.current), BURST_MS);
+    return () => clearTimeout(id);
+  }, [phase]);
 
   useEffect(() => {
     if (phase !== 'playing') return;
@@ -178,17 +206,45 @@ export default function IntroSplash() {
 
           {/* Atakhan. Rendered from the first frame (at opacity 0) so the
               browser has the whole run-up to fetch it — no pop-in at 1.8s. */}
-          <div className="absolute bottom-0 w-[min(66vw,380px)] origin-bottom animate-intro-demon">
-            <img
-              src="/mainDemon-removebg-preview.png"
-              alt=""
-              fetchPriority="high"
-              className="w-full drop-shadow-[0_0_44px_rgba(220,20,60,0.45)]"
-            />
-            {/* Its crown catching light. Offset by half its own size instead of
-                a centring translate, which the scale animation would clobber. */}
-            <div className="pointer-events-none absolute left-[25%] top-[25%] h-[24%] w-[24%] rounded-full bg-[radial-gradient(circle,rgba(255,70,70,0.75)_0%,rgba(220,20,60,0.3)_45%,transparent_72%)] opacity-0 blur-md animate-intro-crown" />
+          {/* The rigged spawn. Mounted from the first frame but invisible, so
+              it downloads during the rose sequence and is ready by the burst.
+              If it isn't, the flat image below plays instead and this never
+              becomes visible. */}
+          <div
+            className={`pointer-events-none absolute bottom-0 aspect-square w-[min(86vw,500px)] translate-y-[15%] transition-opacity duration-500 ${
+              use3D ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <Suspense fallback={null}>
+              <IntroModel
+                playing={use3D === true}
+                startAt={CLIP_START_S}
+                endAt={CLIP_END_S}
+                timeScale={CLIP_RATE}
+                onReady={() => {
+                  modelReady.current = true;
+                }}
+                onFail={() => {
+                  modelReady.current = false;
+                }}
+              />
+            </Suspense>
           </div>
+
+          {/* Flat fallback — dropped once the model has won the coin toss. */}
+          {use3D !== true && (
+            <div className="absolute bottom-0 w-[min(66vw,380px)] origin-bottom animate-intro-demon">
+              <img
+                src="/mainDemon-removebg-preview.png"
+                alt=""
+                fetchPriority="high"
+                className="w-full drop-shadow-[0_0_44px_rgba(220,20,60,0.45)]"
+              />
+              {/* Its crown catching light. Offset by half its own size instead of
+                  a centring translate, which the scale animation would clobber. */}
+              <div className="pointer-events-none absolute left-[25%] top-[25%] h-[24%] w-[24%] rounded-full bg-[radial-gradient(circle,rgba(255,70,70,0.75)_0%,rgba(220,20,60,0.3)_45%,transparent_72%)] opacity-0 blur-md animate-intro-crown" />
+            </div>
+          )}
 
           {/* The whirl circling it on the ground: a flat ring tilted into the
               floor plane, its arcs turning at different speeds. */}

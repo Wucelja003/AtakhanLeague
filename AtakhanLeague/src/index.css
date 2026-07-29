@@ -26,13 +26,29 @@
   --animate-dropdown-open: dropdownOpen 0.2s ease forwards;
   --animate-shake: shake 0.4s ease;
 
-  /* Intro splash — "crimson forge" (see Components/IntroSplash.jsx) */
-  --animate-intro-orb: introOrb 2.6s ease-out both;
-  --animate-intro-logo: introLogo 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-intro-sweep: introSweep 1.5s ease-in-out 0.65s both;
+  /* Intro splash — rose → burst → Atakhan rises.
+     One animation per element (Tailwind's animate-* sets the `animation`
+     shorthand, so two on the same node would clobber each other); the beats are
+     sequenced by the delays baked in here. See Components/IntroSplash.jsx. */
+  --animate-intro-ground: introGround 1.4s ease-out both;
+  --animate-intro-rose: introRose 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+  --animate-intro-charge: introCharge 0.7s ease-in 1.05s both;
+  --animate-intro-tremble: introTremble 0.7s ease-in-out 1.05s both;
+  --animate-intro-burst: introBurst 0.45s ease-out 1.7s both;
+  --animate-intro-flash: introFlash 0.5s ease-out 1.7s both;
+  /* `forwards`, not `both`: these start mid-sequence, and a backwards fill
+     would park the visible first keyframe on screen during the delay. The
+     elements carry opacity-0 so they stay hidden until their beat. */
+  --animate-intro-shock: introShock 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.72s forwards;
+  --animate-intro-shock-late: introShock 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.88s forwards;
+  --animate-intro-smoke: introSmoke 1.7s ease-out 1.72s both;
+  --animate-intro-demon: introDemon 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.8s both;
+  --animate-intro-halo: introHalo 1.4s ease-out 1.95s both;
   --animate-intro-letter: introLetter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-intro-line: introLine 0.9s ease-out 1.15s both;
-  --animate-intro-ember: introEmber 2.6s ease-out infinite;
+  --animate-intro-line: introLine 0.8s ease-out 3s both;
+  /* `backwards` so an ember isn't parked on screen as a static dot while it
+     waits out its delay. */
+  --animate-intro-ember: introEmber 2.6s ease-out infinite backwards;
 
   @keyframes header-effect {
     from { opacity: 0; transform: translateY(-20px); }
@@ -91,26 +107,70 @@
     75%      { transform: translateX(6px); }
   }
 
-  /* The forge glow swelling behind the mark. */
-  @keyframes introOrb {
-    0%   { opacity: 0;    transform: scale(0.45); }
-    35%  { opacity: 0.95; transform: scale(1.06); }
-    65%  { opacity: 0.6;  transform: scale(0.97); }
-    100% { opacity: 0.8;  transform: scale(1.02); }
+  /* Crimson pool bleeding into the ground the rose grows from. */
+  @keyframes introGround {
+    from { opacity: 0; transform: scale(0.35); }
+    to   { opacity: 1; transform: scale(1); }
   }
 
-  /* Logo forged out of the dark: blurred and dim → sharp and lit. */
-  @keyframes introLogo {
-    0%   { opacity: 0; transform: scale(0.84); filter: blur(14px) brightness(0.35); }
-    60%  { opacity: 1; }
-    100% { opacity: 1; transform: scale(1);    filter: blur(0)    brightness(1); }
+  /* The rose pushes up out of that ground. */
+  @keyframes introRose {
+    from { opacity: 0; transform: translateY(26px) scale(0.25); filter: blur(8px); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0); }
   }
 
-  /* Light raking across the logo once it lands. */
-  @keyframes introSweep {
-    0%   { opacity: 0;    transform: translateX(-160%) skewX(-18deg); }
-    25%  { opacity: 0.75; }
-    100% { opacity: 0;    transform: translateX(160%)  skewX(-18deg); }
+  /* Something inside the rose winds up — glow swells, then floods. */
+  @keyframes introCharge {
+    0%   { opacity: 0.2;  transform: scale(0.65); }
+    45%  { opacity: 0.85; transform: scale(1.2); }
+    70%  { opacity: 0.45; transform: scale(0.95); }
+    100% { opacity: 1;    transform: scale(1.6); }
+  }
+
+  @keyframes introTremble {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-2px); }
+    40%      { transform: translateX(3px); }
+    60%      { transform: translateX(-3px); }
+    80%      { transform: translateX(2px); }
+  }
+
+  /* The rose is torn apart by what comes out of it. */
+  @keyframes introBurst {
+    0%   { opacity: 1; transform: scale(1); }
+    35%  { opacity: 1; transform: scale(1.55); }
+    100% { opacity: 0; transform: scale(2.7); }
+  }
+
+  @keyframes introFlash {
+    0%   { opacity: 0; }
+    18%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes introShock {
+    from { opacity: 0.85; transform: scale(0.06); }
+    to   { opacity: 0;    transform: scale(1.15); }
+  }
+
+  @keyframes introSmoke {
+    0%   { opacity: 0;   transform: scale(0.3); }
+    30%  { opacity: 0.9; }
+    100% { opacity: 0;   transform: scale(1.7); }
+  }
+
+  /* Atakhan rises out of the smoke: small, blurred and unlit → full and lit. */
+  @keyframes introDemon {
+    0%   { opacity: 0; transform: translateY(70px) scale(0.3);  filter: blur(20px) brightness(0.25); }
+    45%  { opacity: 1; }
+    78%  {             transform: translateY(-8px) scale(1.05); }
+    100% { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0) brightness(1); }
+  }
+
+  @keyframes introHalo {
+    0%   { opacity: 0;    transform: scale(0.4); }
+    45%  { opacity: 0.9;  transform: scale(1.06); }
+    100% { opacity: 0.65; transform: scale(1); }
   }
 
   @keyframes introLetter {

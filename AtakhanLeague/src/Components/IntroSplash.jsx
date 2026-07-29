@@ -178,7 +178,7 @@ export default function IntroSplash() {
 
           {/* Atakhan. Rendered from the first frame (at opacity 0) so the
               browser has the whole run-up to fetch it — no pop-in at 1.8s. */}
-          <div className="absolute bottom-0 w-[min(66vw,380px)] animate-intro-demon">
+          <div className="absolute bottom-0 w-[min(66vw,380px)] origin-bottom animate-intro-demon">
             <img
               src="/mainDemon-removebg-preview.png"
               alt=""

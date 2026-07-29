@@ -205,11 +205,17 @@
   }
 
   /* Atakhan rises out of the smoke: small, blurred and unlit → full and lit. */
+  /* Rises furled and unfurls: it climbs as a narrow column, then the width
+     outruns the height so the mass snaps open like wings before settling. The
+     blur is heaviest while it's most squashed, which hides the distortion —
+     by the time it's sharp it's back to its true proportions. Needs
+     transform-origin at the bottom so it grows up out of the ground. */
   @keyframes introDemon {
-    0%   { opacity: 0; transform: translateY(70px) scale(0.3);  filter: blur(20px) brightness(0.25); }
-    45%  { opacity: 1; }
-    78%  {             transform: translateY(-8px) scale(1.05); }
-    100% { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0) brightness(1); }
+    0%   { opacity: 0; transform: translateY(70px) scale(0.22, 0.5);  filter: blur(20px) brightness(0.25); }
+    40%  { opacity: 1; }
+    55%  {             transform: translateY(14px) scale(0.5, 0.88); }
+    78%  {             transform: translateY(-8px) scale(1.14, 1.02); }
+    100% { opacity: 1; transform: translateY(0)    scale(1, 1);       filter: blur(0) brightness(1); }
   }
 
   @keyframes introHalo {

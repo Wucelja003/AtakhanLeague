@@ -26,13 +26,15 @@ type Props = {
   timeScale?: number;
   /** Degrees to turn the creature about its vertical axis. */
   yawDeg?: number;
-  /** Replay the slice instead of holding the landed pose. The clip has no idle
-   *  worth looping — its tail carries about 4% of the spawn's motion, which is
-   *  the landing settling rather than the creature breathing — so keeping it
-   *  alive means playing the whole thing again. */
-  loop?: boolean;
-  /** How long to sit on the landed pose before replaying. */
-  loopHoldMs?: number;
+  /** Where to fall back to once the spawn has played through, to idle instead
+   *  of freezing on the landed pose. The clip has no idle track, so the idle is
+   *  this stretch of it played back and forth — ping-ponging rather than
+   *  looping because the clip was never authored to join up, and reversing has
+   *  no seam by construction. Leave unset to stop at `endAt`. */
+  idleFrom?: number;
+  /** Idle speed, relative to `timeScale`. Below 1 turns the replayed stretch
+   *  into a slow sway rather than a twitch. */
+  idleRate?: number;
   /** Fired once the model is loaded and the first frame is on screen. */
   onReady?: () => void;
   /** Fired if WebGL is unavailable or the model fails to load. */
@@ -46,8 +48,8 @@ export default function IntroModel({
   endAt,
   timeScale = 1,
   yawDeg = 0,
-  loop = false,
-  loopHoldMs = 1400,
+  idleFrom,
+  idleRate = 0.45,
   onReady,
   onFail,
 }: Props) {
@@ -61,8 +63,8 @@ export default function IntroModel({
   const endAtRef = useRef(endAt);
   const playingRef = useRef(playing);
   const timeScaleRef = useRef(timeScale);
-  const loopRef = useRef(loop);
-  const loopHoldRef = useRef(loopHoldMs);
+  const idleFromRef = useRef(idleFrom);
+  const idleRateRef = useRef(idleRate);
   // useRef seeds these with the first render's values; keep them in step from an
   // effect rather than during render, which isn't safe under concurrent
   // rendering. They're only read from the loader callback and the render loop,
@@ -73,9 +75,9 @@ export default function IntroModel({
     yawRef.current = yawDeg;
     playingRef.current = playing;
     timeScaleRef.current = timeScale;
-    loopRef.current = loop;
-    loopHoldRef.current = loopHoldMs;
-  }, [startAt, endAt, yawDeg, playing, timeScale, loop, loopHoldMs]);
+    idleFromRef.current = idleFrom;
+    idleRateRef.current = idleRate;
+  }, [startAt, endAt, yawDeg, playing, timeScale, idleFrom, idleRate]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -241,8 +243,6 @@ export default function IntroModel({
     );
     visibility.observe(host);
 
-    // Set when the landed pose starts being held, cleared when it restarts.
-    let holdUntil = 0;
     let last = performance.now();
     const tick = (now: number) => {
       frame = requestAnimationFrame(tick);
@@ -255,26 +255,27 @@ export default function IntroModel({
       const delta = (now - last) / 1000;
       last = now;
       if (mixer) mixer.update(delta);
-      // Stop at the end of the slice rather than drifting on into the idle the
-      // source clip tails off with. Wrapping happens here rather than through
-      // THREE.LoopRepeat because that would loop the whole 8.33s clip, dead
-      // tail and all.
+      // Stop at the end of the slice rather than drifting on into whatever
+      // follows. With an idle set, reverse instead of stopping and sweep back
+      // and forth over the tail so the creature keeps breathing.
       const action = actionRef.current;
       const stop = endAtRef.current;
-      if (action && stop != null && action.time >= stop) {
-        if (!loopRef.current) {
-          action.time = stop;
-          action.paused = true;
-        } else if (!holdUntil) {
-          // Sit on the landed pose for a beat first — cutting straight back to
-          // an empty frame reads as a glitch rather than a loop.
-          action.time = stop;
-          action.paused = true;
-          holdUntil = now + loopHoldRef.current;
-        } else if (now >= holdUntil) {
-          holdUntil = 0;
-          action.time = startAtRef.current;
-          action.paused = false;
+      const idleStart = idleFromRef.current;
+      if (action && stop != null) {
+        if (idleStart == null) {
+          if (action.time >= stop) {
+            action.time = stop;
+            action.paused = true;
+          }
+        } else {
+          const speed = Math.abs(timeScaleRef.current) * idleRateRef.current;
+          if (action.timeScale >= 0 && action.time >= stop) {
+            action.time = stop;
+            action.timeScale = -speed;
+          } else if (action.timeScale < 0 && action.time <= idleStart) {
+            action.time = idleStart;
+            action.timeScale = speed;
+          }
         }
       }
       renderer!.render(scene, camera);

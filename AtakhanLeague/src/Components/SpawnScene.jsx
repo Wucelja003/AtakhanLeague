@@ -39,7 +39,7 @@ const TENDRILS = [
 
 let gradientSeq = 0;
 
-export default function SpawnScene({ clipRate = 1.4, loop = false, onDecided }) {
+export default function SpawnScene({ clipRate = 1.4, clipEnd = CLIP_END_S, idleFrom, onDecided }) {
   // Each instance needs its own gradient id — two scenes on one page sharing
   // one id would both resolve to whichever was defined first.
   const [gradientId] = useState(() => `atk-tendril-${++gradientSeq}`);
@@ -127,9 +127,9 @@ export default function SpawnScene({ clipRate = 1.4, loop = false, onDecided }) 
           <IntroModel
             src={MODEL_SRC}
             playing={use3D === true}
-            endAt={CLIP_END_S}
+            endAt={clipEnd}
+            idleFrom={idleFrom}
             timeScale={clipRate}
-            loop={loop}
             yawDeg={MODEL_YAW_DEG}
             onReady={() => setModelReady(true)}
             onFail={() => setModelReady(false)}

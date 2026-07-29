@@ -3,6 +3,13 @@ import SpawnScene from './SpawnScene';
 
 const HEADING = ['What', 'is', 'Atakhan', 'League?'];
 
+// Full length of the spawn clip, and the point the idle sweeps back to. The
+// stretch from 6.3s carries about two thirds of the spawn's motion per second,
+// so played back and forth at reduced speed it reads as the creature swaying
+// rather than twitching.
+const CLIP_DURATION_S = 8.33;
+const IDLE_FROM_S = 6.3;
+
 const PARAGRAPHS = [
   `In honor of Atakhan, the ancient demon of bloodshed who once roamed the
    Summoner's Rift, a group of passionate League of Legends enthusiasts built a
@@ -172,10 +179,11 @@ export default function Introduce() {
               here that can't be made motionless. */}
           {shown && animate && (
             <div className="absolute inset-0">
-              {/* Full speed — unlike the splash there's no fade clock to squeeze
-                  the spawn into — and looped, so it never settles into a
-                  frozen statue. */}
-              <SpawnScene clipRate={1} loop />
+              {/* Full speed — unlike the splash there's no fade clock to
+                  squeeze the spawn into. Runs the clip out to the end, then
+                  sweeps back and forth over its last couple of seconds so the
+                  creature keeps moving instead of freezing. */}
+              <SpawnScene clipRate={1} clipEnd={CLIP_DURATION_S} idleFrom={IDLE_FROM_S} />
             </div>
           )}
         </div>

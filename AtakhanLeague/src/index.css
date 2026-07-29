@@ -10,6 +10,9 @@
   --font-body: 'Exo 2', sans-serif;
   --font-nav: 'Inter', 'Roboto', sans-serif;
   --font-orbitron: 'Orbitron', 'Roboto', sans-serif;
+  /* Already downloaded for ChampionQuotes; promoted to a token so the lore
+     sections can share it. */
+  --font-cinzel: 'Cinzel', serif;
 
   --animate-header-effect: header-effect 1.5s linear;
   --animate-wind-flow-fast: windFlow 1s ease infinite;
@@ -63,6 +66,16 @@
   /* `backwards` so an ember isn't parked on screen as a static dot while it
      waits out its delay. */
   --animate-intro-ember: introEmber 2.6s ease-out infinite backwards;
+
+  /* Scroll-triggered reveals. Applied only once a section is actually reached,
+     so the delays here are measured from that moment, not from page load.
+     Per-element delays are set inline where they stagger. */
+  --animate-reveal-word: revealWord 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-reveal-up: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-reveal-draw: revealDraw 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-reveal-sweep: revealSweep 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-reveal-bracket: revealBracket 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-reveal-sheen: revealSheen 4.5s ease-in-out 1.4s infinite;
 
   @keyframes header-effect {
     from { opacity: 0; transform: translateY(-20px); }
@@ -194,6 +207,41 @@
     0%   { opacity: 0;   transform: scale(0.45); }
     35%  { opacity: 1;   transform: scale(1.18); }
     100% { opacity: 0.7; transform: scale(1); }
+  }
+
+  /* A word rising into its own clipped box — the mask is the parent's
+     overflow, so nothing of it shows above the line before it arrives. */
+  @keyframes revealWord {
+    from { opacity: 0; transform: translateY(115%) skewY(4deg); }
+    to   { opacity: 1; transform: translateY(0)    skewY(0); }
+  }
+
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(26px); filter: blur(6px); }
+    to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+  }
+
+  /* The accent rule drawing itself downward. */
+  @keyframes revealDraw {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+
+  @keyframes revealSweep {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  @keyframes revealBracket {
+    from { opacity: 0; transform: scale(0.55); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Light travelling across the heading, long after it has landed. */
+  @keyframes revealSheen {
+    0%, 14%   { opacity: 0; transform: translateX(-140%) skewX(-14deg); }
+    22%       { opacity: 1; }
+    58%, 100% { opacity: 0; transform: translateX(460%)  skewX(-14deg); }
   }
 
   @keyframes introShock {

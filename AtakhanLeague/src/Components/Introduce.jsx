@@ -1,5 +1,6 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment } from 'react';
 import SpawnScene, { IDLE_CLIP, IDLE_YAW_DEG } from './SpawnScene';
+import useReveal from '../utils/useReveal';
 
 const HEADING = ['What', 'is', 'Atakhan', 'League?'];
 
@@ -25,46 +26,10 @@ const CORNERS = [
 ];
 
 export default function Introduce() {
-  const sectionRef = useRef(null);
-  // Everything here is held back until the section is actually reached: the
-  // reveal delays are measured from that moment, and the spawn's CSS beats run
-  // from when the scene mounts. Firing on page load would mean the whole thing
-  // had already played by the time anyone scrolled down to it.
-  const [shown, setShown] = useState(false);
-  // Whether to reveal with motion or just be there. Content must never depend
-  // on the animation running: without this, anyone who prefers reduced motion —
-  // or whose browser lacks IntersectionObserver — would be left staring at a
-  // section stuck at opacity 0.
-  const [animate, setAnimate] = useState(true);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (still || typeof IntersectionObserver === 'undefined') {
-      setAnimate(false);
-      setShown(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setShown(true);
-        observer.disconnect();
-      },
-      { threshold: 0.25 }
-    );
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
-
-  // Reveals are applied only once shown, so each starts from its own zero.
-  const at = (seconds) => (shown && animate ? { animationDelay: `${seconds}s` } : undefined);
-  // Resting state → animation → plain visible, depending on the two flags.
-  const fade = (animation) => (!shown ? 'opacity-0' : animate ? animation : 'opacity-100');
-  const grow = (animation, resting) => (!shown ? resting : animate ? animation : '');
+  // Held back until the section is reached: the reveal delays are measured from
+  // that moment, and the spawn's CSS beats run from when the scene mounts.
+  // Firing on page load would mean it had all played before anyone scrolled to it.
+  const { ref: sectionRef, shown, animate, at, fade, grow } = useReveal();
 
   return (
     <section

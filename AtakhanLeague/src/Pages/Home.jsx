@@ -11,7 +11,7 @@ import TournamentInfo from '../Components/TournamentInfo';
 import Registration from '../Components/Registration';
 import TournamentBoard from '../Components/TournamentBoard';
 import PlayersPool from '../Components/PlayersPool';
-import DiscordSection from '../Components/DiscordSection';
+import CommunitySection from '../Components/CommunitySection';
 
 // Target: 15 August 2026 at 18:00 (Belgrade / Central European Summer Time)
 const TOURNAMENT_DATE = new Date('2026-08-15T18:00:00+02:00');
@@ -135,7 +135,7 @@ export default function Home() {
       </div>
       <TournamentBoard />
       <PlayersPool />
-      <DiscordSection />
+      <CommunitySection />
     </>
   );
 }

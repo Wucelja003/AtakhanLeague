@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RoleDropdown from './RoleDropdown';
+import ServerDropdown from './ServerDropdown';
 
 export default function RegistrationForm({
   title,
@@ -128,21 +129,11 @@ export default function RegistrationForm({
           >
             Server:
           </label>
-          <select
+          <ServerDropdown
             id={`${title}-server`}
             value={server}
-            onChange={(e) => setServer(e.target.value)}
-            className={`block w-full px-4 py-3 rounded-lg bg-black/50 border text-white font-slogan text-sm outline-none transition-all duration-300 ${
-              server && server !== 'EUNE'
-                ? 'border-[#DC143C] shadow-[0_0_10px_rgba(220,20,60,0.35)]'
-                : 'border-[rgba(102,0,0,0.3)] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]'
-            }`}
-          >
-            <option value="">— select your server —</option>
-            <option value="EUNE">EUNE (Europe Nordic &amp; East)</option>
-            <option value="EUW">EUW (Europe West)</option>
-            <option value="OTHER">Other region</option>
-          </select>
+            onChange={setServer}
+          />
 
           {server && server !== 'EUNE' && (
             <p className="mt-2 flex items-start gap-2 px-4 py-3 rounded-lg bg-[rgba(220,20,60,0.08)] border border-[rgba(220,20,60,0.35)] font-body text-[13px] text-[#DC143C] animate-shake">

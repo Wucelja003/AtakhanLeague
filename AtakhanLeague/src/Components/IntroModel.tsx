@@ -21,6 +21,8 @@ type Props = {
   endAt?: number;
   /** Playback rate — the source clip is 8.33s, longer than the intro. */
   timeScale?: number;
+  /** Degrees to turn the creature about its vertical axis. */
+  yawDeg?: number;
   /** Fired once the model is loaded and the first frame is on screen. */
   onReady?: () => void;
   /** Fired if WebGL is unavailable or the model fails to load. */
@@ -34,11 +36,13 @@ export default function IntroModel({
   startAt = 0,
   endAt,
   timeScale = 1,
+  yawDeg = 0,
   onReady,
   onFail,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const actionRef = useRef<THREE.AnimationAction | null>(null);
+  const yawRef = useRef(yawDeg);
   // Kept in refs so the setup effect can stay mount-only — re-running it would
   // rebuild the whole WebGL context.
   const startAtRef = useRef(startAt);
@@ -50,7 +54,8 @@ export default function IntroModel({
   useEffect(() => {
     startAtRef.current = startAt;
     endAtRef.current = endAt;
-  }, [startAt, endAt]);
+    yawRef.current = yawDeg;
+  }, [startAt, endAt, yawDeg]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -95,7 +100,13 @@ export default function IntroModel({
       (gltf) => {
         if (disposed) return;
         root = gltf.scene;
-        scene.add(root);
+        // Turned via a parent, not on the model itself: three applies rotation
+        // before position, so spinning `root` directly would swing it around by
+        // its own centring offset instead of in place. The pivot stays at
+        // identity through the measuring below, then takes the yaw at the end.
+        const pivot = new THREE.Group();
+        pivot.add(root);
+        scene.add(pivot);
 
         // Skinned meshes get their bounding volume from the bind pose. The
         // spawn clip throws the bones well outside it, so three culls the whole
@@ -159,6 +170,8 @@ export default function IntroModel({
         // Seat it on the ground from the RAW bone box. Padding the box first
         // would lift the creature off the floor by the padding amount.
         root.position.set(-centre.x, -box.min.y, -centre.z);
+        // Now that it's centred, turn it to face the camera the way we want.
+        pivot.rotation.y = (yawRef.current * Math.PI) / 180;
 
         // Pad only the framing: bones sit inside the silhouette, and the cloth
         // and tendrils reach well past them.

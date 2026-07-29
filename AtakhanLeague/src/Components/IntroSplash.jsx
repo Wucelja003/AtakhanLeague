@@ -33,6 +33,8 @@ const BURST_MS = 1700;
 const CLIP_START_S = 0;
 const CLIP_END_S = 5.4;
 const CLIP_RATE = 2.2;
+// Turned to face the other way.
+const MODEL_YAW_DEG = 180;
 
 const TITLE = 'ATAKHAN LEAGUE';
 const LETTER_START_S = 2.7;
@@ -221,6 +223,7 @@ export default function IntroSplash() {
                 startAt={CLIP_START_S}
                 endAt={CLIP_END_S}
                 timeScale={CLIP_RATE}
+                yawDeg={MODEL_YAW_DEG}
                 onReady={() => {
                   modelReady.current = true;
                 }}

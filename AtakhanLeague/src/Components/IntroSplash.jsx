@@ -14,25 +14,26 @@ const IntroModel = lazy(() => import('./IntroModel'));
 //   0.10  rose pushes up
 //   0.55  charge — glow swells, rose trembles
 //   1.00  burst — flash, shockwave, rose torn apart
-//   1.08  Atakhan rises out of the smoke — the rigged spawn if it loaded in
-//         time, otherwise the flat image
+//   ~1.0  Atakhan rises out of the smoke — the rigged spawn as soon as it's
+//         loaded, or the flat image once we stop waiting for it
 //   2.90  wordmark lands letter by letter
-//   5.95  the spawn lands
-//   6.20  overlay fades away
-//
-// The run-up is deliberately not shorter than this: it doubles as the model's
-// download window, and cutting it further just means more visitors get the flat
-// fallback instead of the rigged spawn.
+//   then  the overlay fades once the creature has finished
 const SESSION_KEY = 'atakhan:intro-seen';
-// Sized so the spawn gets to finish: the burst hands over at 1.0s and the clip
-// slice runs 4.9s at its playback rate, landing at ~5.95s.
-const HOLD_MS = 6200; // full sequence...
-const FADE_MS = 600;  // ...then the overlay fades out over this long
+const FADE_MS = 600; // the overlay fades out over this long
 
-// The moment the rose is torn apart and the creature takes over. Whether the
-// rigged model or the flat image plays is decided here, once, and then held —
-// so a model that finishes loading mid-rise can't swap in halfway through.
+// Earliest the creature can take over — the rose is torn apart here.
 const BURST_MS = 1000;
+// How long past that we'll keep waiting for the rigged model before settling
+// for the flat image. Deciding on a fixed deadline made this a race the model
+// lost whenever the main thread was busy, and losing it once meant the 3D
+// version simply never appeared.
+const MODEL_WAIT_MS = 1800;
+// Breathing room after the creature lands, before the overlay leaves.
+const TAIL_MS = 400;
+// Roughly how long the flat fallback's own animation runs.
+const FLAT_RUN_MS = 1600;
+// Hard ceiling, so a pathological load can't leave the splash up indefinitely.
+const MAX_HOLD_MS = 9000;
 // The source clip runs 8.33s. Sampling the rig frame by frame: it climbs out of
 // the ground until ~4.2s and rears up, drops, swings again at ~6.3s, and is
 // motionless from ~7.0s on. So everything up to 6.9s is worth showing and the
@@ -93,10 +94,10 @@ function shouldPlay() {
 export default function IntroSplash() {
   // playing → leaving → done. Each phase owns its own timer, so they can't overlap.
   const [phase, setPhase] = useState(() => (shouldPlay() ? 'playing' : 'done'));
-  // null until the burst decides; then true (rigged model) or false (flat image).
+  // null until decided; then true (rigged model) or false (flat image).
   const [use3D, setUse3D] = useState(null);
-  // Read by the burst timeout, so it always sees the latest load state.
-  const modelReady = useRef(false);
+  const [modelReady, setModelReady] = useState(false);
+  const [burstPassed, setBurstPassed] = useState(false);
 
   // Start pulling the model down immediately, in parallel with the three.js
   // chunks. GLTFLoader can't ask for it until those have loaded and IntroModel
@@ -108,10 +109,27 @@ export default function IntroSplash() {
     fetch(MODEL_SRC).catch(() => {});
   }, [phase]);
 
-  // Lock in which version plays, at the burst.
+  // The creature can't appear before the rose is torn apart...
   useEffect(() => {
     if (phase !== 'playing') return;
-    const id = setTimeout(() => setUse3D(modelReady.current), BURST_MS);
+    const id = setTimeout(() => setBurstPassed(true), BURST_MS);
+    return () => clearTimeout(id);
+  }, [phase]);
+
+  // ...and after that it's whichever comes first: the model finishing, or us
+  // giving up on it. Waiting rather than judging on a deadline is the whole
+  // point — the model only has to arrive, not arrive by a particular moment.
+  useEffect(() => {
+    if (phase !== 'playing' || use3D !== null) return;
+    if (burstPassed && modelReady) setUse3D(true);
+  }, [phase, use3D, burstPassed, modelReady]);
+
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const id = setTimeout(
+      () => setUse3D((chosen) => (chosen === null ? false : chosen)),
+      BURST_MS + MODEL_WAIT_MS
+    );
     return () => clearTimeout(id);
   }, [phase]);
 
@@ -122,7 +140,22 @@ export default function IntroSplash() {
     } catch {
       // Not being able to remember it is not worth breaking the intro over.
     }
-    const id = setTimeout(() => setPhase('leaving'), HOLD_MS);
+  }, [phase]);
+
+  // Timed from when the creature actually starts, not from mount — otherwise a
+  // slow model would have its spawn cut off by a deadline set before anyone
+  // knew how long the wait would be.
+  useEffect(() => {
+    if (phase !== 'playing' || use3D === null) return;
+    const run = use3D ? (CLIP_END_S / CLIP_RATE) * 1000 : FLAT_RUN_MS;
+    const id = setTimeout(() => setPhase('leaving'), run + TAIL_MS);
+    return () => clearTimeout(id);
+  }, [phase, use3D]);
+
+  // Backstop, in case the creature never arrives at all.
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const id = setTimeout(() => setPhase('leaving'), MAX_HOLD_MS);
     return () => clearTimeout(id);
   }, [phase]);
 
@@ -225,12 +258,9 @@ export default function IntroSplash() {
           {/* Smoke it climbs out of */}
           <div className="absolute bottom-0 h-[130px] w-[min(72vw,440px)] rounded-[50%] bg-[radial-gradient(ellipse,rgba(18,4,6,0.95)_0%,rgba(18,4,6,0.5)_45%,transparent_72%)] blur-lg animate-intro-smoke" />
 
-          {/* Atakhan. Rendered from the first frame (at opacity 0) so the
-              browser has the whole run-up to fetch it — no pop-in at 1.8s. */}
           {/* The rigged spawn. Mounted from the first frame but invisible, so
-              it downloads during the rose sequence and is ready by the burst.
-              If it isn't, the flat image below plays instead and this never
-              becomes visible. */}
+              it loads during the rose sequence; it only becomes visible once
+              it's been chosen. */}
           <div
             className={`pointer-events-none absolute bottom-0 aspect-square w-[min(86vw,500px)] translate-y-[15%] transition-opacity duration-500 ${
               use3D ? 'opacity-100' : 'opacity-0'
@@ -244,18 +274,15 @@ export default function IntroSplash() {
                 endAt={CLIP_END_S}
                 timeScale={CLIP_RATE}
                 yawDeg={MODEL_YAW_DEG}
-                onReady={() => {
-                  modelReady.current = true;
-                }}
-                onFail={() => {
-                  modelReady.current = false;
-                }}
+                onReady={() => setModelReady(true)}
+                onFail={() => setModelReady(false)}
               />
             </Suspense>
           </div>
 
-          {/* Flat fallback — dropped once the model has won the coin toss. */}
-          {use3D !== true && (
+          {/* Flat fallback — mounted only if we gave up waiting for the model,
+              so its animation runs from that moment instead of a fixed cue. */}
+          {use3D === false && (
             <div className="absolute bottom-0 w-[min(66vw,380px)] origin-bottom animate-intro-demon">
               <img
                 src="/mainDemon-removebg-preview.png"
@@ -265,7 +292,7 @@ export default function IntroSplash() {
               />
               {/* Its crown catching light. Offset by half its own size instead of
                   a centring translate, which the scale animation would clobber. */}
-              <div className="pointer-events-none absolute left-[25%] top-[25%] h-[24%] w-[24%] rounded-full bg-[radial-gradient(circle,rgba(255,70,70,0.75)_0%,rgba(220,20,60,0.3)_45%,transparent_72%)] opacity-0 blur-md animate-intro-crown" />
+              <div className="pointer-events-none absolute left-[25%] top-[25%] h-[24%] w-[24%] rounded-full bg-[radial-gradient(circle,rgba(255,70,70,0.75)_0%,rgba(220,20,60,0.3)_45%,transparent_72%)] opacity-0 blur-md animate-intro-crown-now" />
             </div>
           )}
 

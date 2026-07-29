@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RoleDropdown from './RoleDropdown';
-import ServerDropdown from './ServerDropdown';
 
 export default function RegistrationForm({
   title,
@@ -20,6 +19,11 @@ export default function RegistrationForm({
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Matches how the backend compares it, so the field can't disagree with the
+  // answer it gets back: trimmed, case-insensitive.
+  const typedServer = server.trim().toUpperCase();
+  const wrongServer = typedServer !== '' && typedServer !== 'EUNE';
 
   function inputClass(name) {
     if (errors[name] === true)
@@ -44,11 +48,11 @@ export default function RegistrationForm({
     });
     setErrors(next);
 
-    if (needsServer && !server) {
-      setServerError('Please select your server');
+    if (needsServer && !typedServer) {
+      setServerError('Please enter your server');
       return;
     }
-    if (needsServer && server !== 'EUNE') {
+    if (needsServer && wrongServer) {
       setServerError('This tournament is for EUNE only — your account is on another server.');
       return;
     }
@@ -64,7 +68,7 @@ export default function RegistrationForm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ ...values, role, server }),
+        body: JSON.stringify({ ...values, role, server: typedServer }),
       });
       const data = await res.json();
       if (!res.ok || data.success === false) {
@@ -129,17 +133,28 @@ export default function RegistrationForm({
           >
             Server:
           </label>
-          <ServerDropdown
+          <input
             id={`${title}-server`}
+            type="text"
+            name="server"
+            placeholder="EUNE"
+            autoComplete="off"
             value={server}
-            onChange={setServer}
+            onChange={(e) => setServer(e.target.value)}
+            className={`block w-full px-4 py-3 rounded-lg bg-black/50 border text-white font-slogan text-sm outline-none transition-all duration-300 placeholder:text-[#666] ${
+              wrongServer
+                ? 'border-[#DC143C] shadow-[0_0_10px_rgba(220,20,60,0.35)]'
+                : server.trim()
+                  ? 'border-[#2d6a2d] shadow-[0_0_8px_rgba(45,106,45,0.25)]'
+                  : 'border-[rgba(102,0,0,0.3)] focus:border-[#DC143C] focus:shadow-[0_0_10px_rgba(220,20,60,0.3)]'
+            }`}
           />
 
-          {server && server !== 'EUNE' && (
+          {wrongServer && (
             <p className="mt-2 flex items-start gap-2 px-4 py-3 rounded-lg bg-[rgba(220,20,60,0.08)] border border-[rgba(220,20,60,0.35)] font-body text-[13px] text-[#DC143C] animate-shake">
               <span className="font-bold">This tournament is EUNE only.</span>
               <span className="text-neutral-300">
-                Your account is on {server === 'EUW' ? 'EUW' : 'another region'}, so you can&apos;t enter this one.
+                Your account is on {typedServer}, so you can&apos;t enter this one.
               </span>
             </p>
           )}

@@ -16,28 +16,32 @@ const IntroModel = lazy(() => import('./IntroModel'));
 //   1.70  burst — flash, shockwave, rose torn apart
 //   1.80  Atakhan rises out of the smoke — the rigged spawn if it loaded in
 //         time, otherwise the flat image
-//   2.70  wordmark lands letter by letter
-//   4.40  overlay fades away
+//   3.60  wordmark lands letter by letter
+//   6.60  the spawn lands
+//   7.00  overlay fades away
 const SESSION_KEY = 'atakhan:intro-seen';
-const HOLD_MS = 4400; // full sequence...
+// Sized so the spawn gets to finish: the burst hands over at 1.7s and the clip
+// slice runs 4.9s at its playback rate, landing at ~6.6s.
+const HOLD_MS = 7000; // full sequence...
 const FADE_MS = 600;  // ...then the overlay fades out over this long
 
 // The moment the rose is torn apart and the creature takes over. Whether the
 // rigged model or the flat image plays is decided here, once, and then held —
 // so a model that finishes loading mid-rise can't swap in halfway through.
 const BURST_MS = 1700;
-// The source clip runs 8.33s, but only the opening is the spawn proper:
-// sampling the rig shows it climbing out of the ground until ~4.2s, rearing up,
-// settling by ~5.4s, then idling in place for the rest. Played at 2.2× that
-// slice fills the window between the burst and the fade.
+// The source clip runs 8.33s. Sampling the rig frame by frame: it climbs out of
+// the ground until ~4.2s and rears up, drops, swings again at ~6.3s, and is
+// motionless from ~7.0s on. So everything up to 6.9s is worth showing and the
+// tail is dead air. Played at 1.4× — near enough to its authored speed to read
+// as the animation it is.
 const CLIP_START_S = 0;
-const CLIP_END_S = 5.4;
-const CLIP_RATE = 2.2;
+const CLIP_END_S = 6.9;
+const CLIP_RATE = 1.4;
 // Turned to face the other way.
 const MODEL_YAW_DEG = 180;
 
 const TITLE = 'ATAKHAN LEAGUE';
-const LETTER_START_S = 2.7;
+const LETTER_START_S = 3.6;
 const LETTER_STAGGER_S = 0.04;
 
 // Tendrils that climb out of the ground before the creature does. Each one

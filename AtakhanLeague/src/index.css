@@ -56,7 +56,7 @@
   --animate-intro-demon: introDemon 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.8s both;
   --animate-intro-halo: introHalo 1.4s ease-out 1.95s both;
   --animate-intro-letter: introLetter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-intro-line: introLine 0.8s ease-out 3s both;
+  --animate-intro-line: introLine 0.8s ease-out 4s both;
   /* `backwards` so an ember isn't parked on screen as a static dot while it
      waits out its delay. */
   --animate-intro-ember: introEmber 2.6s ease-out infinite backwards;

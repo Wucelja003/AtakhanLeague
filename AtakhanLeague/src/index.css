@@ -34,8 +34,19 @@
   --animate-intro-rose: introRose 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
   --animate-intro-charge: introCharge 0.7s ease-in 1.05s both;
   --animate-intro-tremble: introTremble 0.7s ease-in-out 1.05s both;
+  /* Tendrils climb out of the ground ahead of the creature. Each path draws
+     itself via stroke-dashoffset; the group is torn away at the burst. */
+  --animate-intro-tendril: introTendril 0.55s ease-out both;
+  --animate-intro-tendrils-out: introTendrilsOut 0.5s ease-out 1.72s forwards;
   --animate-intro-burst: introBurst 0.45s ease-out 1.7s both;
   --animate-intro-flash: introFlash 0.5s ease-out 1.7s both;
+  /* The dark whirl circling it on the ground. The fade-in and the endless spin
+     are separate elements — one animation per element. */
+  --animate-intro-vortex-in: introVortexIn 1.1s ease-out 2.2s forwards;
+  --animate-intro-spin-slow: introSpin 9s linear infinite;
+  --animate-intro-spin-fast: introSpinReverse 6s linear infinite;
+  /* Its crown catching light once it's up. */
+  --animate-intro-crown: introCrown 1.2s ease-out 2.35s forwards;
   /* `forwards`, not `both`: these start mid-sequence, and a backwards fill
      would park the visible first keyframe on screen during the delay. The
      elements carry opacity-0 so they stay hidden until their beat. */
@@ -142,10 +153,44 @@
     100% { opacity: 0; transform: scale(2.7); }
   }
 
+  /* Each tendril draws itself upward. 320 clears the longest path, so one
+     value works for all of them. */
+  @keyframes introTendril {
+    0%   { opacity: 0;    stroke-dashoffset: 320; }
+    18%  { opacity: 0.95; }
+    100% { opacity: 0.95; stroke-dashoffset: 0; }
+  }
+
+  @keyframes introTendrilsOut {
+    from { opacity: 1; transform: scale(1)   translateY(0); }
+    to   { opacity: 0; transform: scale(1.6) translateY(-26px); }
+  }
+
   @keyframes introFlash {
     0%   { opacity: 0; }
     18%  { opacity: 1; }
     100% { opacity: 0; }
+  }
+
+  @keyframes introVortexIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes introSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes introSpinReverse {
+    from { transform: rotate(360deg); }
+    to   { transform: rotate(0deg); }
+  }
+
+  @keyframes introCrown {
+    0%   { opacity: 0;   transform: scale(0.45); }
+    35%  { opacity: 1;   transform: scale(1.18); }
+    100% { opacity: 0.7; transform: scale(1); }
   }
 
   @keyframes introShock {

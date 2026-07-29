@@ -18,20 +18,41 @@ export default function Introduce() {
   // canvas is actually on screen, so the spawn still starts from the top.
   const [near, setNear] = useState(false);
   const [ready, setReady] = useState(false);
+  // Separate from `near`: the spawn opens on an empty frame, so handing the
+  // slot over the moment the model loads would blank it out while the visitor
+  // is still scrolling towards it. The image holds until they actually arrive,
+  // then cross-fades as the creature climbs into view.
+  const [arrived, setArrived] = useState(false);
+  const showModel = ready && arrived;
 
   useEffect(() => {
     const slot = slotRef.current;
     if (!slot) return;
-    const observer = new IntersectionObserver(
+
+    const preload = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
         setNear(true);
-        observer.disconnect();
+        preload.disconnect();
       },
       { rootMargin: '300px' }
     );
-    observer.observe(slot);
-    return () => observer.disconnect();
+    preload.observe(slot);
+
+    const onScreen = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setArrived(true);
+        onScreen.disconnect();
+      },
+      { threshold: 0.35 }
+    );
+    onScreen.observe(slot);
+
+    return () => {
+      preload.disconnect();
+      onScreen.disconnect();
+    };
   }, []);
 
   return (
@@ -67,15 +88,15 @@ export default function Introduce() {
           <img
             src="/mainDemon-removebg-preview.png"
             alt="Atakhan, the demon of bloodshed"
-            className={`h-full w-full object-contain transition-opacity duration-700 [filter:drop-shadow(0_0_30px_rgba(139,0,0,0.6))] ${
-              ready ? 'opacity-0' : 'opacity-100'
+            className={`h-full w-full object-contain transition-opacity duration-1000 [filter:drop-shadow(0_0_30px_rgba(139,0,0,0.6))] ${
+              showModel ? 'opacity-0' : 'opacity-100'
             }`}
           />
 
           {near && (
             <div
-              className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${
-                ready ? 'opacity-100' : 'opacity-0'
+              className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ${
+                showModel ? 'opacity-100' : 'opacity-0'
               }`}
             >
               <Suspense fallback={null}>

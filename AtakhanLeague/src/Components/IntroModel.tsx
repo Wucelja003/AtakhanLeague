@@ -50,15 +50,19 @@ export default function IntroModel({
   // rebuild the whole WebGL context.
   const startAtRef = useRef(startAt);
   const endAtRef = useRef(endAt);
+  const playingRef = useRef(playing);
+  const timeScaleRef = useRef(timeScale);
   // useRef seeds these with the first render's values; keep them in step from an
   // effect rather than during render, which isn't safe under concurrent
-  // rendering. Both are only ever read from the loader callback and the render
-  // loop, long after mount effects have run.
+  // rendering. They're only read from the loader callback and the render loop,
+  // long after mount effects have run.
   useEffect(() => {
     startAtRef.current = startAt;
     endAtRef.current = endAt;
     yawRef.current = yawDeg;
-  }, [startAt, endAt, yawDeg]);
+    playingRef.current = playing;
+    timeScaleRef.current = timeScale;
+  }, [startAt, endAt, yawDeg, playing, timeScale]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -190,6 +194,19 @@ export default function IntroModel({
         camera.updateProjectionMatrix();
 
         if (mixer) mixer.setTime(startAtRef.current);
+
+        // Apply the CURRENT play state now the action finally exists. The
+        // effect below can't do it: it only fires when `playing` changes, and a
+        // caller that mounts with playing already true — like the Introduce
+        // section — never changes it, so the clip would sit paused on frame 0
+        // for good. The splash only worked because it flips false → true after
+        // the model has loaded.
+        const action = actionRef.current;
+        if (action) {
+          action.timeScale = timeScaleRef.current;
+          action.paused = !playingRef.current;
+        }
+
         renderer!.render(scene, camera);
         onReady?.();
       },

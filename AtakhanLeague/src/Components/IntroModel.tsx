@@ -199,9 +199,27 @@ export default function IntroModel({
       }
     );
 
+    // Don't burn GPU on a canvas nobody is looking at. Matters for the in-page
+    // use, which can sit scrolled off screen for the rest of the session; the
+    // splash is always in view, so this never trips there.
+    let onScreen = true;
+    const visibility = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry.isIntersecting;
+      },
+      { threshold: 0 }
+    );
+    visibility.observe(host);
+
     let last = performance.now();
     const tick = (now: number) => {
       frame = requestAnimationFrame(tick);
+      if (!onScreen || document.hidden) {
+        // Keep the clock with it, or it resumes with one huge delta and skips
+        // most of the animation.
+        last = now;
+        return;
+      }
       const delta = (now - last) / 1000;
       last = now;
       if (mixer) mixer.update(delta);
@@ -223,6 +241,7 @@ export default function IntroModel({
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
+      visibility.disconnect();
       window.removeEventListener('resize', onResize);
       mixer?.stopAllAction();
       // Release GPU memory explicitly — the splash unmounts for good, and a

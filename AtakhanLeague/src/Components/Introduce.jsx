@@ -1,4 +1,39 @@
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+
+// The same rigged spawn the intro splash plays. Lazy, so three.js stays out of
+// the main bundle; by the time anyone scrolls this far the GLB is usually
+// already cached from the splash.
+const IntroModel = lazy(() => import('./IntroModel'));
+
+const MODEL_SRC = '/atakhan-spawn.glb';
+const CLIP_END_S = 6.9;
+// Full speed here — unlike the splash there's no fade clock to squeeze it into.
+const CLIP_RATE = 1;
+const MODEL_YAW_DEG = 180;
+
 export default function Introduce() {
+  const slotRef = useRef(null);
+  // Mount a little before the slot scrolls into view so the model has time to
+  // load. It won't animate early: IntroModel idles its render loop until the
+  // canvas is actually on screen, so the spawn still starts from the top.
+  const [near, setNear] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const slot = slotRef.current;
+    if (!slot) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setNear(true);
+        observer.disconnect();
+      },
+      { rootMargin: '300px' }
+    );
+    observer.observe(slot);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section className="relative z-[2] mt-[80px] sm:mt-[100px] px-5 py-16 sm:py-20">
       <div className="mx-auto max-w-6xl flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
@@ -22,11 +57,41 @@ export default function Introduce() {
           </p>
         </div>
 
-        <img
-          src="/mainDemon-removebg-preview.png"
-          alt="Atakhan, the demon of bloodshed"
-          className="w-[220px] sm:w-[300px] lg:w-[380px] h-auto shrink-0 [filter:drop-shadow(0_0_30px_rgba(139,0,0,0.6))]"
-        />
+        <div
+          ref={slotRef}
+          className="relative shrink-0 aspect-square w-[220px] sm:w-[300px] lg:w-[380px]"
+        >
+          {/* Left mounted rather than swapped out: it holds the slot steady
+              while the model loads, keeps the alt text, and is what remains if
+              WebGL is missing or the download fails. */}
+          <img
+            src="/mainDemon-removebg-preview.png"
+            alt="Atakhan, the demon of bloodshed"
+            className={`h-full w-full object-contain transition-opacity duration-700 [filter:drop-shadow(0_0_30px_rgba(139,0,0,0.6))] ${
+              ready ? 'opacity-0' : 'opacity-100'
+            }`}
+          />
+
+          {near && (
+            <div
+              className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${
+                ready ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <Suspense fallback={null}>
+                <IntroModel
+                  src={MODEL_SRC}
+                  playing
+                  endAt={CLIP_END_S}
+                  timeScale={CLIP_RATE}
+                  yawDeg={MODEL_YAW_DEG}
+                  onReady={() => setReady(true)}
+                  onFail={() => setReady(false)}
+                />
+              </Suspense>
+            </div>
+          )}
+        </div>
       </div>
       <hr className="mt-16 sm:mt-20 border-0 h-[2px] bg-[linear-gradient(90deg,transparent,#DC143C,#8B0000,#DC143C,transparent)] shadow-[0_0_12px_rgba(220,20,60,0.5)]" />
     </section>

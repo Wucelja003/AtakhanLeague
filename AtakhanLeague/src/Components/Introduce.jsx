@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment } from 'react';
 import SpawnScene, { IDLE_CLIP, IDLE_YAW_DEG } from './SpawnScene';
 import useReveal from '../utils/useReveal';
 
@@ -25,27 +25,11 @@ const CORNERS = [
   'bottom-0 right-0 border-b-2 border-r-2',
 ];
 
-// three.js and the model together are ~615 KB, and Lighthouse measured them as
-// a 1.5s critical chain: index.js → IntroModel → three.js → the GLB. That's a
-// lot of budget for decoration, so phones keep the still image — the same call
-// the backdrop video makes.
-const WIDE = '(min-width: 1024px)';
-
 export default function Introduce() {
   // Held back until the section is reached: the reveal delays are measured from
   // that moment, and the spawn's CSS beats run from when the scene mounts.
   // Firing on page load would mean it had all played before anyone scrolled to it.
   const { ref: sectionRef, shown, animate, at, fade, grow } = useReveal();
-  const [wide, setWide] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia?.(WIDE);
-    if (!mq) return;
-    const sync = () => setWide(mq.matches);
-    sync();
-    mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
-  }, []);
 
   return (
     <section
@@ -156,14 +140,16 @@ export default function Introduce() {
             fetchPriority="high"
             decoding="async"
             className={`h-full w-full object-contain transition-opacity duration-500 [filter:drop-shadow(0_0_30px_rgba(139,0,0,0.6))] ${
-              shown && animate && wide ? 'opacity-0' : 'opacity-100'
+              shown && animate ? 'opacity-0' : 'opacity-100'
             }`}
           />
 
-          {/* Reduced motion keeps the still image — the spawn is the one thing
-              here that can't be made motionless — and so does anything narrower
-              than a desktop, which isn't worth 615 KB of renderer and model. */}
-          {shown && animate && wide && (
+          {/* Runs on phones too. three.js and the model are ~615 KB and cost a
+              measurable chunk of the mobile score, but the spawn is the point of
+              this section — that's an accepted trade, not an oversight. Reduced
+              motion still keeps the still image: it's the one thing here that
+              can't be made motionless. */}
+          {shown && animate && (
             <div className="absolute inset-0">
               {/* Full speed — unlike the splash there's no fade clock to
                   squeeze the spawn into — and it hands over to the idle clip at

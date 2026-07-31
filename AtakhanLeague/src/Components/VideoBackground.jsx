@@ -36,30 +36,26 @@ export default function VideoBackground() {
 
     const wide = window.matchMedia(WIDE);
     let settled = false;
-    let timer;
 
     const start = () => {
-      // Width is re-checked here rather than once on mount: the old version
-      // asked a single time, so a window that was narrow at that moment — or
-      // simply reported 0 mid-load — never got the video, and never looked again.
+      // Re-checked each time rather than once on mount, so a window that was
+      // narrow at that moment — or reported no width at all mid-load — isn't
+      // written off for the rest of the session.
       if (settled || !wide.matches) return;
       settled = true;
       setPlay(true);
     };
 
-    const armed = () => {
-      timer = setTimeout(start, 400);
-    };
-
-    if (document.readyState === 'complete') armed();
-    else window.addEventListener('load', armed, { once: true });
-
-    // ...and if they widen the window later, it starts then.
+    // Deliberately NOT waiting on window's load event. Any single resource that
+    // stalls holds that event back indefinitely, and the video was hanging off
+    // it — one slow image and it simply never started. A timer from mount
+    // gives the same "after the page has settled" behaviour with nothing to
+    // hang on.
+    const timer = setTimeout(start, 600);
     wide.addEventListener('change', start);
 
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('load', armed);
       wide.removeEventListener('change', start);
     };
   }, []);

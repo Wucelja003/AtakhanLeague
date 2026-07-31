@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
 const POSTER = '/atakhan-bg-poster.webp';
+// Two widths: the backdrop spans the viewport, so a phone was downloading a
+// 1280px frame to paint it around 720. The preload in index.html carries the
+// same srcset, or it would fetch the large one and the picked one separately.
+const POSTER_SET = '/atakhan-bg-poster-800.webp 800w, /atakhan-bg-poster.webp 1280w';
 const VIDEO = '/atakhan-bg.mp4';
 const WIDE = '(min-width: 1024px)';
 
@@ -88,6 +92,8 @@ export default function VideoBackground() {
       <div className="relative aspect-video w-full">
         <img
           src={POSTER}
+          srcSet={POSTER_SET}
+          sizes="100vw"
           alt=""
           aria-hidden="true"
           fetchPriority="high"

@@ -11,7 +11,14 @@
     <!-- The hero backdrop is rendered by React, so without this the browser
          can't even discover it until the bundle has parsed. It's the largest
          thing on the landing page, so that discovery delay lands on LCP. -->
-    <link rel="preload" as="image" href="/atakhan-bg-poster.webp" fetchpriority="high" />
+    <link
+      rel="preload"
+      as="image"
+      href="/atakhan-bg-poster.webp"
+      imagesrcset="/atakhan-bg-poster-800.webp 800w, /atakhan-bg-poster.webp 1280w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
     <!-- Lighthouse measures this one as the LCP element, and React renders it,
          so without a preload it isn't discoverable until the bundle has run. -->
     <link rel="preload" as="image" href="/mainDemon-removebg-preview.webp" fetchpriority="high" />

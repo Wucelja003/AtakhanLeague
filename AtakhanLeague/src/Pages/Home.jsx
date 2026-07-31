@@ -101,7 +101,7 @@ export default function Home() {
         <div className="mx-auto flex flex-col items-center">
           
 
-          <h1 className="select-none text-center text-[clamp(36px,12vw,100px)] font-bold leading-[1.2] text-transparent bg-clip-text bg-[linear-gradient(90deg,rgba(123,26,26,1)_50%)] [filter:drop-shadow(0_1px_6px_rgba(0,0,0,0.5))_drop-shadow(0_1px_2px_rgba(0,0,0,0.8))] animate-fade-in-up">
+          <h1 className="select-none text-center text-[clamp(36px,12vw,100px)] font-bold leading-[1.2] text-transparent bg-clip-text bg-[linear-gradient(90deg,rgba(123,26,26,1)_50%)] [filter:drop-shadow(0_1px_6px_rgba(0,0,0,0.5))_drop-shadow(0_1px_2px_rgba(0,0,0,0.8))] animate-hero-rise">
             Atakhan League
           </h1>
 

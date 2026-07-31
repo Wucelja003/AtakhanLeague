@@ -19,8 +19,15 @@
   --animate-wind-flow-register: windFlow 4s ease infinite;
   --animate-fade-in-down: fadeInDown 0.8s ease 0.2s both;
   --animate-fade-in-scale: fadeInScale 0.9s ease 0.6s both;
-  --animate-fade-in-up: fadeInUp 0.8s ease 1s both;
-  --animate-fade-in-up-delayed: fadeInUp 0.8s ease 1.3s both;
+  /* Above-the-fold entrances. These used to hold the element at opacity 0 for
+     a full second before painting anything — and the hero h1 is the largest
+     element on three pages, so that second was landing directly on LCP. The
+     stagger is kept, just without the dead wait in front of it. */
+  --animate-fade-in-up: fadeInUp 0.7s ease 0.08s both;
+  --animate-fade-in-up-delayed: fadeInUp 0.7s ease 0.22s both;
+  /* For the LCP element itself: motion without ever hiding it, so it paints on
+     the first frame it can. */
+  --animate-hero-rise: heroRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-slide-in-left: slideInLeft 0.8s ease both;
   --animate-slide-in-right: slideInRight 0.8s ease 0.3s both;
   --animate-form-fade-in: formFadeIn 0.7s ease both;
@@ -90,6 +97,11 @@
   @keyframes fadeInDown {
     from { opacity: 0; transform: translateY(-30px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes heroRise {
+    from { transform: translateY(22px); }
+    to   { transform: translateY(0); }
   }
 
   @keyframes fadeInUp {

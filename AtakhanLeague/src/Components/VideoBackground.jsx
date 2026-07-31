@@ -44,6 +44,8 @@ export default function VideoBackground() {
         src={POSTER}
         alt=""
         aria-hidden="true"
+        fetchPriority="high"
+        decoding="async"
         className="absolute inset-0 h-full w-full object-cover"
       />
 

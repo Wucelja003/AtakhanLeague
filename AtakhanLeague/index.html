@@ -8,6 +8,11 @@
          inside index.css. That import couldn't even be discovered until the
          stylesheet had downloaded and parsed, which put the fonts a full
          round-trip behind the render. -->
+    <!-- The hero backdrop is rendered by React, so without this the browser
+         can't even discover it until the bundle has parsed. It's the largest
+         thing on the landing page, so that discovery delay lands on LCP. -->
+    <link rel="preload" as="image" href="/atakhan-bg-poster.jpg" fetchpriority="high" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- Fetched without blocking the first paint: as print it isn't render

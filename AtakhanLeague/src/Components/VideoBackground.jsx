@@ -3,12 +3,16 @@ import { useEffect, useState } from 'react';
 const POSTER = '/atakhan-bg-poster.webp';
 const VIDEO = '/atakhan-bg.mp4';
 
-// The clip is 17 MB. `preload="none"` doesn't hold it back — autoplay overrides
-// it — so every visit was paying for the whole thing before anything else could
-// load. It's decoration behind an 80% black scrim, so it's only worth fetching
-// on a screen big enough to notice it, on a connection that isn't metered, and
-// for someone who hasn't asked for less motion. Everyone else keeps the poster,
-// which is 59 KB and already the first frame.
+// The source clip is 17 MB, and `preload="none"` never held it back — autoplay
+// overrides it — so every visit paid for the whole thing before anything else
+// could load. It's re-encoded to 6.7 MB and only fetched on a screen big enough
+// to warrant it, on a connection that isn't metered, after load, and not for
+// anyone who has asked for less motion. Everyone else keeps the poster, which
+// is 32 KB and already the first frame.
+//
+// Kept at the source's full 1280x720: since none of the above lets it touch a
+// phone or the cold load, the bytes it saved by being smaller weren't buying
+// anything, and downscaling was visibly mushing the in-game text.
 function wantsVideo() {
   if (typeof window === 'undefined') return false;
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;

@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
+import useReveal from '../utils/useReveal';
 import { FaDiscord, FaInstagram, FaTiktok } from 'react-icons/fa6';
 // Lazy — keeps three.js out of the main bundle
+// Decoration at the very bottom of every page — and it drags three.js in with
+// it. Rendered unconditionally it was pulling that down on every page load, so
+// it waits until the footer is actually reached.
 const RisingLines = lazy(() => import('./RisingLines'));
 
 const socials = [
@@ -25,13 +29,22 @@ const legalLinks = [
 ];
 
 export default function Footer() {
+  // `shown` here just means "the footer came into view", which is when the
+  // three.js chunk is finally worth fetching.
+  const { ref, shown: nearFooter } = useReveal({ threshold: 0 });
+
   return (
-    <footer className="relative z-[2] mt-24 px-5 pt-14 border-t-2 border-[rgba(139,0,0,0.4)] shadow-[0_-1px_30px_rgba(139,0,0,0.15)] overflow-hidden">
+    <footer
+      ref={ref}
+      className="relative z-[2] mt-24 px-5 pt-14 border-t-2 border-[rgba(139,0,0,0.4)] shadow-[0_-1px_30px_rgba(139,0,0,0.15)] overflow-hidden"
+    >
       {/* Rising-lines animation band, all the way at the bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-[300px] z-0 pointer-events-none">
-        <Suspense fallback={null}>
-          <RisingLines color="#DC143C" horizonColor="#8B0000" haloColor="#FF3B57" />
-        </Suspense>
+        {nearFooter && (
+          <Suspense fallback={null}>
+            <RisingLines color="#DC143C" horizonColor="#8B0000" haloColor="#FF3B57" />
+          </Suspense>
+        )}
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl grid gap-12 md:grid-cols-[1fr_auto] items-start pb-10">
@@ -39,7 +52,7 @@ export default function Footer() {
         <div className="flex flex-col items-start gap-6">
           <Link to="/" className="flex items-center gap-3">
             <img
-              src="/MainLogoAtakhan-2.svg"
+              src="/MainLogoAtakhan.png"
               alt="Atakhan League"
               className="w-[60px] h-auto [filter:drop-shadow(0_0_20px_rgba(139,0,0,0.5))] transition-[filter] duration-300 hover:[filter:drop-shadow(0_0_32px_rgba(139,0,0,0.85))]"
             />
@@ -88,9 +101,8 @@ export default function Footer() {
 
           <div className="flex flex-col gap-3">
             <h3 className="font-slogan text-[13px] font-bold tracking-[2px] uppercase text-secondary mb-1">
-              About Us
-            </h3>
-            <p className="font-body text-[15px] text-neutral-400">admin@atakhanleague.com</p>
+             E-mail            
+             </h3>
             <p className="font-body text-[15px] text-neutral-400">atakhanleague@gmail.com</p>
           </div>
 

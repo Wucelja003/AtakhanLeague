@@ -131,6 +131,8 @@ export default function Introduce() {
           <img
             src="/mainDemon-removebg-preview.png"
             alt="Atakhan, the demon of bloodshed"
+            loading="lazy"
+            decoding="async"
             className={`h-full w-full object-contain transition-opacity duration-500 [filter:drop-shadow(0_0_30px_rgba(139,0,0,0.6))] ${
               shown && animate ? 'opacity-0' : 'opacity-100'
             }`}

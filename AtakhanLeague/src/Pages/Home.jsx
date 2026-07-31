@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import SEO from '../Components/SEO';
 import VideoBackground from '../Components/VideoBackground';
 import Introduce from '../Components/Introduce';
-import TournamentJourney from '../Components/TournamentJourney';
+// Below the fold, and the heaviest thing on the page: it pulls in framer-motion
+// and six demo components. Lazy keeps all of that out of the first load.
+const TournamentJourney = lazy(() => import('../Components/TournamentJourney'));
 import GlowDivider from '../Components/GlowDivider';
 import ChampionQuotes from '../Components/ChampionQuotes';
 import TournamentInfo from '../Components/TournamentInfo';
@@ -125,7 +127,9 @@ export default function Home() {
         </div>
       </section>
       <Introduce />
-      <TournamentJourney />
+      <Suspense fallback={<div className="min-h-[60vh]" />}>
+        <TournamentJourney />
+      </Suspense>
       <GlowDivider />
       <TournamentInfo />
       <ChampionQuotes />

@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oxanium:wght@400;700&family=Exo+2:wght@400;700&family=Inter:wght@700&family=Orbitron:wght@400;700&family=Cinzel:wght@500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -29,10 +28,10 @@
   --animate-dropdown-open: dropdownOpen 0.2s ease forwards;
   --animate-shake: shake 0.4s ease;
 
-  /* Intro splash — rose → burst → Atakhan rises.
+  /* Spawn scene — rose → burst → Atakhan rises.
      One animation per element (Tailwind's animate-* sets the `animation`
      shorthand, so two on the same node would clobber each other); the beats are
-     sequenced by the delays baked in here. See Components/IntroSplash.jsx. */
+     sequenced by the delays baked in here. See Components/SpawnScene.jsx. */
   --animate-intro-ground: introGround 0.9s ease-out both;
   --animate-intro-rose: introRose 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
   --animate-intro-charge: introCharge 0.45s ease-in 0.55s both;

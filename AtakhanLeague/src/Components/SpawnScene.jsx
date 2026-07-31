@@ -192,7 +192,7 @@ export default function SpawnScene({
             <div className="relative animate-intro-rose">
               <div className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[220%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(220,20,60,0.6)_0%,rgba(139,0,0,0.22)_40%,transparent_70%)] blur-lg animate-intro-charge" />
               <img
-                src="/MainLogoAtakhan-2.svg"
+                src="/MainLogoAtakhan.png"
                 alt=""
                 className="relative w-full drop-shadow-[0_0_20px_rgba(220,20,60,0.75)]"
               />

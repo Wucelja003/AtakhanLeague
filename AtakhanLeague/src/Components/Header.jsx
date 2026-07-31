@@ -73,7 +73,7 @@ export default function Header() {
       <div className="flex items-center justify-between">
         <Link to="/" className="shrink-0 flex items-center gap-3">
           <img
-            src="/MainLogoAtakhan-2.svg"
+            src="/MainLogoAtakhan.png"
             alt="Atakhan League logo"
             className="h-[52px] sm:h-[68px] lg:h-[84px] w-auto [filter:drop-shadow(0_0_18px_rgba(139,0,0,0.7))]"
           />

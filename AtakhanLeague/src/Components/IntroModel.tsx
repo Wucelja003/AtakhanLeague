@@ -3,16 +3,16 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
-// The rigged Atakhan spawn, played inside the intro splash. Imported lazily by
-// IntroSplash so three.js never lands in the main bundle — the splash renders
-// from CSS alone and only upgrades to this if the model arrives in time.
+// The rigged Atakhan spawn. Imported lazily by SpawnScene so three.js never
+// lands in the main bundle — the scene renders from CSS alone and only upgrades
+// to this if the model arrives in time.
 //
 // The GLB is meshopt-compressed with WebP textures (4.15 MB → 605 KB); its
 // material is KHR_materials_unlit, so it needs no lights and reads flat, like
 // the concept art.
 
 type Props = {
-  /** URL of the GLB. Passed in so IntroSplash can start the download itself,
+  /** URL of the GLB. Passed in so SpawnScene can start the download itself,
    *  without importing this module (and three.js with it) up front. */
   src: string;
   /** Play the clip from `startAt`. Held on the first frame until this is true. */

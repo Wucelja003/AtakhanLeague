@@ -2,7 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/MainLogoAtakhan-2.svg" />
+    <link rel="icon" type="image/png" href="/MainLogoAtakhan.png" />
+
+    <!-- Fonts requested straight from the HTML rather than through an @import
+         inside index.css. That import couldn't even be discovered until the
+         stylesheet had downloaded and parsed, which put the fonts a full
+         round-trip behind the render. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oxanium:wght@400;700&family=Exo+2:wght@400;700&family=Inter:wght@700&family=Orbitron:wght@400;700&family=Cinzel:wght@500;600&display=swap" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0A0A0A" />
     <title>Atakhan League — LoL Tournament Platform</title>
@@ -29,7 +37,7 @@
       "@type": "Organization",
       "name": "Atakhan League",
       "url": "https://atakhanleague.com",
-      "logo": "https://atakhanleague.com/AtakhanMainLogo.svg",
+      "logo": "https://atakhanleague.com/MainLogoAtakhan.png",
       "description": "Community-run League of Legends tournament platform.",
       "sameAs": [
         "https://discord.gg/WuNn2G8PxY"

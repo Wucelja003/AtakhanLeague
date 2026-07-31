@@ -29,6 +29,8 @@ export default function TournamentInfo() {
           <img
             src="ThumbnailTournament.jpg"
             alt="Summer Split Tournament"
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/75 to-black/20" />

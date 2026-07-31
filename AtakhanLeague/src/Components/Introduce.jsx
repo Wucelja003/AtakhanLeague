@@ -127,11 +127,17 @@ export default function Introduce() {
           ))}
 
           {/* Holds the slot until the sequence starts, carries the alt text,
-              and is what's left if the scene can't render at all. */}
+              and is what's left if the scene can't render at all.
+
+              Lighthouse reports this as the LCP element, so it's the opposite
+              of lazy: eager, high priority, and preloaded from the HTML so the
+              browser can start it without waiting for the bundle to render
+              this component. Marking it lazy — as it was — actively delayed
+              the metric it defines. */}
           <img
             src="/mainDemon-removebg-preview.webp"
             alt="Atakhan, the demon of bloodshed"
-            loading="lazy"
+            fetchPriority="high"
             decoding="async"
             className={`h-full w-full object-contain transition-opacity duration-500 [filter:drop-shadow(0_0_30px_rgba(139,0,0,0.6))] ${
               shown && animate ? 'opacity-0' : 'opacity-100'

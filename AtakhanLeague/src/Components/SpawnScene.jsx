@@ -63,13 +63,6 @@ export default function SpawnScene({
   const [modelReady, setModelReady] = useState(false);
   const [burstPassed, setBurstPassed] = useState(false);
 
-  // Pull the model down at once, in parallel with the three.js chunks —
-  // GLTFLoader can't ask for it until those have loaded and this has mounted.
-  // Only warms the HTTP cache, so a failure costs nothing but the fallback.
-  useEffect(() => {
-    fetch(MODEL_SRC).catch(() => {});
-  }, []);
-
   useEffect(() => {
     const id = setTimeout(() => setBurstPassed(true), BURST_MS);
     return () => clearTimeout(id);

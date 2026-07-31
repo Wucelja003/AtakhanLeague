@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import useReveal from '../utils/useReveal';
 
 const roles = [
   { key: 'top', label: 'Top', img: '/Icons/Top_icon.png' },
@@ -17,10 +18,14 @@ const SLOTS_PER_ROLE = TEAM_NAMES.length; // 8 teams
 // `registrations` — pass static data (e.g. the tutorial demo) to skip the live fetch.
 export default function PlayersPool({ registrations: regProp }) {
   const [fetched, setFetched] = useState([]);
+  const { ref, shown } = useReveal({ threshold: 0 });
 
-  // Fetch on mount + poll every 15s so new registrations show up live
+  // Both the first fetch and the polling wait until the board is actually on
+  // screen. It sits well below the fold, so on mount it was competing with the
+  // page load for a request, then polling every 15s for the rest of the session
+  // whether or not anyone had scrolled to it.
   useEffect(() => {
-    if (regProp) return; // static data provided — don't fetch
+    if (regProp || !shown) return; // static data, or not reached yet
     let alive = true;
     const fetchData = () =>
       fetch(api('/registration/individuals'))
@@ -33,7 +38,7 @@ export default function PlayersPool({ registrations: regProp }) {
       alive = false;
       clearInterval(id);
     };
-  }, [regProp]);
+  }, [regProp, shown]);
 
   const registrations = regProp ?? fetched;
 
@@ -59,7 +64,7 @@ export default function PlayersPool({ registrations: regProp }) {
   }, {});
 
   return (
-    <section className="relative z-[2] mt-[100px] px-5 pt-4 pb-20">
+    <section ref={ref} className="relative z-[2] mt-[100px] px-5 pt-4 pb-20">
       <div className="mx-auto max-w-6xl">
         <h2 className="text-center font-heading text-white text-[32px] sm:text-[44px] mb-2.5 [text-shadow:0_0_18px_rgba(139,0,0,0.9),0_0_40px_rgba(102,0,0,0.5)]">
           Players Pool

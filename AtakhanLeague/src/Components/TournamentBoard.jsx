@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import useReveal from '../utils/useReveal';
 
 const TOTAL_SLOTS = 8; // Number of teams competing in the tournament
 
 // `teams` — pass static data (e.g. the tutorial demo) to skip the live fetch.
 export default function TournamentBoard({ teams: teamsProp }) {
   const [fetched, setFetched] = useState([]);
+  const { ref, shown } = useReveal({ threshold: 0 });
 
-  // Fetch on mount + poll every 15s so new team registrations show up live
+  // Both the first fetch and the polling wait until the board is actually on
+  // screen. It sits well below the fold, so on mount it was competing with the
+  // page load for a request, then polling every 15s for the rest of the session
+  // whether or not anyone had scrolled to it.
   useEffect(() => {
-    if (teamsProp) return; // static data provided — don't fetch
+    if (teamsProp || !shown) return; // static data, or not reached yet
     let alive = true;
     const fetchData = () =>
       fetch(api('/registration/teams'))
@@ -22,7 +27,7 @@ export default function TournamentBoard({ teams: teamsProp }) {
       alive = false;
       clearInterval(id);
     };
-  }, [teamsProp]);
+  }, [teamsProp, shown]);
 
   const teams = teamsProp ?? fetched;
 
@@ -33,7 +38,7 @@ export default function TournamentBoard({ teams: teamsProp }) {
   const slots = Array.from({ length: TOTAL_SLOTS }, (_, i) => teams[i] || null);
 
   return (
-    <section className="relative z-[2] mt-[80px] sm:mt-[100px] px-5 pb-12">
+    <section ref={ref} className="relative z-[2] mt-[80px] sm:mt-[100px] px-5 pb-12">
       <div className="mx-auto max-w-3xl">
         {/* Heading */}
         <div className="text-center mb-8 sm:mb-10">

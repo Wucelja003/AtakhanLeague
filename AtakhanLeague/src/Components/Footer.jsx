@@ -76,7 +76,11 @@ export default function Footer() {
                 title={s.label}
                 className="group grid place-items-center w-12 h-12 rounded-xl text-[#DC143C] bg-[rgba(139,0,0,0.08)] border border-[rgba(220,20,60,0.35)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#DC143C] hover:bg-[rgba(220,20,60,0.15)] hover:shadow-[0_0_22px_rgba(220,20,60,0.5)]"
               >
-                <s.Icon className="w-[22px] h-[22px] transition-transform duration-300 group-hover:scale-110" />
+                <s.Icon
+                  aria-hidden="true"
+                  focusable="false"
+                  className="w-[22px] h-[22px] transition-transform duration-300 group-hover:scale-110"
+                />
               </a>
             ))}
           </div>

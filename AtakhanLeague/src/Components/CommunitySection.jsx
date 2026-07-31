@@ -85,6 +85,8 @@ export default function CommunitySection() {
                 style={{ boxShadow: `0 0 0 0 ${c.glow}` }}
               >
                 <c.Icon
+                  aria-hidden="true"
+                  focusable="false"
                   className="h-7 w-7 transition-all duration-300"
                   style={{ color: c.accent, filter: `drop-shadow(0 0 10px ${c.glow})` }}
                 />

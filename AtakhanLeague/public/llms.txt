@@ -1,0 +1,30 @@
+# Atakhan League
+
+Community-run League of Legends tournament platform for the EUNE region.
+Players register a five-player team or sign up solo to be placed in one, pay a
+single entry fee, and compete through a single-elimination bracket. Results feed
+a points leaderboard, the Summoner Rankings.
+
+Named after Atakhan, the demon of bloodshed from Summoner's Rift.
+
+## Pages
+
+- [Home](https://atakhanleague.com/): tournament date, countdown, registration, and the current team and player pools.
+- [Tournaments](https://atakhanleague.com/tournaments): the bracket — quarterfinals through the final, with scores as they are played.
+- [League](https://atakhanleague.com/league): league format and season information.
+- [Summoner Rankings](https://atakhanleague.com/rankings): leaderboard of players by performance points, with their rank emblem and team.
+- [Contact us](https://atakhanleague.com/contact-us): message the organisers.
+- [Terms & Conditions](https://atakhanleague.com/terms): rules of entry, conduct, payment and refunds.
+
+## How entry works
+
+- Registration requires an account, created with a Riot ID that is verified against the Riot API at sign-up.
+- Entry is limited to accounts on the EUNE server; this is checked against Riot rather than taken on trust.
+- A captain registers a team and then adds four more players, one per lane. Solo players register individually and are placed into a team.
+- The entry fee is paid once per registration, by card through PayPal or in cryptocurrency.
+
+## Notes for crawlers
+
+- Sign-in, sign-up, password reset and profile pages are private and excluded in robots.txt.
+- Player names shown on the site are League of Legends summoner names, not real names.
+- Atakhan League is a community project and is not endorsed by or affiliated with Riot Games.

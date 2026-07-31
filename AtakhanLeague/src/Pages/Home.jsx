@@ -4,9 +4,28 @@ import { useSelector } from 'react-redux';
 import SEO from '../Components/SEO';
 import VideoBackground from '../Components/VideoBackground';
 import Introduce from '../Components/Introduce';
-// Below the fold, and the heaviest thing on the page: it pulls in framer-motion
-// and six demo components. Lazy keeps all of that out of the first load.
+import useReveal from '../utils/useReveal';
+// The heaviest thing on the page — framer-motion plus six demo components,
+// 181 KB of it. Being lazy() alone did nothing: React starts the import as soon
+// as the component renders, and this rendered unconditionally, so the chunk was
+// landing 57ms into every visit. It has to be withheld from the tree until the
+// section is near, which is what DeferredJourney below does.
 const TournamentJourney = lazy(() => import('../Components/TournamentJourney'));
+
+function DeferredJourney() {
+  // Fetched a little before it's reached, so the chunk is ready by the time it
+  // scrolls in rather than popping in late.
+  const { ref, shown } = useReveal({ threshold: 0, rootMargin: '400px' });
+  return (
+    <div ref={ref} className="min-h-[60vh]">
+      {shown && (
+        <Suspense fallback={null}>
+          <TournamentJourney />
+        </Suspense>
+      )}
+    </div>
+  );
+}
 import GlowDivider from '../Components/GlowDivider';
 import ChampionQuotes from '../Components/ChampionQuotes';
 import TournamentInfo from '../Components/TournamentInfo';
@@ -127,9 +146,7 @@ export default function Home() {
         </div>
       </section>
       <Introduce />
-      <Suspense fallback={<div className="min-h-[60vh]" />}>
-        <TournamentJourney />
-      </Suspense>
+      <DeferredJourney />
       <GlowDivider />
       <TournamentInfo />
       <ChampionQuotes />

@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from 'react';
  * IntersectionObserver — or anyone who prefers reduced motion — gets everything
  * at once and still, instead of a section stuck at opacity 0.
  */
-export default function useReveal({ threshold = 0.25 } = {}) {
+export default function useReveal({ threshold = 0.25, rootMargin = '0px' } = {}) {
   const ref = useRef(null);
   const [shown, setShown] = useState(false);
   const [animate, setAnimate] = useState(true);
@@ -37,11 +37,11 @@ export default function useReveal({ threshold = 0.25 } = {}) {
         setShown(true);
         observer.disconnect();
       },
-      { threshold }
+      { threshold, rootMargin }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [threshold]);
+  }, [threshold, rootMargin]);
 
   return {
     ref,

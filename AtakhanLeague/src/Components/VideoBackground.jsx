@@ -1,76 +1,125 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const POSTER = '/atakhan-bg-poster.webp';
 const VIDEO = '/atakhan-bg.mp4';
+const WIDE = '(min-width: 1024px)';
 
 // The source clip is 17 MB, and `preload="none"` never held it back — autoplay
 // overrides it — so every visit paid for the whole thing before anything else
-// could load. It's re-encoded to 6.7 MB and only fetched on a screen big enough
-// to warrant it, on a connection that isn't metered, after load, and not for
-// anyone who has asked for less motion. Everyone else keeps the poster, which
-// is 32 KB and already the first frame.
+// could load. Re-encoded to 6.7 MB and only fetched on a screen big enough to
+// warrant it, on a connection the visitor hasn't marked as metered, and after
+// the page has loaded. Everyone else keeps the poster, which is 32 KB and is
+// already the clip's first frame.
 //
-// Kept at the source's full 1280x720: since none of the above lets it touch a
-// phone or the cold load, the bytes it saved by being smaller weren't buying
-// anything, and downscaling was visibly mushing the in-game text.
-function wantsVideo() {
+// No effectiveType check: Chrome's estimate is often still "3g" in the first
+// seconds of a page even on fast wifi, which quietly withheld the video on
+// perfectly good connections. saveData is the signal that actually means the
+// visitor wants fewer bytes.
+function allowed() {
   if (typeof window === 'undefined') return false;
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;
-  if (!window.matchMedia?.('(min-width: 1024px)').matches) return false;
-  const link = navigator.connection;
-  if (link?.saveData) return false;
-  if (link?.effectiveType && !/4g/.test(link.effectiveType)) return false;
+  if (navigator.connection?.saveData) return false;
   return true;
 }
 
 export default function VideoBackground() {
   const [play, setPlay] = useState(false);
   const [ready, setReady] = useState(false);
+  const videoRef = useRef(null);
 
-  // Decided after mount, and only once the page has settled, so the video never
-  // competes with the content for the first paint.
   useEffect(() => {
-    if (!wantsVideo()) return;
-    const start = () => setPlay(true);
-    if (document.readyState === 'complete') {
-      const id = setTimeout(start, 400);
-      return () => clearTimeout(id);
-    }
-    window.addEventListener('load', start, { once: true });
-    return () => window.removeEventListener('load', start);
+    if (!allowed()) return;
+
+    const wide = window.matchMedia(WIDE);
+    let settled = false;
+    let timer;
+
+    const start = () => {
+      // Width is re-checked here rather than once on mount: the old version
+      // asked a single time, so a window that was narrow at that moment — or
+      // simply reported 0 mid-load — never got the video, and never looked again.
+      if (settled || !wide.matches) return;
+      settled = true;
+      setPlay(true);
+    };
+
+    const armed = () => {
+      timer = setTimeout(start, 400);
+    };
+
+    if (document.readyState === 'complete') armed();
+    else window.addEventListener('load', armed, { once: true });
+
+    // ...and if they widen the window later, it starts then.
+    wide.addEventListener('change', start);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('load', armed);
+      wide.removeEventListener('change', start);
+    };
   }, []);
 
+  // Autoplay can still be refused; muted + playsInline normally satisfies it,
+  // but ask explicitly and reveal on whichever event arrives first, so a missed
+  // `canplay` can't leave the video mounted and permanently invisible.
+  //
+  // The retry on visibilitychange matters: a browser won't start playback for a
+  // page that isn't on screen, so a visit that begins in a background tab would
+  // otherwise end up mounted, visible and frozen on its first frame — which
+  // looks exactly like a broken video rather than a paused one.
+  useEffect(() => {
+    if (!play) return;
+    const attempt = () => {
+      if (document.hidden) return;
+      const el = videoRef.current;
+      if (el?.paused) el.play?.().catch(() => {});
+    };
+    attempt();
+    document.addEventListener('visibilitychange', attempt);
+    return () => document.removeEventListener('visibilitychange', attempt);
+  }, [play]);
+
+  const reveal = () => setReady(true);
+
   return (
-    <div className="absolute top-0 left-0 w-full h-[110vh] sm:h-[115vh] z-0 overflow-hidden pointer-events-none">
-      {/* Always the poster underneath: it's what shows on phones, and what the
-          video fades in over everywhere else. */}
-      <img
-        src={POSTER}
-        alt=""
-        aria-hidden="true"
-        fetchPriority="high"
-        decoding="async"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+    <div className="absolute top-0 left-0 z-0 w-full overflow-hidden pointer-events-none">
+      {/* Sized by width at the clip's own 16:9, so nothing is cropped. */}
+      <div className="relative aspect-video w-full">
+        <img
+          src={POSTER}
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
 
-      {play && (
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          poster={POSTER}
-          onCanPlay={() => setReady(true)}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-            ready ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <source src={VIDEO} type="video/mp4" />
-        </video>
-      )}
+        {play && (
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            poster={POSTER}
+            onCanPlay={reveal}
+            onLoadedData={reveal}
+            onPlaying={reveal}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+              ready ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <source src={VIDEO} type="video/mp4" />
+          </video>
+        )}
 
-      <div className="absolute inset-0 bg-black/80" />
+        <div className="absolute inset-0 bg-black/80" />
+        {/* Carries the bottom edge into the page background instead of ending
+            on a hard line where the clip stops. */}
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-[linear-gradient(to_bottom,transparent,#0A0A0A)]" />
+      </div>
     </div>
   );
 }

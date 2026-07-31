@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const POSTER = '/atakhan-bg-poster.jpg';
+const POSTER = '/atakhan-bg-poster.webp';
 const VIDEO = '/atakhan-bg.mp4';
 
 // The clip is 17 MB. `preload="none"` doesn't hold it back — autoplay overrides

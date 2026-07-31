@@ -129,7 +129,7 @@ export default function Introduce() {
           {/* Holds the slot until the sequence starts, carries the alt text,
               and is what's left if the scene can't render at all. */}
           <img
-            src="/mainDemon-removebg-preview.png"
+            src="/mainDemon-removebg-preview.webp"
             alt="Atakhan, the demon of bloodshed"
             loading="lazy"
             decoding="async"

@@ -27,7 +27,7 @@ export default function TournamentInfo() {
         {/* ===== HERO BANNER ===== */}
         <div className="relative overflow-hidden rounded-2xl border border-[rgba(220,20,60,0.4)] shadow-[0_0_70px_rgba(139,0,0,0.4)] animate-form-fade-in">
           <img
-            src="ThumbnailTournament.jpg"
+            src="ThumbnailTournament.webp"
             alt="Summer Split Tournament"
             loading="lazy"
             decoding="async"

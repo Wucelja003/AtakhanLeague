@@ -83,7 +83,7 @@ export default function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden lg:flex nav-glass flex-nowrap gap-6 xl:gap-10 rounded-full bg-black/40 px-6 xl:px-[30px] py-[15px] backdrop-blur-xl shadow-[0_8px_32px_rgba(139,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <nav className="hidden xl:flex nav-glass min-w-0 flex-nowrap gap-4 2xl:gap-8 rounded-full bg-black/40 px-5 2xl:px-7 py-[15px] backdrop-blur-xl shadow-[0_8px_32px_rgba(139,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]">
           {navLinks.map((link, i) => (
             <Link
               key={i}
@@ -96,7 +96,7 @@ export default function Header() {
         </nav>
 
         {/* Desktop auth buttons */}
-        <div className="hidden md:flex gap-3 lg:gap-5">
+        <div className="hidden shrink-0 md:flex gap-3 lg:gap-5">
           {currentUser ? (
             <>
               <span className="relative">
@@ -143,7 +143,7 @@ export default function Header() {
           onClick={() => setOpen((o) => !o)}
           aria-label="Toggle menu"
           aria-expanded={open}
-          className="md:hidden relative w-11 h-11 flex flex-col items-center justify-center gap-[5px] rounded-full bg-black/40 border border-[rgba(102,0,0,0.4)] backdrop-blur-md transition-colors hover:border-[#DC143C] z-[30]"
+          className="xl:hidden relative w-11 h-11 flex flex-col items-center justify-center gap-[5px] rounded-full bg-black/40 border border-[rgba(102,0,0,0.4)] backdrop-blur-md transition-colors hover:border-[#DC143C] z-[30]"
         >
           <span
             className={`block w-5 h-[2px] bg-secondary transition-all duration-300 ${
@@ -165,7 +165,7 @@ export default function Header() {
 
       {/* Mobile menu drawer */}
       <div
-        className={`md:hidden fixed inset-0 z-[10] transition-all duration-500 ${
+        className={`xl:hidden fixed inset-0 z-[10] transition-all duration-500 ${
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >

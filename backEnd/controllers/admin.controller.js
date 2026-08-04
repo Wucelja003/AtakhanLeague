@@ -2,7 +2,7 @@ import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { ensureBracket, ADVANCE } from '../utils/bracket.js';
 import { parseDivision } from '../utils/rank.js';
-import { refreshAllRanks } from '../utils/leaderboard.js';
+import { refreshAllRanks, clearLeaderboardTeam } from '../utils/leaderboard.js';
 
 // ---- GET /api/admin/registrations ----
 export const getRegistrations = async (req, res, next) => {
@@ -64,7 +64,10 @@ export const togglePayment = async (req, res, next) => {
 export const cancelRegistration = async (req, res, next) => {
   const { type, id } = req.params;
   try {
-    if (type === 'team') await prisma.team.delete({ where: { id } });
+    if (type === 'team') {
+      const team = await prisma.team.delete({ where: { id } });
+      await clearLeaderboardTeam(team.captainUsername);
+    }
     else if (type === 'individual') await prisma.individualRegistration.delete({ where: { id } });
     else return next(errorHandler(400, 'Invalid type'));
     res.json({ ok: true });

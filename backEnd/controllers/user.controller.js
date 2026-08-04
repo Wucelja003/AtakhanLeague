@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
+import { removeFromLeaderboard } from '../utils/leaderboard.js';
 
 const cookieOpts = {
   httpOnly: true,
@@ -44,7 +45,10 @@ export const deleteUser = async (req, res, next) => {
     return next(errorHandler(401, 'You can only delete your own account!'));
   }
   try {
-    await prisma.user.delete({ where: { id: req.params.id } });
+    // Nothing links the leaderboard back to User, so deleting the account on
+    // its own would leave a row for a player who no longer exists.
+    const deleted = await prisma.user.delete({ where: { id: req.params.id } });
+    await removeFromLeaderboard(deleted.username);
     res.clearCookie('access_token', cookieOpts);
     res.status(200).json('User account has been deleted');
   } catch (error) {

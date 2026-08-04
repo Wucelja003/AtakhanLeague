@@ -22,6 +22,31 @@ export async function syncRankFromEntries(username, entries) {
   }
 }
 
+// The leaderboard is keyed by username with no foreign key to anything, so
+// nothing cleans up after a team or an account that goes away. These two do.
+
+// A team registration was cancelled: drop the team label, keep the player.
+// Being on the leaderboard follows the account, not the registration — their
+// rank and points stay exactly as they were.
+export async function clearLeaderboardTeam(username) {
+  if (!username) return;
+  try {
+    await prisma.ranking.updateMany({ where: { username }, data: { team: null } });
+  } catch (err) {
+    console.error('[ranking] could not clear team for', username, '-', err.message);
+  }
+}
+
+// The account itself is gone, so the row describes nobody. Remove it.
+export async function removeFromLeaderboard(username) {
+  if (!username) return;
+  try {
+    await prisma.ranking.deleteMany({ where: { username } });
+  } catch (err) {
+    console.error('[ranking] could not remove', username, '-', err.message);
+  }
+}
+
 // A player's ranked entries, asked of the platform they actually play on.
 //
 // An empty answer is ambiguous — genuinely unranked, or the right question put

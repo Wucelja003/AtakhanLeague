@@ -2,6 +2,7 @@ import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { sendTournamentConfirmation } from '../utils/mailer.js';
 import { parseDivision } from '../utils/rank.js';
+import { clearLeaderboardTeam } from '../utils/leaderboard.js';
 import { getPlatformForPuuid } from '../utils/riot.js';
 
 // This tournament is EUNE only. The form sends the server the player picked;
@@ -206,7 +207,10 @@ export const getMyRegistration = async (req, res, next) => {
 export const cancelTeam = async (req, res, next) => {
   const captainId = req.user.id;
   try {
-    await prisma.team.delete({ where: { captainId } });
+    // delete() returns the row, so the captain's name comes back with it —
+    // no extra lookup needed to clear their leaderboard team label.
+    const team = await prisma.team.delete({ where: { captainId } });
+    await clearLeaderboardTeam(team.captainUsername);
     res.json({ message: 'Team registration cancelled' });
   } catch (error) {
     if (error.code === 'P2025') return next(errorHandler(404, 'No team registration found'));

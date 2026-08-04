@@ -1,6 +1,7 @@
 import { prisma } from '../db.js';
 import { rankFromEntries } from './rank.js';
-import { getRankedEntries, inferPlatform } from './riot.js';
+import { getRankedEntries } from './riot.js';
+import { platformForUser } from './platform.js';
 
 // Keep the Summoner Rankings leaderboard in step with a player's live Riot rank.
 // Tier/division always mirror Riot; points are the organizer's data and are
@@ -21,14 +22,29 @@ export async function syncRankFromEntries(username, entries) {
   }
 }
 
+// A player's ranked entries, asked of the platform they actually play on.
+//
+// An empty answer is ambiguous — genuinely unranked, or the right question put
+// to the wrong platform — and recording someone as unranked when they're
+// Diamond is the worse mistake, so re-check the platform with Riot before
+// believing it. Costs one extra call per unranked player, nothing for the rest,
+// and it self-heals anyone who transfers region.
+async function rankedEntriesFor(user) {
+  const platform = await platformForUser(user);
+  const entries = await getRankedEntries(user.riotPuuid, platform);
+  if (entries.length > 0) return entries;
+
+  const rechecked = await platformForUser(user, { force: true });
+  if (rechecked === platform) return entries;
+  return getRankedEntries(user.riotPuuid, rechecked);
+}
+
 // Fetch a player's rank from Riot and sync it (for callers without entries in
 // hand, e.g. signup). No-op when the user has no linked Riot account.
 export async function fetchAndSyncRank(user) {
   try {
     if (!user?.riotPuuid) return;
-    const platform = inferPlatform(user.riotTagLine);
-    const entries = await getRankedEntries(user.riotPuuid, platform);
-    await syncRankFromEntries(user.username, entries);
+    await syncRankFromEntries(user.username, await rankedEntriesFor(user));
   } catch (err) {
     console.error('[ranking] fetch+sync failed for', user?.username, '-', err.message);
   }
@@ -55,16 +71,16 @@ export async function refreshAllRanks() {
   try {
     const users = await prisma.user.findMany({
       where: { riotPuuid: { not: null } },
-      select: { username: true, riotPuuid: true, riotTagLine: true },
+      // id and riotPlatform are needed so the platform can be resolved once and
+      // cached back onto the user rather than re-asked every sweep.
+      select: { id: true, username: true, riotPuuid: true, riotTagLine: true, riotPlatform: true },
     });
 
     let updated = 0;
     let skipped = 0;
     for (const user of users) {
       try {
-        const platform = inferPlatform(user.riotTagLine);
-        const entries = await getRankedEntries(user.riotPuuid, platform);
-        await syncRankFromEntries(user.username, entries);
+        await syncRankFromEntries(user.username, await rankedEntriesFor(user));
         updated += 1;
       } catch (err) {
         skipped += 1;

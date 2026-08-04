@@ -2,7 +2,7 @@ import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { sendTournamentConfirmation } from '../utils/mailer.js';
 import { parseDivision } from '../utils/rank.js';
-import { getSummonerByPuuid } from '../utils/riot.js';
+import { getPlatformForPuuid } from '../utils/riot.js';
 
 // This tournament is EUNE only. The form sends the server the player picked;
 // reject anything else here too so the check can't be skipped client-side.
@@ -11,15 +11,18 @@ const wrongServer = (server) =>
   String(server || '').trim().toUpperCase() !== ALLOWED_SERVER;
 
 // Second line of defence: ask Riot whether the account really lives on EUNE,
-// so picking "EUNE" in the form isn't enough on its own.
+// so picking "EUNE" in the form isn't enough on its own. Riot names the
+// platform outright — better than reading it off a 404 from somewhere else.
 //   true  → confirmed on EUNE
-//   false → Riot says the account isn't there (404) — block
-//   null  → couldn't check (no linked Riot account, or the API is down) — allow,
-//           we never punish players for our own outage
+//   false → Riot named a different platform — block
+//   null  → couldn't check (no linked Riot account, Riot doesn't know the
+//           account, or the API is down) — allow, we never punish players for
+//           our own outage
 async function isOnEune(puuid) {
   if (!puuid) return null;
   try {
-    return !!(await getSummonerByPuuid(puuid, 'eun1'));
+    const platform = await getPlatformForPuuid(puuid);
+    return platform ? platform === 'eun1' : null;
   } catch (err) {
     console.error('[riot] EUNE check unavailable (allowing):', err.message);
     return null;

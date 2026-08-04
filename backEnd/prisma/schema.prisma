@@ -24,7 +24,8 @@ model User {
   // Riot account verification (linked at signup via Riot API)
   riotPuuid    String?  @unique  // globally unique Riot account ID
   riotGameName String?           // game name part of Riot ID
-  riotTagLine  String?           // tag part (e.g. EUW, KR1)
+  riotTagLine  String?           // tag part — free text ("1529"), NOT a region
+  riotPlatform String?           // eun1/euw1/... — asked of Riot, cached here
 
   // Tournament registrations — a user can captain one team OR sign up individually.
   team                   Team?

@@ -19,8 +19,21 @@ async function riotFetch(url) {
 
 // ---- Region routing ------------------------------------------------------
 
-// Map a tagLine to its platform region (used by Summoner-V4, League-V4,
-// Champion-Mastery-V4). Falls back to 'eun1' if the tag isn't a region code.
+// Riot's own answer to "which platform does this account play on". This is the
+// only reliable source: a tagLine is free text the player chose, so it is
+// usually a number or a word and says nothing about their region. Any routing
+// host answers for any account, so europe is as good as the others.
+// Returns e.g. 'euw1', or null if Riot doesn't know the account.
+export async function getPlatformForPuuid(puuid) {
+  const data = await riotFetch(
+    `https://europe.api.riotgames.com/riot/account/v1/region/by-game/lol/by-puuid/${puuid}`
+  );
+  return data?.region || null;
+}
+
+// Last-resort guess from a tagLine, for when Riot can't be reached. Right only
+// when the player happened to type their region as their tag — prefer
+// getPlatformForPuuid (or platformForUser) wherever a PUUID is available.
 export function inferPlatform(tagLine) {
   const t = (tagLine || '').toUpperCase();
   if (t === 'EUW' || t === 'EUW1') return 'euw1';
@@ -48,10 +61,13 @@ export function platformToRouting(platform) {
 
 // ---- Account / Summoner --------------------------------------------------
 
+// Riot IDs are global — verified against all three routing hosts, each of which
+// resolves any account regardless of region. So the host is a free choice, and
+// deriving it from the tagLine only made this look region-dependent when it
+// isn't. Signup verification works for a player on any platform.
 export async function getAccountByRiotId(gameName, tagLine) {
-  const routing = platformToRouting(inferPlatform(tagLine));
   return riotFetch(
-    `https://${routing}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
+    `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
   );
 }
 

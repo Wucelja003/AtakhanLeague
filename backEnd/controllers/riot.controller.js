@@ -1,11 +1,12 @@
 import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import {
-  inferPlatform, platformToRouting,
+  platformToRouting,
   getSummonerByPuuid, getRankedEntries, getTopMastery,
   getMatchIds, getMatchDetail, getChampionMap, getDataDragonVersion,
   getSummonerSpellMap, getRunesMap,
 } from '../utils/riot.js';
+import { platformForUser } from '../utils/platform.js';
 import { syncRankFromEntries } from '../utils/leaderboard.js';
 
 // In-memory cache (per-process) so we don't burn rate limit on every refresh.
@@ -30,7 +31,10 @@ export const getMyStats = async (req, res, next) => {
       return next(errorHandler(404, 'No Riot account linked to this user'));
     }
 
-    const platform = inferPlatform(user.riotTagLine);
+    // Asked of Riot, not guessed from the tag — otherwise a player on any
+    // platform but the fallback gets a blank profile: no level, no rank, no
+    // mastery, and match history routed to the wrong continent.
+    const platform = await platformForUser(user);
     const routing  = platformToRouting(platform);
 
     // Run independent calls in parallel

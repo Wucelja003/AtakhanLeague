@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import useReveal from '../utils/useReveal';
+import { LANES, POOL_TEAM_NAMES, buildPoolTeams } from '../utils/pool';
 
-const roles = [
-  { key: 'top', label: 'Top', img: '/Icons/Top_icon.png' },
-  { key: 'jungle', label: 'Jungle', img: '/Icons/Jungle_icon.png' },
-  { key: 'mid', label: 'Mid', img: '/Icons/Middle_icon.png' },
-  { key: 'adc', label: 'ADC', img: '/Icons/Bottom_icon.png' },
-  { key: 'support', label: 'Support', img: '/Icons/Support_icon.png' },
-];
+// Built from LANES rather than written out, so the display order can't drift
+// from the order the grouping indexes by.
+const ROLE_META = {
+  top: { label: 'Top', img: '/Icons/Top_icon.png' },
+  jungle: { label: 'Jungle', img: '/Icons/Jungle_icon.png' },
+  mid: { label: 'Mid', img: '/Icons/Middle_icon.png' },
+  adc: { label: 'ADC', img: '/Icons/Bottom_icon.png' },
+  support: { label: 'Support', img: '/Icons/Support_icon.png' },
+};
+const roles = LANES.map((key) => ({ key, ...ROLE_META[key] }));
 
-const TEAM_NAMES = [
-  'Team Alpha', 'Team Beta'
-];
-const SLOTS_PER_ROLE = TEAM_NAMES.length; // 8 teams
+// One slot per lane per stand-in team.
+const SLOTS_PER_ROLE = POOL_TEAM_NAMES.length;
 
 // `registrations` — pass static data (e.g. the tutorial demo) to skip the live fetch.
 export default function PlayersPool({ registrations: regProp }) {
@@ -42,24 +44,14 @@ export default function PlayersPool({ registrations: regProp }) {
 
   const registrations = regProp ?? fetched;
 
-  // Group registrations by role → array of usernames
-  const byRole = roles.reduce((acc, r) => {
-    acc[r.key] = registrations
-      .filter((reg) => reg.role === r.key)
-      .map((reg) => reg.username);
-    return acc;
-  }, {});
-
-  // For each (team index, role) find the player at that index for that role.
-  // Distribution: 1st mid registrant → Team Alpha mid, 2nd → Team Beta mid, etc.
-  function getPlayer(teamIndex, roleKey) {
-    return byRole[roleKey]?.[teamIndex] || '';
-  }
+  // Same grouping the Tournament Board reads, so a team shown as complete here
+  // is exactly the one that earns a slot there.
+  const poolTeams = buildPoolTeams(registrations);
 
   // Remaining = SLOTS_PER_ROLE − filled in that role (capped at 0)
   const remainingByRole = roles.reduce((acc, role) => {
-    const filled = Math.min(byRole[role.key].length, SLOTS_PER_ROLE);
-    acc[role.key] = SLOTS_PER_ROLE - filled;
+    const taken = registrations.filter((reg) => reg.role === role.key).length;
+    acc[role.key] = SLOTS_PER_ROLE - Math.min(taken, SLOTS_PER_ROLE);
     return acc;
   }, {});
 
@@ -75,11 +67,7 @@ export default function PlayersPool({ registrations: regProp }) {
 
         {/* Teams grid */}
         <div className="flex flex-wrap justify-center gap-4">
-          {TEAM_NAMES.map((teamName, teamIndex) => {
-            const lineup = roles.map((role) => getPlayer(teamIndex, role.key));
-            const isTeamFull = lineup.every(Boolean);
-
-            return (
+          {poolTeams.map(({ name: teamName, lineup, isFull: isTeamFull }) => (
               <div
                 key={teamName}
                 className={`relative overflow-hidden flex flex-col gap-2 w-full sm:w-[260px] rounded-xl border px-4 py-5 backdrop-blur-md transition-colors duration-500 ${
@@ -136,7 +124,7 @@ export default function PlayersPool({ registrations: regProp }) {
                           player ? 'text-white font-semibold' : 'text-neutral-500'
                         }`}
                       >
-                        {player || role.label}
+                        {player?.username || role.label}
                       </span>
                     </div>
                   );
@@ -148,8 +136,7 @@ export default function PlayersPool({ registrations: regProp }) {
                   <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)] animate-roster-sheen" />
                 )}
               </div>
-            );
-          })}
+          ))}
         </div>
 
         {/* Available slots tracker */}

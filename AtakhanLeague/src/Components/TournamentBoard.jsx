@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import useReveal from '../utils/useReveal';
+import { fullPoolTeams } from '../utils/pool';
 
 const TOTAL_SLOTS = 8; // Number of teams competing in the tournament
 
 // `teams` — pass static data (e.g. the tutorial demo) to skip the live fetch.
 export default function TournamentBoard({ teams: teamsProp }) {
   const [fetched, setFetched] = useState([]);
+  const [solo, setSolo] = useState([]);
   const { ref, shown } = useReveal({ threshold: 0 });
 
   // Both the first fetch and the polling wait until the board is actually on
@@ -16,10 +18,18 @@ export default function TournamentBoard({ teams: teamsProp }) {
   useEffect(() => {
     if (teamsProp || !shown) return; // static data, or not reached yet
     let alive = true;
+    // Solo players are fetched too: once five of them fill every lane of a
+    // stand-in team, that team takes a slot here alongside the registered ones.
     const fetchData = () =>
-      fetch(api('/registration/teams'))
-        .then((r) => r.json())
-        .then((data) => alive && setFetched(Array.isArray(data) ? data : []))
+      Promise.all([
+        fetch(api('/registration/teams')).then((r) => r.json()),
+        fetch(api('/registration/individuals')).then((r) => r.json()),
+      ])
+        .then(([teamData, soloData]) => {
+          if (!alive) return;
+          setFetched(Array.isArray(teamData) ? teamData : []);
+          setSolo(Array.isArray(soloData) ? soloData : []);
+        })
         .catch(() => {});
     fetchData();
     const id = setInterval(fetchData, 15000);
@@ -29,7 +39,9 @@ export default function TournamentBoard({ teams: teamsProp }) {
     };
   }, [teamsProp, shown]);
 
-  const teams = teamsProp ?? fetched;
+  // Registered teams keep their registration order, then any pool team that has
+  // filled all five lanes. Static data (the tutorial demo) is used verbatim.
+  const teams = teamsProp ?? [...fetched, ...fullPoolTeams(solo)];
 
   const filled = Math.min(teams.length, TOTAL_SLOTS);
   const remaining = TOTAL_SLOTS - filled;
@@ -119,7 +131,19 @@ export default function TournamentBoard({ teams: teamsProp }) {
 
               {/* Captain (right) */}
               <div className="flex items-center justify-end min-w-0">
-                {team ? (
+                {/* A pool team has no captain — five solo players were put
+                    together by lane — so it says where it came from instead of
+                    borrowing the captain's star. */}
+                {team?.fromPool ? (
+                  <div className="flex items-center gap-2 min-w-0">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                    </svg>
+                    <span className="font-slogan text-[12px] sm:text-[14px] font-semibold text-neutral-400 truncate">
+                      Players Pool
+                    </span>
+                  </div>
+                ) : team ? (
                   <div className="flex items-center gap-2 min-w-0">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#d4af37] shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" />

@@ -18,7 +18,7 @@ const SLOTS_PER_ROLE = TEAM_NAMES.length; // 8 teams
 // `registrations` — pass static data (e.g. the tutorial demo) to skip the live fetch.
 export default function PlayersPool({ registrations: regProp }) {
   const [fetched, setFetched] = useState([]);
-  const { ref, shown } = useReveal({ threshold: 0 });
+  const { ref, shown, animate } = useReveal({ threshold: 0 });
 
   // Both the first fetch and the polling wait until the board is actually on
   // screen. It sits well below the fold, so on mount it was competing with the
@@ -75,35 +75,81 @@ export default function PlayersPool({ registrations: regProp }) {
 
         {/* Teams grid */}
         <div className="flex flex-wrap justify-center gap-4">
-          {TEAM_NAMES.map((teamName, teamIndex) => (
-            <div
-              key={teamName}
-              className="flex flex-col gap-2 w-full sm:w-[260px] rounded-xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-4 py-5 backdrop-blur-md shadow-[0_0_32px_rgba(102,0,0,0.15),inset_0_0_16px_rgba(102,0,0,0.05)]"
-            >
-              <h3 className="text-center font-slogan text-[13px] font-bold tracking-[2px] uppercase text-white pb-3 mb-1 border-b border-[rgba(102,0,0,0.4)] [text-shadow:0_0_12px_rgba(220,20,60,0.4)]">
-                {teamName}
-              </h3>
+          {TEAM_NAMES.map((teamName, teamIndex) => {
+            const lineup = roles.map((role) => getPlayer(teamIndex, role.key));
+            const isTeamFull = lineup.every(Boolean);
 
-              {roles.map((role) => {
-                const player = getPlayer(teamIndex, role.key);
-                return (
-                  <div
-                    key={role.key}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-black/40 border border-[rgba(102,0,0,0.2)] transition-colors duration-300 hover:border-[rgba(102,0,0,0.6)] hover:bg-[rgba(102,0,0,0.12)]"
+            return (
+              <div
+                key={teamName}
+                className={`relative overflow-hidden flex flex-col gap-2 w-full sm:w-[260px] rounded-xl border px-4 py-5 backdrop-blur-md transition-colors duration-500 ${
+                  isTeamFull
+                    ? `bg-[rgba(8,8,8,0.72)] border-[rgba(70,70,70,0.45)] shadow-[0_0_26px_rgba(0,0,0,0.5),inset_0_0_18px_rgba(70,70,70,0.12)] ${
+                        animate ? 'animate-roster-seal' : ''
+                      }`
+                    : 'bg-[rgba(10,10,10,0.65)] border-[rgba(102,0,0,0.35)] shadow-[0_0_32px_rgba(102,0,0,0.15),inset_0_0_16px_rgba(102,0,0,0.05)]'
+                }`}
+              >
+                {isTeamFull && (
+                  <span
+                    className={`absolute top-2.5 right-2.5 z-[2] rounded bg-[rgba(60,60,60,0.8)] border border-[rgba(80,80,80,0.5)] px-[7px] py-[3px] font-slogan text-[9px] font-bold tracking-[2px] text-neutral-400 ${
+                      animate ? 'animate-roster-badge' : ''
+                    }`}
                   >
-                    <img src={role.img} alt={role.label} className="w-[22px] h-[22px] object-contain shrink-0" />
-                    <span
-                      className={`font-slogan text-[13px] tracking-wider truncate ${
-                        player ? 'text-white font-semibold' : 'text-neutral-500'
+                    FULL
+                  </span>
+                )}
+
+                <h3
+                  className={`text-center font-slogan text-[13px] font-bold tracking-[2px] uppercase pb-3 mb-1 border-b transition-colors duration-500 ${
+                    isTeamFull
+                      ? 'text-neutral-300 border-[rgba(80,80,80,0.4)]'
+                      : 'text-white border-[rgba(102,0,0,0.4)] [text-shadow:0_0_12px_rgba(220,20,60,0.4)]'
+                  }`}
+                >
+                  {teamName}
+                </h3>
+
+                {roles.map((role, i) => {
+                  const player = lineup[i];
+                  return (
+                    <div
+                      key={role.key}
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-black/40 border transition-colors duration-300 ${
+                        isTeamFull
+                          ? 'border-[rgba(80,80,80,0.28)]'
+                          : 'border-[rgba(102,0,0,0.2)] hover:border-[rgba(102,0,0,0.6)] hover:bg-[rgba(102,0,0,0.12)]'
                       }`}
                     >
-                      {player || role.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                      <img
+                        src={role.img}
+                        alt={role.label}
+                        className={`w-[22px] h-[22px] object-contain shrink-0 transition-[filter] duration-500 ${
+                          isTeamFull ? 'grayscale' : ''
+                        }`}
+                      />
+                      {/* Names keep their full contrast on a sealed card — the
+                          point of the roster is who's on it. Only the chrome
+                          around them goes grey. */}
+                      <span
+                        className={`font-slogan text-[13px] tracking-wider truncate ${
+                          player ? 'text-white font-semibold' : 'text-neutral-500'
+                        }`}
+                      >
+                        {player || role.label}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {/* Last in the card and barely there, so it passes over the
+                    names without ever dimming one. */}
+                {isTeamFull && animate && (
+                  <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)] animate-roster-sheen" />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Available slots tracker */}

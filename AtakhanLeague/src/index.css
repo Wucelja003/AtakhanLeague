@@ -83,6 +83,14 @@
   --animate-reveal-bracket: revealBracket 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-reveal-sheen: revealSheen 4.5s ease-in-out 1.4s infinite;
 
+  /* A players-pool team that has all five lanes filled. Same locked-out
+     language as a role with no slots left — desaturated, no crimson — but it
+     must never bury the names, so the dimming is on the card's chrome and the
+     motion is light passing over it rather than anything covering it. */
+  --animate-roster-seal: rosterSeal 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-roster-sheen: rosterSheen 6s ease-in-out 1.1s infinite;
+  --animate-roster-badge: rosterBadge 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+
   @keyframes header-effect {
     from { opacity: 0; transform: translateY(-20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -253,6 +261,27 @@
     0%, 14%   { opacity: 0; transform: translateX(-140%) skewX(-14deg); }
     22%       { opacity: 1; }
     58%, 100% { opacity: 0; transform: translateX(460%)  skewX(-14deg); }
+  }
+
+  /* Runs once, the moment the fifth lane lands: the card tightens and its
+     crimson glow drains away to grey. */
+  @keyframes rosterSeal {
+    0%   { transform: scale(1);     box-shadow: 0 0 46px rgba(220,20,60,0.55), inset 0 0 22px rgba(220,20,60,0.22); }
+    45%  { transform: scale(1.028); box-shadow: 0 0 60px rgba(220,20,60,0.4),  inset 0 0 22px rgba(220,20,60,0.14); }
+    100% { transform: scale(1);     box-shadow: 0 0 26px rgba(0,0,0,0.5),      inset 0 0 18px rgba(70,70,70,0.12); }
+  }
+
+  /* Grey light drifting across a sealed card, so it reads as finished rather
+     than switched off. Sits behind the rows — it can't dim a name. */
+  @keyframes rosterSheen {
+    0%, 10%   { opacity: 0; transform: translateX(-130%) skewX(-16deg); }
+    18%       { opacity: 1; }
+    48%, 100% { opacity: 0; transform: translateX(430%)  skewX(-16deg); }
+  }
+
+  @keyframes rosterBadge {
+    from { opacity: 0; transform: scale(0.6); }
+    to   { opacity: 1; transform: scale(1); }
   }
 
   @keyframes introShock {

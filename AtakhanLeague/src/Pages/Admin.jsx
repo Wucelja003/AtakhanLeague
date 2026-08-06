@@ -18,7 +18,10 @@ const QF_SLOTS = [
   ['QF4', 'A'], ['QF4', 'B'],
 ];
 
+const LANES = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
+
 const card = 'rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-6 py-6 backdrop-blur-md';
+const field = 'px-3 py-1.5 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-[12px] outline-none focus:border-[#DC143C]';
 const heading = 'font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#DC143C] mb-4';
 
 // Online-payment attempt status, straight from the Payment table.
@@ -54,6 +57,7 @@ export default function Admin() {
   const [rankings, setRankings] = useState([]);
   const [rankEdits, setRankEdits] = useState({}); // { id: points }
   const [newRank, setNewRank] = useState({ username: '', team: '', tier: '', division: '', points: '' });
+  const [move, setMove] = useState({}); // { memberId: { teamId, role } }
 
   const loadRegs = () =>
     fetch(api('/admin/registrations'), { credentials: 'include' })
@@ -146,6 +150,29 @@ export default function Admin() {
     setBusy('');
   }
 
+  // Moves a rostered player to another team. The backend refuses a full roster
+  // or an occupied lane and says which, so surface its message rather than a
+  // generic failure — knowing *why* is the whole point here.
+  async function movePlayer(m) {
+    const to = move[m.id];
+    if (!to?.teamId) return;
+    setBusy(`move-${m.id}`);
+    try {
+      const res = await fetch(api(`/admin/team/member/${m.id}`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ teamId: to.teamId, role: to.role || m.role }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) alert(data?.message || 'Could not move that player.');
+      else setMove((p) => ({ ...p, [m.id]: undefined }));
+    } finally {
+      await loadRegs();
+      setBusy('');
+    }
+  }
+
   async function saveSeed() {
     const teams = QF_SLOTS.map(([code, slot]) => seed[`${code}${slot}`] || '');
     setBusy('seed');
@@ -206,6 +233,56 @@ export default function Admin() {
                       Cancel
                     </button>
                   </div>
+
+                  {/* Roster. Captains can only touch their own team, so a
+                      player switching sides would otherwise need both captains
+                      to act in the right order — here it's one step. */}
+                  {t.members?.length > 0 && (
+                    <div className="w-full mt-1 flex flex-col gap-2 pl-4 border-l-2 border-[rgba(102,0,0,0.3)]">
+                      {t.members.map((m) => (
+                        <div key={m.id} className="flex flex-wrap items-center gap-2">
+                          <span className="font-slogan text-[12px] text-neutral-300">{m.username}</span>
+                          <span className="font-slogan text-[10px] font-bold uppercase tracking-wider text-[#DC143C]">
+                            {m.role}
+                          </span>
+                          <div className="ml-auto flex flex-wrap items-center gap-2">
+                            <select
+                              value={move[m.id]?.teamId || ''}
+                              onChange={(e) =>
+                                setMove((p) => ({ ...p, [m.id]: { ...p[m.id], teamId: e.target.value } }))
+                              }
+                              className={`${field} w-44`}
+                            >
+                              <option value="">— move to team —</option>
+                              {regs.teams
+                                .filter((other) => other.id !== t.id)
+                                .map((other) => (
+                                  <option key={other.id} value={other.id}>{other.name}</option>
+                                ))}
+                            </select>
+                            {/* Only needed when the destination has that lane
+                                filled; otherwise the player keeps their own. */}
+                            <select
+                              value={move[m.id]?.role || m.role}
+                              onChange={(e) =>
+                                setMove((p) => ({ ...p, [m.id]: { ...p[m.id], role: e.target.value } }))
+                              }
+                              className={`${field} w-28`}
+                            >
+                              {LANES.map((lane) => <option key={lane} value={lane}>{lane}</option>)}
+                            </select>
+                            <button
+                              onClick={() => movePlayer(m)}
+                              disabled={!move[m.id]?.teamId || busy === `move-${m.id}`}
+                              className="font-slogan text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C] disabled:opacity-40"
+                            >
+                              {busy === `move-${m.id}` ? '…' : 'Move'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

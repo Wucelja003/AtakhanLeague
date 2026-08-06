@@ -76,6 +76,67 @@ export const cancelRegistration = async (req, res, next) => {
   }
 };
 
+const LANES = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
+
+// ---- PATCH /api/admin/team/member/:id ----  body: { teamId, role? }
+// Moves a rostered player to another team. Captains can only manage their own
+// team, so a player switching sides otherwise needs two different people to act
+// in the right order — this is the organizer doing it in one step.
+//
+// The lane comes along unless a new one is given, which is what you need when
+// the destination already has that lane filled.
+export const moveMember = async (req, res, next) => {
+  const memberId = req.params.id;
+  const teamId = (req.body?.teamId || '').trim();
+  const rawRole = (req.body?.role || '').trim().toUpperCase();
+
+  try {
+    if (!teamId) return next(errorHandler(400, 'Pick a team to move the player to'));
+    if (rawRole && !LANES.includes(rawRole)) return next(errorHandler(400, 'Invalid lane'));
+
+    const member = await prisma.teamMember.findUnique({ where: { id: memberId } });
+    if (!member) return next(errorHandler(404, 'Player not found'));
+
+    const role = rawRole || member.role;
+    if (member.teamId === teamId && role === member.role) {
+      return next(errorHandler(400, 'That player is already on this team in this lane'));
+    }
+
+    const target = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: { members: true },
+    });
+    if (!target) return next(errorHandler(404, 'Target team not found'));
+
+    // Four alongside the captain. Moving within the same team isn't an arrival,
+    // so it can't push the roster over.
+    const arriving = member.teamId !== target.id;
+    if (arriving && target.members.length >= 4) {
+      return next(errorHandler(400, `${target.name} already has a full roster`));
+    }
+    if (target.captainRole === role) {
+      return next(errorHandler(409, `${role} is the captain's lane on ${target.name}`));
+    }
+    // Checked here for a message that names the player, rather than letting the
+    // [teamId, role] unique constraint surface as a bare P2002.
+    const clash = target.members.find((m) => m.role === role && m.id !== member.id);
+    if (clash) {
+      return next(errorHandler(409, `${clash.username} already plays ${role} on ${target.name}`));
+    }
+
+    // teamName is a denormalized snapshot — moving without it would leave the
+    // player listed under their old team everywhere it's read.
+    const moved = await prisma.teamMember.update({
+      where: { id: memberId },
+      data: { teamId: target.id, teamName: target.name, role },
+    });
+    res.json({ ok: true, member: moved });
+  } catch (err) {
+    if (err.code === 'P2002') return next(errorHandler(409, 'That lane is already taken on the target team'));
+    next(err);
+  }
+};
+
 // ---- POST /api/admin/ranking ----  body: { username, team, tier, division, points }
 // Creates or updates a leaderboard entry (keyed by summoner name).
 export const upsertRanking = async (req, res, next) => {

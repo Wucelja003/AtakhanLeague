@@ -3,6 +3,7 @@ import {
   getRegistrations,
   togglePayment,
   cancelRegistration,
+  moveMember,
   seedBracket,
   setMatchResult,
   upsertRanking,
@@ -20,6 +21,7 @@ router.use(verifyToken, verifyAdmin);
 router.get('/registrations', getRegistrations);
 router.post('/payment/toggle', togglePayment);
 router.delete('/registration/:type/:id', cancelRegistration);
+router.patch('/team/member/:id', moveMember);
 router.post('/bracket/seed', seedBracket);
 router.post('/match/:code/result', setMatchResult);
 router.post('/ranking', upsertRanking);

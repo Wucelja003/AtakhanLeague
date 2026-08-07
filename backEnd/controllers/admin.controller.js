@@ -3,7 +3,7 @@ import { errorHandler } from '../utils/error.js';
 import { ensureBracket, ADVANCE } from '../utils/bracket.js';
 import { parseDivision } from '../utils/rank.js';
 import { refreshAllRanks, clearLeaderboardTeam, syncRankingRow } from '../utils/leaderboard.js';
-import { getAccountByRiotId } from '../utils/riot.js';
+import { getAccountByRiotId, cleanRiotId } from '../utils/riot.js';
 
 // ---- GET /api/admin/registrations ----
 export const getRegistrations = async (req, res, next) => {
@@ -159,7 +159,7 @@ export const upsertRanking = async (req, res, next) => {
     // linked while silently never updating, which is worse than a rejection.
     let link = null;
     if (typeof riotId === 'string') {
-      const typed = riotId.trim();
+      const typed = cleanRiotId(riotId);
       if (!typed) {
         Object.assign(data, { riotGameName: null, riotTagLine: null, riotPuuid: null, riotPlatform: null });
       } else {

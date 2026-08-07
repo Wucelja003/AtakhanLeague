@@ -65,6 +65,18 @@ export function platformToRouting(platform) {
 // resolves any account regardless of region. So the host is a free choice, and
 // deriving it from the tagLine only made this look region-dependent when it
 // isn't. Signup verification works for a player on any platform.
+// A Riot ID copied out of the game client, a browser, or this site's own data
+// often carries invisible formatting characters — bidi isolates, zero-width
+// joiners, a stray byte-order mark. They render as nothing, so an ID that looks
+// perfect on screen comes back 404 with no visible reason. Strip them, and fold
+// exotic spaces (non-breaking and friends) down to an ordinary one.
+export function cleanRiotId(text) {
+  return String(text ?? '')
+    .replace(/\p{Cf}/gu, '')
+    .replace(/\p{Zs}/gu, ' ')
+    .trim();
+}
+
 export async function getAccountByRiotId(gameName, tagLine) {
   return riotFetch(
     `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`

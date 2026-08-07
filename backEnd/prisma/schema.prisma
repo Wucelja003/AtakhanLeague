@@ -134,6 +134,16 @@ model Ranking {
   tier      String?           // IRON..CHALLENGER — drives the rank emblem
   division  String?           // I..IV (empty for Master+)
   points    Int      @default(0)
+
+  // Optional Riot link for players with no account on the site (a rostered
+  // team member, say). Without it a row is whatever was typed and stays that
+  // way; with it, the daily sweep keeps tier/division in step with Riot.
+  // Unique so the same account can't be entered twice under two names.
+  riotGameName String?
+  riotTagLine  String?
+  riotPuuid    String?  @unique
+  riotPlatform String?           // cached answer from Riot, same as on User
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

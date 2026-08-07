@@ -12,7 +12,10 @@ import { getPlatformForPuuid, inferPlatform } from './riot.js';
 //
 // So: ask Riot once, remember the answer on the user, and fall back to the old
 // guess only if Riot can't be reached — never leave a lookup unmade.
-export async function platformForUser(user, { force = false } = {}) {
+// `save` overrides where the answer is cached. Leaderboard rows for players
+// with no account are the same lookup against a different table, and without
+// this they'd write their platform onto a User row that isn't theirs.
+export async function platformForUser(user, { force = false, save } = {}) {
   if (!force && user?.riotPlatform) return user.riotPlatform;
 
   const fallback = inferPlatform(user?.riotTagLine);
@@ -22,11 +25,12 @@ export async function platformForUser(user, { force = false } = {}) {
     const platform = await getPlatformForPuuid(user.riotPuuid);
     if (!platform) return fallback;
 
-    if (user.id && platform !== user.riotPlatform) {
+    const store = save ?? (user.id ? (p) => prisma.user.update({ where: { id: user.id }, data: { riotPlatform: p } }) : null);
+    if (store && platform !== user.riotPlatform) {
       // Cache it, but never let a write failure cost us the answer.
-      await prisma.user
-        .update({ where: { id: user.id }, data: { riotPlatform: platform } })
-        .catch((err) => console.error('[riot] could not store platform for', user.username, '-', err.message));
+      await Promise.resolve(store(platform)).catch((err) =>
+        console.error('[riot] could not store platform for', user.username, '-', err.message)
+      );
       user.riotPlatform = platform;
     }
     return platform;

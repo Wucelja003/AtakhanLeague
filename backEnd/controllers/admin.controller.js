@@ -2,7 +2,8 @@ import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
 import { ensureBracket, ADVANCE } from '../utils/bracket.js';
 import { parseDivision } from '../utils/rank.js';
-import { refreshAllRanks, clearLeaderboardTeam } from '../utils/leaderboard.js';
+import { refreshAllRanks, clearLeaderboardTeam, syncRankingRow } from '../utils/leaderboard.js';
+import { getAccountByRiotId } from '../utils/riot.js';
 
 // ---- GET /api/admin/registrations ----
 export const getRegistrations = async (req, res, next) => {
@@ -145,18 +146,52 @@ export const upsertRanking = async (req, res, next) => {
   const tier = (req.body?.tier || '').trim().toUpperCase() || null;
   const division = (req.body?.division || '').trim().toUpperCase() || null;
   const points = Number(req.body?.points);
+  // "Name#TAG". Sent empty to unlink, omitted entirely to leave the link alone.
+  const riotId = req.body?.riotId;
+
   try {
     if (!username) return next(errorHandler(400, 'Summoner name is required'));
     if (!Number.isFinite(points)) return next(errorHandler(400, 'Points must be a number'));
 
     const data = { team, tier, division, points: Math.trunc(points) };
+
+    // Verify the Riot ID before storing it. A typo saved as-is would look
+    // linked while silently never updating, which is worse than a rejection.
+    let link = null;
+    if (typeof riotId === 'string') {
+      const typed = riotId.trim();
+      if (!typed) {
+        Object.assign(data, { riotGameName: null, riotTagLine: null, riotPuuid: null, riotPlatform: null });
+      } else {
+        // Tags can't contain '#', names can't either — but split at the last
+        // one regardless, so a stray leading '#' doesn't eat the name.
+        const at = typed.lastIndexOf('#');
+        if (at < 1 || at === typed.length - 1) {
+          return next(errorHandler(400, 'Riot ID must look like Name#TAG'));
+        }
+        const account = await getAccountByRiotId(typed.slice(0, at).trim(), typed.slice(at + 1).trim());
+        if (!account?.puuid) return next(errorHandler(404, `No Riot account found for ${typed}`));
+        // Riot's own spelling, not what was typed.
+        link = { riotGameName: account.gameName, riotTagLine: account.tagLine, riotPuuid: account.puuid };
+        Object.assign(data, link, { riotPlatform: null });
+      }
+    }
+
     const entry = await prisma.ranking.upsert({
       where: { username },
       update: data,
       create: { username, ...data },
     });
-    res.json(entry);
+
+    // Freshly linked: fetch the real rank now rather than leaving typed-in
+    // values standing until the nightly sweep gets to them.
+    if (link) await syncRankingRow(entry);
+
+    res.json(await prisma.ranking.findUnique({ where: { id: entry.id } }));
   } catch (err) {
+    if (err.code === 'P2002') {
+      return next(errorHandler(409, 'That Riot account is already linked to another player on the leaderboard'));
+    }
     next(err);
   }
 };

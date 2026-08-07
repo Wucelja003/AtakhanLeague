@@ -56,7 +56,8 @@ export default function Admin() {
   const [busy, setBusy] = useState('');
   const [rankings, setRankings] = useState([]);
   const [rankEdits, setRankEdits] = useState({}); // { id: points }
-  const [newRank, setNewRank] = useState({ username: '', team: '', tier: '', division: '', points: '' });
+  const [newRank, setNewRank] = useState({ username: '', team: '', tier: '', division: '', points: '', riotId: '' });
+  const [riotEdits, setRiotEdits] = useState({}); // { id: "Name#TAG" }
   const [move, setMove] = useState({}); // { memberId: { teamId, role } }
 
   const loadRegs = () =>
@@ -84,17 +85,35 @@ export default function Admin() {
         const list = Array.isArray(d) ? d : [];
         setRankings(list);
         setRankEdits(list.reduce((acc, e) => ({ ...acc, [e.id]: e.points }), {}));
+        setRiotEdits(
+          list.reduce(
+            (acc, e) => ({ ...acc, [e.id]: e.riotGameName ? `${e.riotGameName}#${e.riotTagLine}` : '' }),
+            {}
+          )
+        );
       })
       .catch(() => {});
 
   useEffect(() => { loadRegs(); loadBracket(); loadRankings(); }, []);
 
+  // Returns whether it saved, so the add-form only clears on success.
+  // A rejected Riot ID has to be shown: silently keeping the old value would
+  // look like the link took when it didn't.
   async function saveRanking(entry) {
-    if (!entry.username?.trim()) return;
+    if (!entry.username?.trim()) return false;
     setBusy(`rank-${entry.username}`);
-    await post('/admin/ranking', { ...entry, username: entry.username.trim() });
-    await loadRankings();
-    setBusy('');
+    try {
+      const res = await post('/admin/ranking', { ...entry, username: entry.username.trim() });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Could not save that player.');
+        return false;
+      }
+      return true;
+    } finally {
+      await loadRankings();
+      setBusy('');
+    }
   }
 
   async function removeRanking(id) {
@@ -129,8 +148,8 @@ export default function Admin() {
   }
 
   async function addRanking() {
-    await saveRanking({ ...newRank, points: Number(newRank.points) || 0 });
-    setNewRank({ username: '', team: '', tier: '', division: '', points: '' });
+    const ok = await saveRanking({ ...newRank, points: Number(newRank.points) || 0 });
+    if (ok) setNewRank({ username: '', team: '', tier: '', division: '', points: '', riotId: '' });
   }
 
   const teamNames = regs.teams.map((t) => t.name);
@@ -426,6 +445,15 @@ export default function Admin() {
               placeholder="Team"
               className="w-36 px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none focus:border-[#DC143C]"
             />
+            {/* Optional. With it, this player's rank tracks Riot from now on;
+                without it the rank stays whatever is typed here. */}
+            <input
+              value={newRank.riotId}
+              onChange={(e) => setNewRank((p) => ({ ...p, riotId: e.target.value }))}
+              placeholder="Riot ID (Name#TAG)"
+              title="Optional — link a Riot account so this player's rank updates automatically"
+              className="w-44 px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none focus:border-[#DC143C]"
+            />
             <select
               value={newRank.tier}
               onChange={(e) => setNewRank((p) => ({ ...p, tier: e.target.value, division: hasDivision(e.target.value) ? p.division : '' }))}
@@ -481,7 +509,28 @@ export default function Admin() {
                       {rankLabel(e.tier, e.division)}
                     </span>
                   )}
-                  <div className="ml-auto flex items-center gap-2">
+                  {/* Linked rows are swept alongside real accounts, so their
+                      rank comes from Riot and typing it here is pointless.
+                      Empty the field to unlink and go back to manual. */}
+                  <span
+                    className={`font-slogan text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+                      e.riotGameName
+                        ? 'text-[#4ade80] border-[rgba(74,222,128,0.35)] bg-[rgba(74,222,128,0.08)]'
+                        : 'text-neutral-600 border-[rgba(102,0,0,0.25)] bg-black/30'
+                    }`}
+                    title={e.riotGameName ? 'Rank tracks Riot automatically' : 'Manual entry — never updates on its own'}
+                  >
+                    {e.riotGameName ? 'Auto' : 'Manual'}
+                  </span>
+
+                  <div className="ml-auto flex flex-wrap items-center gap-2">
+                    <input
+                      value={riotEdits[e.id] ?? ''}
+                      onChange={(ev) => setRiotEdits((p) => ({ ...p, [e.id]: ev.target.value }))}
+                      placeholder="Riot ID"
+                      title="Name#TAG — clear to unlink"
+                      className="w-40 px-2 py-1.5 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-[12px] outline-none focus:border-[#DC143C]"
+                    />
                     <input
                       type="number"
                       value={rankEdits[e.id] ?? e.points}
@@ -489,7 +538,7 @@ export default function Admin() {
                       className="w-20 px-2 py-1.5 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white text-center outline-none focus:border-[#DC143C]"
                     />
                     <button
-                      onClick={() => saveRanking({ username: e.username, team: e.team, tier: e.tier, division: e.division, points: Number(rankEdits[e.id]) || 0 })}
+                      onClick={() => saveRanking({ username: e.username, team: e.team, tier: e.tier, division: e.division, points: Number(rankEdits[e.id]) || 0, riotId: riotEdits[e.id] ?? '' })}
                       disabled={busy === `rank-${e.username}`}
                       className="font-slogan text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C]"
                     >

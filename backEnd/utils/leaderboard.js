@@ -55,13 +55,38 @@ export async function removeFromLeaderboard(username) {
 // believing it. Costs one extra call per unranked player, nothing for the rest,
 // and it self-heals anyone who transfers region.
 async function rankedEntriesFor(user) {
-  const platform = await platformForUser(user);
+  const save = user.save; // set for leaderboard rows, absent for real users
+  const platform = await platformForUser(user, { save });
   const entries = await getRankedEntries(user.riotPuuid, platform);
   if (entries.length > 0) return entries;
 
-  const rechecked = await platformForUser(user, { force: true });
+  const rechecked = await platformForUser(user, { force: true, save });
   if (rechecked === platform) return entries;
   return getRankedEntries(user.riotPuuid, rechecked);
+}
+
+// A leaderboard row linked to a Riot account by hand, shaped like the user
+// objects above so the same lookup works on it — including caching the resolved
+// platform back onto the row instead of onto some user.
+function asTarget(row) {
+  return {
+    username: row.username,
+    riotPuuid: row.riotPuuid,
+    riotTagLine: row.riotTagLine,
+    riotPlatform: row.riotPlatform,
+    save: (platform) => prisma.ranking.update({ where: { id: row.id }, data: { riotPlatform: platform } }),
+  };
+}
+
+// Pull a manually linked row's rank now, so it doesn't sit on typed-in values
+// until the next daily sweep. Best-effort: the link is already saved either way.
+export async function syncRankingRow(row) {
+  try {
+    if (!row?.riotPuuid) return;
+    await syncRankFromEntries(row.username, await rankedEntriesFor(asTarget(row)));
+  } catch (err) {
+    console.error('[ranking] could not sync linked row', row?.username, '-', err.message);
+  }
 }
 
 // Fetch a player's rank from Riot and sync it (for callers without entries in
@@ -101,21 +126,35 @@ export async function refreshAllRanks() {
       select: { id: true, username: true, riotPuuid: true, riotTagLine: true, riotPlatform: true },
     });
 
+    // Rows the organizer linked by hand — players with no account here. Any
+    // whose name matches a real account is left to that account: it's the
+    // better source, and sweeping both would just have one overwrite the other
+    // seconds later for no gain.
+    const named = new Set(users.map((u) => u.username));
+    const linked = await prisma.ranking.findMany({
+      where: { riotPuuid: { not: null }, username: { notIn: [...named] } },
+      select: { id: true, username: true, riotPuuid: true, riotTagLine: true, riotPlatform: true },
+    });
+
+    const targets = [...users, ...linked.map(asTarget)];
+
     let updated = 0;
     let skipped = 0;
-    for (const user of users) {
+    for (const target of targets) {
       try {
-        await syncRankFromEntries(user.username, await rankedEntriesFor(user));
+        await syncRankFromEntries(target.username, await rankedEntriesFor(target));
         updated += 1;
       } catch (err) {
         skipped += 1;
-        console.error('[ranking] sweep skipped', user.username, '-', err.message);
+        console.error('[ranking] sweep skipped', target.username, '-', err.message);
       }
       await sleep(SWEEP_DELAY_MS);
     }
 
-    console.log(`[ranking] sweep done: ${updated} updated, ${skipped} skipped of ${users.length}`);
-    return { scanned: users.length, updated, skipped, alreadyRunning: false };
+    console.log(
+      `[ranking] sweep done: ${updated} updated, ${skipped} skipped of ${targets.length} (${users.length} accounts, ${linked.length} linked by hand)`
+    );
+    return { scanned: targets.length, updated, skipped, linked: linked.length, alreadyRunning: false };
   } finally {
     sweeping = false;
   }

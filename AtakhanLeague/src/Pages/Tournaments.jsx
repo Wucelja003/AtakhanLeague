@@ -7,15 +7,15 @@ const FALLBACK_BRACKET = {
   quarterfinals: [
     { id: 'QF1', round: 'Quarterfinal 1', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:00' },
     { id: 'QF2', round: 'Quarterfinal 2', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:00' },
-    { id: 'QF3', round: 'Quarterfinal 3', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:20' },
+    { id: 'QF3', round: 'Quarterfinal 3', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:10' },
     { id: 'QF4', round: 'Quarterfinal 4', teamA: 'TBD', teamB: 'TBD', scoreA: null, scoreB: null, time: '18:20' },
   ],
   semifinals: [
-    { id: 'SF1', round: 'Semifinal 1', teamA: 'Winner QF1', teamB: 'Winner QF2', scoreA: null, scoreB: null, time: '20:00' },
-    { id: 'SF2', round: 'Semifinal 2', teamA: 'Winner QF3', teamB: 'Winner QF4', scoreA: null, scoreB: null, time: '20:00' },
+    { id: 'SF1', round: 'Semifinal 1', teamA: 'Winner QF1', teamB: 'Winner QF2', scoreA: null, scoreB: null, time: '19:30' },
+    { id: 'SF2', round: 'Semifinal 2', teamA: 'Winner QF3', teamB: 'Winner QF4', scoreA: null, scoreB: null, time: '19:30' },
   ],
   final: {
-    id: 'F', round: 'Grand Final', teamA: 'Winner SF1', teamB: 'Winner SF2', scoreA: null, scoreB: null, time: '22:00',
+    id: 'F', round: 'Grand Final', teamA: 'Winner SF1', teamB: 'Winner SF2', scoreA: null, scoreB: null, time: '21:00',
   },
 };
 

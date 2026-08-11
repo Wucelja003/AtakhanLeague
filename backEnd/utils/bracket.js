@@ -4,11 +4,11 @@ import { prisma } from '../db.js';
 export const FIXED_MATCHES = [
   { code: 'QF1', round: 'quarterfinal', order: 1, time: '18:00' },
   { code: 'QF2', round: 'quarterfinal', order: 2, time: '18:00' },
-  { code: 'QF3', round: 'quarterfinal', order: 3, time: '18:20' },
+  { code: 'QF3', round: 'quarterfinal', order: 3, time: '18:10' },
   { code: 'QF4', round: 'quarterfinal', order: 4, time: '18:20' },
-  { code: 'SF1', round: 'semifinal', order: 1, time: '20:00' },
-  { code: 'SF2', round: 'semifinal', order: 2, time: '20:00' },
-  { code: 'F', round: 'final', order: 1, time: '22:00' },
+  { code: 'SF1', round: 'semifinal', order: 1, time: '19:30' },
+  { code: 'SF2', round: 'semifinal', order: 2, time: '19:30' },
+  { code: 'F', round: 'final', order: 1, time: '21:00' },
 ];
 
 // Winner of `code` advances into `[nextCode, slot]`.

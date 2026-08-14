@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import SEO from '../Components/SEO';
+import { LANE_META } from '../utils/pool';
+import { buildRosters } from '../utils/rosters';
 
 // Shown until the live bracket loads (and if the API is unavailable).
 const FALLBACK_BRACKET = {
@@ -22,9 +24,76 @@ const FALLBACK_BRACKET = {
   },
 };
 
-function MatchCard({ match }) {
+// One side of a match: the name, the score, and — where we know who plays for
+// that team — the roster folded away underneath it.
+function TeamRow({ name, score, won, roster, open, onToggle, last }) {
+  const border = last ? '' : 'border-b border-[rgba(102,0,0,0.25)]';
+  const head = (
+    <>
+      <span className={`flex items-center gap-1.5 font-slogan text-[13px] font-bold tracking-wider truncate ${won ? 'text-white' : 'text-neutral-300'}`}>
+        <span className="truncate">{name}</span>
+        {roster && (
+          <svg
+            viewBox="0 0 24 24" aria-hidden="true"
+            className={`w-3 h-3 shrink-0 text-[#DC143C] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            fill="none" stroke="currentColor" strokeWidth="3"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+          </svg>
+        )}
+      </span>
+      <span className={`font-heading text-[18px] leading-none ${won ? 'text-[#DC143C]' : 'text-neutral-500'}`}>
+        {score ?? '–'}
+      </span>
+    </>
+  );
+
+  return (
+    <div className={won ? 'bg-[rgba(220,20,60,0.12)]' : ''}>
+      {roster ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={open}
+          className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 text-left transition-colors hover:bg-[rgba(139,0,0,0.18)] ${border}`}
+        >
+          {head}
+        </button>
+      ) : (
+        <div className={`flex items-center justify-between gap-2 px-4 py-2.5 ${border}`}>{head}</div>
+      )}
+
+      {roster && open && (
+        <ul className="px-4 py-2 bg-black/40 border-b border-[rgba(102,0,0,0.25)]">
+          {roster.map((p) => (
+            <li key={p.username} className="flex items-center gap-2 py-1">
+              {LANE_META[p.role] ? (
+                <img src={LANE_META[p.role].img} alt={LANE_META[p.role].label} className="w-4 h-4 object-contain shrink-0" />
+              ) : (
+                <span className="w-4 shrink-0" />
+              )}
+              <span className="font-slogan text-[12px] tracking-wider text-neutral-300 truncate">
+                {p.username}
+              </span>
+              {p.captain && (
+                <span className="ml-auto shrink-0 font-slogan text-[9px] font-bold uppercase tracking-[1px] text-[#d4af37]">
+                  Captain
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function MatchCard({ match, rosters = {} }) {
   const aWon = match.scoreA != null && match.scoreB != null && match.scoreA > match.scoreB;
   const bWon = match.scoreA != null && match.scoreB != null && match.scoreB > match.scoreA;
+  // Which side is expanded, if any — one at a time keeps the column compact.
+  const [open, setOpen] = useState(null);
+  const toggle = (side) => setOpen((cur) => (cur === side ? null : side));
 
   return (
     <div className="w-full rounded-xl bg-[rgba(10,10,10,0.7)] border border-[rgba(102,0,0,0.35)] backdrop-blur-md shadow-[0_0_24px_rgba(102,0,0,0.18)] overflow-hidden transition-all duration-300 hover:border-[#DC143C] hover:shadow-[0_0_32px_rgba(220,20,60,0.35)]">
@@ -32,24 +101,14 @@ function MatchCard({ match }) {
       <div className="flex items-center justify-end px-4 py-1 bg-[rgba(102,0,0,0.12)] border-b border-[rgba(102,0,0,0.25)]">
         <span className="font-slogan text-[10px] font-bold tracking-wider text-[#DC143C]">{match.time} CET</span>
       </div>
-      {/* Team A */}
-      <div className={`flex items-center justify-between px-4 py-2.5 border-b border-[rgba(102,0,0,0.25)] ${aWon ? 'bg-[rgba(220,20,60,0.12)]' : ''}`}>
-        <span className={`font-slogan text-[13px] font-bold tracking-wider truncate ${aWon ? 'text-white' : 'text-neutral-300'}`}>
-          {match.teamA}
-        </span>
-        <span className={`font-heading text-[18px] leading-none ${aWon ? 'text-[#DC143C]' : 'text-neutral-500'}`}>
-          {match.scoreA ?? '–'}
-        </span>
-      </div>
-      {/* Team B */}
-      <div className={`flex items-center justify-between px-4 py-2.5 ${bWon ? 'bg-[rgba(220,20,60,0.12)]' : ''}`}>
-        <span className={`font-slogan text-[13px] font-bold tracking-wider truncate ${bWon ? 'text-white' : 'text-neutral-300'}`}>
-          {match.teamB}
-        </span>
-        <span className={`font-heading text-[18px] leading-none ${bWon ? 'text-[#DC143C]' : 'text-neutral-500'}`}>
-          {match.scoreB ?? '–'}
-        </span>
-      </div>
+      <TeamRow
+        name={match.teamA} score={match.scoreA} won={aWon}
+        roster={rosters[match.teamA]} open={open === 'A'} onToggle={() => toggle('A')}
+      />
+      <TeamRow
+        name={match.teamB} score={match.scoreB} won={bWon}
+        roster={rosters[match.teamB]} open={open === 'B'} onToggle={() => toggle('B')} last
+      />
     </div>
   );
 }
@@ -69,11 +128,24 @@ function RoundColumn({ label, children }) {
 
 export default function Tournaments() {
   const [bracket, setBracket] = useState(FALLBACK_BRACKET);
+  const [rosters, setRosters] = useState({});
 
   useEffect(() => {
     fetch(api('/tournament/bracket'))
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d && d.quarterfinals && d.final) setBracket(d); })
+      .catch(() => {});
+
+    // Rosters are a separate concern from the bracket: a match only carries
+    // team names, so who plays for them is looked up by name. Failing here
+    // costs the expanders, never the bracket itself.
+    Promise.all([
+      fetch(api('/registration/teams')).then((r) => r.json()),
+      fetch(api('/registration/individuals')).then((r) => r.json()),
+    ])
+      .then(([teams, solo]) =>
+        setRosters(buildRosters(Array.isArray(teams) ? teams : [], Array.isArray(solo) ? solo : []))
+      )
       .catch(() => {});
   }, []);
 
@@ -131,24 +203,24 @@ export default function Tournaments() {
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-6 min-h-[450px]">
             <RoundColumn label="Quarterfinals">
               {bracket.quarterfinals.map((m) => (
-                <MatchCard key={m.id} match={m} />
+                <MatchCard key={m.id} match={m} rosters={rosters} />
               ))}
             </RoundColumn>
 
             <RoundColumn label="Semifinals">
               {bracket.semifinals.map((m) => (
-                <MatchCard key={m.id} match={m} />
+                <MatchCard key={m.id} match={m} rosters={rosters} />
               ))}
             </RoundColumn>
 
             <RoundColumn label="Final">
-              <MatchCard match={bracket.final} />
+              <MatchCard match={bracket.final} rosters={rosters} />
               {bracket.thirdPlace && (
                 <div>
                   <p className="mb-2 text-center font-slogan text-[10px] font-bold uppercase tracking-[2px] text-neutral-500">
                     Third Place
                   </p>
-                  <MatchCard match={bracket.thirdPlace} />
+                  <MatchCard match={bracket.thirdPlace} rosters={rosters} />
                 </div>
               )}
             </RoundColumn>

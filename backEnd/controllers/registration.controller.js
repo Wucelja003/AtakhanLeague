@@ -255,14 +255,23 @@ export const listTeams = async (req, res, next) => {
   try {
     const list = await prisma.team.findMany({
       orderBy: { createdAt: 'asc' },
+      include: { members: { orderBy: { createdAt: 'asc' } } },
     });
+    // Rosters ride along so the bracket can show who plays for a team.
+    // Summoner names and lanes only — nothing here that isn't already on the
+    // Players Pool board.
     res.json(
       list.map((t) => ({
         id: t.id,
         name: t.name,
         captainUsername: t.captainUsername,
+        captainRole: t.captainRole ? t.captainRole.toLowerCase() : null,
         division: t.division,
         paid: t.paid,
+        members: t.members.map((m) => ({
+          username: m.username,
+          role: m.role.toLowerCase(),
+        })),
       }))
     );
   } catch (error) {

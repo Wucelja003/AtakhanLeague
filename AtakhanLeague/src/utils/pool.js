@@ -10,6 +10,16 @@ export const POOL_TEAM_NAMES = ['Team Alpha', 'Team Beta'];
 // Canonical lane order. Everything indexed by position relies on it.
 export const LANES = ['top', 'jungle', 'mid', 'adc', 'support'];
 
+// Display name and icon per lane, kept next to the order so a component can
+// never render them out of step with it.
+export const LANE_META = {
+  top: { label: 'Top', img: '/Icons/Top_icon.png' },
+  jungle: { label: 'Jungle', img: '/Icons/Jungle_icon.png' },
+  mid: { label: 'Mid', img: '/Icons/Middle_icon.png' },
+  adc: { label: 'ADC', img: '/Icons/Bottom_icon.png' },
+  support: { label: 'Support', img: '/Icons/Support_icon.png' },
+};
+
 export function buildPoolTeams(registrations) {
   const list = Array.isArray(registrations) ? registrations : [];
   const byLane = LANES.reduce((acc, lane) => {

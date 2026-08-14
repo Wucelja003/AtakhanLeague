@@ -1,18 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import useReveal from '../utils/useReveal';
-import { LANES, POOL_TEAM_NAMES, buildPoolTeams } from '../utils/pool';
+import { LANES, LANE_META, POOL_TEAM_NAMES, buildPoolTeams } from '../utils/pool';
 
 // Built from LANES rather than written out, so the display order can't drift
 // from the order the grouping indexes by.
-const ROLE_META = {
-  top: { label: 'Top', img: '/Icons/Top_icon.png' },
-  jungle: { label: 'Jungle', img: '/Icons/Jungle_icon.png' },
-  mid: { label: 'Mid', img: '/Icons/Middle_icon.png' },
-  adc: { label: 'ADC', img: '/Icons/Bottom_icon.png' },
-  support: { label: 'Support', img: '/Icons/Support_icon.png' },
-};
-const roles = LANES.map((key) => ({ key, ...ROLE_META[key] }));
+const roles = LANES.map((key) => ({ key, ...LANE_META[key] }));
 
 // One slot per lane per stand-in team.
 const SLOTS_PER_ROLE = POOL_TEAM_NAMES.length;

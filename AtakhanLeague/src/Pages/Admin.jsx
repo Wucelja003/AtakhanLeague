@@ -71,7 +71,7 @@ export default function Admin() {
       .then((r) => r.json())
       .then((d) => {
         setBracket(d);
-        const all = [...(d.quarterfinals || []), ...(d.semifinals || []), d.final].filter(Boolean);
+        const all = [...(d.quarterfinals || []), ...(d.semifinals || []), d.thirdPlace, d.final].filter(Boolean);
         const s = {};
         all.forEach((m) => { s[m.id] = { a: m.scoreA ?? '', b: m.scoreB ?? '' }; });
         setScores(s);
@@ -209,7 +209,7 @@ export default function Admin() {
   }
 
   const allMatches = bracket
-    ? [...bracket.quarterfinals, ...bracket.semifinals, bracket.final]
+    ? [...bracket.quarterfinals, ...bracket.semifinals, bracket.thirdPlace, bracket.final].filter(Boolean)
     : [];
 
   return (

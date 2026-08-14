@@ -14,6 +14,9 @@ const FALLBACK_BRACKET = {
     { id: 'SF1', round: 'Semifinal 1', teamA: 'Winner QF1', teamB: 'Winner QF2', scoreA: null, scoreB: null, time: '19:30' },
     { id: 'SF2', round: 'Semifinal 2', teamA: 'Winner QF3', teamB: 'Winner QF4', scoreA: null, scoreB: null, time: '19:30' },
   ],
+  thirdPlace: {
+    id: 'TP', round: 'Third Place', teamA: 'Loser SF1', teamB: 'Loser SF2', scoreA: null, scoreB: null, time: '21:00',
+  },
   final: {
     id: 'F', round: 'Grand Final', teamA: 'Winner SF1', teamB: 'Winner SF2', scoreA: null, scoreB: null, time: '21:00',
   },
@@ -74,7 +77,14 @@ export default function Tournaments() {
       .catch(() => {});
   }, []);
 
-  const schedule = [...bracket.quarterfinals, ...bracket.semifinals, bracket.final];
+  // Third place is optional: a database seeded before it existed returns null
+  // until ensureBracket next runs, and the page must still render.
+  const schedule = [
+    ...bracket.quarterfinals,
+    ...bracket.semifinals,
+    ...(bracket.thirdPlace ? [bracket.thirdPlace] : []),
+    bracket.final,
+  ];
 
   return (
     <section className="relative z-[2] min-h-[calc(100vh-200px)] px-5 py-16">
@@ -133,6 +143,14 @@ export default function Tournaments() {
 
             <RoundColumn label="Final">
               <MatchCard match={bracket.final} />
+              {bracket.thirdPlace && (
+                <div>
+                  <p className="mb-2 text-center font-slogan text-[10px] font-bold uppercase tracking-[2px] text-neutral-500">
+                    Third Place
+                  </p>
+                  <MatchCard match={bracket.thirdPlace} />
+                </div>
+              )}
             </RoundColumn>
           </div>
         </div>

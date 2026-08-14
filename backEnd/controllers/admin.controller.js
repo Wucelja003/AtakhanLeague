@@ -1,6 +1,6 @@
 import { prisma } from '../db.js';
 import { errorHandler } from '../utils/error.js';
-import { ensureBracket, ADVANCE } from '../utils/bracket.js';
+import { ensureBracket, ADVANCE, DROPS } from '../utils/bracket.js';
 import { parseDivision } from '../utils/rank.js';
 import { refreshAllRanks, clearLeaderboardTeam, syncRankingRow } from '../utils/leaderboard.js';
 import { getAccountByRiotId, cleanRiotId } from '../utils/riot.js';
@@ -267,7 +267,7 @@ export const seedBracket = async (req, res, next) => {
     // Re-seeding invalidates any prior results.
     await prisma.match.updateMany({ data: { scoreA: null, scoreB: null, winnerName: null } });
     await prisma.match.updateMany({
-      where: { code: { in: ['SF1', 'SF2', 'F'] } },
+      where: { code: { in: ['SF1', 'SF2', 'TP', 'F'] } },
       data: { teamAName: null, teamBName: null },
     });
 
@@ -299,9 +299,10 @@ export const setMatchResult = async (req, res, next) => {
     const b = parse(req.body?.scoreB);
 
     let winnerName = null;
+    let loserName = null;
     if (a != null && b != null) {
-      if (a > b) winnerName = match.teamAName;
-      else if (b > a) winnerName = match.teamBName;
+      if (a > b) { winnerName = match.teamAName; loserName = match.teamBName; }
+      else if (b > a) { winnerName = match.teamBName; loserName = match.teamAName; }
     }
 
     await prisma.match.update({ where: { code }, data: { scoreA: a, scoreB: b, winnerName } });
@@ -313,6 +314,17 @@ export const setMatchResult = async (req, res, next) => {
       await prisma.match.update({
         where: { code: nextCode },
         data: slot === 'A' ? { teamAName: winnerName } : { teamBName: winnerName },
+      });
+    }
+
+    // A semifinal decides two things: who goes up to the final and who drops
+    // into the third-place match. Clearing a result takes both back out.
+    const drop = DROPS[code];
+    if (drop) {
+      const [nextCode, slot] = drop;
+      await prisma.match.update({
+        where: { code: nextCode },
+        data: slot === 'A' ? { teamAName: loserName } : { teamBName: loserName },
       });
     }
     res.json({ ok: true });

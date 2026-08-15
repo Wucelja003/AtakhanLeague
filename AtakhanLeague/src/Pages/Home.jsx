@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import SEO from '../Components/SEO';
 import VideoBackground from '../Components/VideoBackground';
+import StreamBanner from '../Components/StreamBanner';
 import Introduce from '../Components/Introduce';
 import useReveal from '../utils/useReveal';
 // The heaviest thing on the page — framer-motion plus six demo components,
@@ -116,7 +117,10 @@ export default function Home() {
         description="Atakhan League — community-run League of Legends tournament platform. Register your team or sign up as an individual summoner and compete in the next tournament."
       />
       <VideoBackground />
-      <section className="relative z-[2] min-h-[calc(100vh-100px)] pt-[120px] sm:pt-[200px] px-4 flex">
+      <StreamBanner />
+      {/* Less top padding than before: the hero now spaces itself from the
+          banner rather than from the top of the page. */}
+      <section className="relative z-[2] min-h-[calc(100vh-100px)] pt-[56px] sm:pt-[110px] px-4 flex">
         <div className="mx-auto flex flex-col items-center">
           
 

@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/* Nothing on this site is meant to scroll sideways. This has now broken twice
+   from different causes — a transformed <header> capturing the fixed mobile
+   drawer, and once more from something I could not reproduce — so it is barred
+   at the root rather than chased case by case.
+
+   `clip` rather than `hidden`: hidden turns the element into a scroll
+   container, which breaks position: sticky and lets script scroll it anyway.
+   clip simply refuses the axis. It is a guard, not a diagnosis: real overflow
+   still has to be found and fixed, it just can no longer drag the page. */
+html,
+body {
+  overflow-x: clip;
+}
+
 @theme {
   --color-primary: #7B1A1A;
   --color-secondary: #8B0000;

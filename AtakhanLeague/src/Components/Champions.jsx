@@ -146,13 +146,17 @@ export default function Champions() {
           />
         </div>
 
-        {/* Champion */}
-        <div
-          className={`relative overflow-hidden rounded-3xl border bg-[rgba(10,10,10,0.7)] px-6 py-9 backdrop-blur-md sm:px-10 sm:py-11 ${
-            animate ? 'animate-trophy-glow' : ''
-          } ${fade('animate-reveal-up')}`}
-          style={{ borderColor: 'rgba(220,20,60,0.45)', ...at(0.34) }}
-        >
+        {/* Champion. Two elements, not one: Tailwind's animate-* sets the
+            `animation` shorthand, so the reveal and the glow on the same
+            element meant only whichever CSS won ever ran — here that was the
+            glow, and the card never revealed. */}
+        <div className={fade('animate-reveal-up')} style={at(0.34)}>
+          <div
+            className={`relative overflow-hidden rounded-3xl border bg-[rgba(10,10,10,0.7)] px-6 py-9 backdrop-blur-md sm:px-10 sm:py-11 ${
+              animate ? 'animate-trophy-glow' : ''
+            }`}
+            style={{ borderColor: 'rgba(220,20,60,0.45)' }}
+          >
           {shown && animate && (
             <span className="pointer-events-none absolute inset-y-0 -left-1/4 w-1/4 bg-[linear-gradient(90deg,transparent,rgba(255,190,200,0.16),transparent)] animate-champion-sheen" />
           )}
@@ -189,6 +193,7 @@ export default function Champions() {
             {CHAMPION.roster.map((p) => (
               <Player key={p.name} {...p} version={version} />
             ))}
+            </div>
           </div>
         </div>
 

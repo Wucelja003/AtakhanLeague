@@ -32,30 +32,64 @@ const PODIUM = [
 
 const CRIMSON = '#DC143C';
 
+// A player as a portrait card: the champion they picked is the size of the
+// card, the lane rides on it as a badge, and the names sit underneath. The
+// picks are the interesting part of a winning roster, so they get the room.
 function Player({ lane, name, tag, captain, played, version }) {
   const meta = LANE_META[lane];
   const icon = championIconUrl(played, version);
+  const [broken, setBroken] = useState(false);
+  const showPortrait = icon && !broken;
+
   return (
-    <div className="flex items-center gap-2.5 rounded-lg border border-[rgba(102,0,0,0.3)] bg-black/40 px-3 py-2.5">
-      {icon && (
-        <img
-          src={icon}
-          alt={played}
-          title={played}
-          loading="lazy"
-          /* Hidden rather than left as a broken image if the name doesn't
-             resolve to a Data Dragon file. */
-          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-          className="h-8 w-8 shrink-0 rounded-md border border-[rgba(102,0,0,0.45)] object-cover"
-        />
+    <div className="group flex flex-col items-center rounded-2xl border border-[rgba(102,0,0,0.35)] bg-[rgba(8,8,8,0.6)] px-3 py-5 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(220,20,60,0.55)] hover:shadow-[0_10px_32px_rgba(139,0,0,0.4)]">
+      <div className="relative">
+        {showPortrait ? (
+          <img
+            src={icon}
+            alt={played}
+            title={played}
+            /* Not lazy: the whole section is withheld until it's scrolled to,
+               so by the time these exist they are already on screen and lazy
+               only delays them. */
+            /* Falls back to the lane crest rather than leaving a broken image
+               if the name doesn't resolve to a Data Dragon file. */
+            onError={() => setBroken(true)}
+            className="h-20 w-20 rounded-xl border-2 border-[rgba(220,20,60,0.45)] object-cover shadow-[0_0_22px_rgba(139,0,0,0.5)] transition-transform duration-300 group-hover:scale-105 sm:h-24 sm:w-24"
+          />
+        ) : (
+          <div className="flex h-20 w-20 items-center justify-center rounded-xl border-2 border-[rgba(102,0,0,0.4)] bg-black/50 sm:h-24 sm:w-24">
+            {meta && <img src={meta.img} alt={meta.label} className="h-9 w-9 object-contain" />}
+          </div>
+        )}
+
+        {/* Lane crest, only when it isn't already standing in for the portrait */}
+        {meta && showPortrait && (
+          <span className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(102,0,0,0.65)] bg-black/90">
+            <img src={meta.img} alt={meta.label} className="h-4 w-4 object-contain" />
+          </span>
+        )}
+      </div>
+
+      {played && (
+        <p className="mt-4 font-slogan text-[11px] font-bold uppercase tracking-[2px] text-[#cc3333]">
+          {played}
+        </p>
       )}
-      {meta && <img src={meta.img} alt={meta.label} className="h-5 w-5 shrink-0 object-contain" />}
-      <span className="min-w-0 flex-1 truncate font-slogan text-[13px] font-semibold tracking-wider text-white">
+
+      <p
+        className="mt-1.5 w-full truncate font-slogan text-[13px] font-bold tracking-wide text-white"
+        title={name}
+      >
         {name}
-        {tag && <span className="ml-1 text-neutral-500">#{tag}</span>}
-      </span>
+      </p>
+      {tag && <p className="w-full truncate font-slogan text-[11px] text-neutral-500">#{tag}</p>}
+
       {captain && (
-        <span className="shrink-0 font-slogan text-[9px] font-bold uppercase tracking-[1px]" style={{ color: CRIMSON }}>
+        <span
+          className="mt-2 rounded border px-2 py-0.5 font-slogan text-[9px] font-bold uppercase tracking-[1px]"
+          style={{ color: CRIMSON, borderColor: 'rgba(220,20,60,0.4)' }}
+        >
           Captain
         </span>
       )}
@@ -151,7 +185,7 @@ export default function Champions() {
           </div>
 
           {/* Winning roster */}
-          <div className="relative mx-auto mt-8 grid max-w-3xl gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="relative mx-auto mt-9 grid max-w-4xl grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {CHAMPION.roster.map((p) => (
               <Player key={p.name} {...p} version={version} />
             ))}
@@ -168,8 +202,8 @@ export default function Champions() {
           >
             <div className="flex items-center gap-4">
               <span
-                className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-black/50"
-                style={{ borderColor: 'rgba(102,0,0,0.45)' }}
+                className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 bg-black/50 shadow-[0_0_24px_rgba(139,0,0,0.45)]"
+                style={{ borderColor: 'rgba(220,20,60,0.45)' }}
               >
                 {championIconUrl(MVP.played, version) ? (
                   <img
@@ -177,13 +211,13 @@ export default function Champions() {
                     alt={MVP.played}
                     title={MVP.played}
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    className="h-full w-full rounded-xl object-cover"
+                    className="h-full w-full object-cover"
                   />
                 ) : (
                   <img
                     src={LANE_META[MVP.lane].img}
                     alt={LANE_META[MVP.lane].label}
-                    className="h-8 w-8 object-contain"
+                    className="h-10 w-10 object-contain"
                   />
                 )}
               </span>

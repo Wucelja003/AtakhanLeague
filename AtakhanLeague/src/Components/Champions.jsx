@@ -15,15 +15,15 @@ const CHAMPION = {
   // `played` is the champion each player picked in the final. Add the name and
   // the portrait appears; leave it out and the row simply has none.
   roster: [
-    { lane: 'top', name: 'Cacke', captain: true, played: '' },
-    { lane: 'jungle', name: 'Vidzil', tag: 'jggap', played: '' },
-    { lane: 'mid', name: 'flexA', tag: '6971', played: '' },
-    { lane: 'adc', name: 'KEINER SO WIE DU', tag: 'ZZZZZ', played: '' },
-    { lane: 'support', name: 'Paveleee', tag: 'CAR', played: '' },
+    { lane: 'top', name: 'Cacke', captain: true, played: 'Ambessa' },
+    { lane: 'jungle', name: 'Vidzil', tag: 'jggap', played: 'Aatrox' },
+    { lane: 'mid', name: 'flexA', tag: '6971', played: 'Viktor' },
+    { lane: 'adc', name: 'KEINER SO WIE DU', tag: 'ZZZZZ', played: 'Lucian' },
+    { lane: 'support', name: 'Paveleee', tag: 'CAR', played: 'Bard' },
   ],
 };
 
-const MVP = { name: 'Vidzil', tag: 'jggap', lane: 'jungle', team: 'Brotherhood of the 5', played: '' };
+const MVP = { name: 'Vidzil', tag: 'jggap', lane: 'jungle', team: 'Brotherhood of the 5', played: 'Aatrox' };
 
 const PODIUM = [
   { place: '2nd', team: 'AOS', note: 'Runner-up · lost the Grand Final', color: '#DC143C' },

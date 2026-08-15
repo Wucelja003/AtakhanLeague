@@ -122,6 +122,11 @@ model Match {
   scoreA     Int?
   scoreB     Int?
   winnerName String?
+
+  // Kick channel carrying this match, if any. Set per match so the stream can
+  // be labelled with who's playing without anyone typing the team names twice.
+  streamChannel String?
+
   updatedAt  DateTime @updatedAt
 }
 

@@ -3,6 +3,7 @@ import { api } from '../api';
 import SEO from '../Components/SEO';
 import { LANE_META } from '../utils/pool';
 import { buildRosters } from '../utils/rosters';
+import StreamBanner from '../Components/StreamBanner';
 
 // Shown until the live bracket loads (and if the API is unavailable).
 const FALLBACK_BRACKET = {
@@ -238,6 +239,8 @@ export default function Tournaments() {
             Pending match
           </div>
         </div>
+
+        <StreamBanner />
 
         {/* Schedule table */}
         <div className="mt-16">

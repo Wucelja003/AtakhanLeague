@@ -13,14 +13,14 @@ import { SiKick } from 'react-icons/si';
 const STREAMS = [
   {
     channel: 'atakhanleague',
+    teamA: 'AOS',
+    teamB: '018',
+  },
+  {
+    channel: 'atakhanadmin',
     teamA: 'Bocica Limuna',
     teamB: 'Team Alpha',
   },
-  // {
-  //   channel: 'drugi-kanal',
-  //   teamA: 'AOS',
-  //   teamB: '018',
-  // },
 ];
 
 // A single stream: its heading, then a facade that becomes the real player.

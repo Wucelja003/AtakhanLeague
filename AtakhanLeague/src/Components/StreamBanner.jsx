@@ -13,13 +13,13 @@ import { SiKick } from 'react-icons/si';
 const STREAMS = [
   {
     channel: 'atakhanleague',
-    teamA: 'AOS',
-    teamB: '018',
+    teamA: 'Team 1',
+    teamB: 'Team 2',
   },
   {
     channel: 'atakhanadmin',
-    teamA: 'Bocica Limuna',
-    teamB: 'Team Alpha',
+    teamA: 'Team 1',
+    teamB: 'Team 2',
   },
 ];
 

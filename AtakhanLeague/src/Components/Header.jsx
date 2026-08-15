@@ -68,9 +68,14 @@ export default function Header() {
     setOpen(false);
   }
 
+  // The entrance animation lives on the bar below, not on <header>: it animates
+  // a transform, and a transformed ancestor becomes the containing block for
+  // position:fixed descendants. With it on <header>, the drawer stopped being
+  // fixed to the viewport and its closed, translated-off position stretched the
+  // page 384px to the right for as long as the animation ran.
   return (
-    <header className="relative z-[20] max-h-[100px] px-5 py-[15px] animate-header-effect">
-      <div className="flex items-center justify-between">
+    <header className="relative z-[20] max-h-[100px] px-5 py-[15px]">
+      <div className="flex items-center justify-between animate-header-effect">
         <Link to="/" className="shrink-0 flex items-center gap-3">
           <img
             src="/MainLogoAtakhan.webp"

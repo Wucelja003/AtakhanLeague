@@ -33,8 +33,7 @@ const STREAMS = [
 // Kick's channel API sits behind bot protection and can't be read from the
 // browser or the server, so nothing here claims to be live; the player shows
 // Kick's own offline screen when there's nothing on.
-function Stream({ channel, teamA, teamB }) {
-  const [playing, setPlaying] = useState(false);
+function Stream({ channel, teamA, teamB, playing, onToggle }) {
   const hasMatch = Boolean(teamA && teamB);
 
   return (
@@ -57,6 +56,15 @@ function Stream({ channel, teamA, teamB }) {
         <p className="mt-1 font-slogan text-[10px] uppercase tracking-[2px] text-neutral-500">
           kick.com/{channel}
         </p>
+        {playing && (
+          <button
+            type="button"
+            onClick={onToggle}
+            className="mt-2 font-slogan text-[10px] uppercase tracking-[2px] text-neutral-500 transition-colors hover:text-[#DC143C]"
+          >
+            ✕ Close player
+          </button>
+        )}
       </div>
 
       {playing ? (
@@ -74,7 +82,7 @@ function Stream({ channel, teamA, teamB }) {
       ) : (
         <button
           type="button"
-          onClick={() => setPlaying(true)}
+          onClick={onToggle}
           className="group flex w-full items-center gap-3 sm:gap-4 rounded-2xl border border-[rgba(102,0,0,0.45)] bg-[rgba(10,10,10,0.72)] px-4 sm:px-6 py-4 sm:py-5 text-left backdrop-blur-md shadow-[0_0_36px_rgba(102,0,0,0.25)] transition-all duration-300 hover:border-[rgba(220,20,60,0.6)] hover:shadow-[0_0_48px_rgba(139,0,0,0.4)]"
         >
           <SiKick
@@ -110,8 +118,18 @@ function Stream({ channel, teamA, teamB }) {
 }
 
 export default function StreamBanner() {
+  // Held here rather than inside each Stream, because how wide one gets to be
+  // depends on whether the other is open too.
+  const [open, setOpen] = useState([]);
   if (STREAMS.length === 0) return null;
+
+  const toggle = (channel) =>
+    setOpen((cur) => (cur.includes(channel) ? cur.filter((c) => c !== channel) : [...cur, channel]));
+
   const single = STREAMS.length === 1;
+  // One player on its own takes the whole row — twice the width it would get as
+  // a column. Two open share it, since neither is the one being watched.
+  const soloOpen = open.length === 1 ? open[0] : null;
 
   return (
     <section className="mt-16">
@@ -129,9 +147,19 @@ export default function StreamBanner() {
 
       {/* One stream stays narrower than the bracket above it; two share the
           width so neither reads as the main one. */}
-      <div className={`mx-auto grid gap-8 ${single ? 'max-w-2xl' : 'max-w-5xl sm:grid-cols-2'}`}>
+      <div
+        className={`mx-auto grid gap-8 transition-[max-width] duration-300 ${
+          single ? (open.length ? 'max-w-4xl' : 'max-w-2xl') : 'max-w-5xl sm:grid-cols-2'
+        }`}
+      >
         {STREAMS.map((s) => (
-          <Stream key={s.channel} {...s} />
+          <div key={s.channel} className={soloOpen === s.channel ? 'sm:col-span-2' : ''}>
+            <Stream
+              {...s}
+              playing={open.includes(s.channel)}
+              onToggle={() => toggle(s.channel)}
+            />
+          </div>
         ))}
       </div>
     </section>

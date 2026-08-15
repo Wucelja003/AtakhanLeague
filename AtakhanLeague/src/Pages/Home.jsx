@@ -26,6 +26,7 @@ function DeferredJourney() {
     </div>
   );
 }
+import Champions from '../Components/Champions';
 import GlowDivider from '../Components/GlowDivider';
 import ChampionQuotes from '../Components/ChampionQuotes';
 import TournamentInfo from '../Components/TournamentInfo';
@@ -147,6 +148,7 @@ export default function Home() {
       </section>
       <Introduce />
       <DeferredJourney />
+      <Champions />
       <GlowDivider />
       <TournamentInfo />
       <ChampionQuotes />

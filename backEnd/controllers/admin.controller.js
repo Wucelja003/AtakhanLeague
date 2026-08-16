@@ -4,6 +4,7 @@ import { ensureBracket, ADVANCE, DROPS } from '../utils/bracket.js';
 import { parseDivision } from '../utils/rank.js';
 import { refreshAllRanks, clearLeaderboardTeam, syncRankingRow } from '../utils/leaderboard.js';
 import { getAccountByRiotId, cleanRiotId } from '../utils/riot.js';
+import { archiveSeason, listArchivedSeasons } from '../utils/archive.js';
 
 // ---- GET /api/admin/registrations ----
 export const getRegistrations = async (req, res, next) => {
@@ -134,6 +135,31 @@ export const moveMember = async (req, res, next) => {
     res.json({ ok: true, member: moved });
   } catch (err) {
     if (err.code === 'P2002') return next(errorHandler(409, 'That lane is already taken on the target team'));
+    next(err);
+  }
+};
+
+// ---- GET /api/admin/seasons ----
+export const getSeasons = async (req, res, next) => {
+  try {
+    res.json(await listArchivedSeasons());
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- POST /api/admin/seasons/archive ----  body: { season }
+// Closes the current season: every team and solo registration moves to the
+// archive and the live tables are cleared, ready for the next tournament.
+// Player accounts are untouched.
+export const archiveCurrentSeason = async (req, res, next) => {
+  try {
+    const result = await archiveSeason(req.body?.season);
+    res.json(result);
+  } catch (err) {
+    if (/season name is required/i.test(err.message)) {
+      return next(errorHandler(400, 'Give the season a name, e.g. "Season One"'));
+    }
     next(err);
   }
 };

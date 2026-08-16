@@ -154,3 +154,56 @@ model Ranking {
 
   @@index([points])
 }
+
+// ---------------------------------------------------------------------------
+// Finished seasons. Kept in their own tables rather than a flag on the live
+// ones: Team.name, Team.captainId and IndividualRegistration.userId are all
+// unique, so last season's rows sitting alongside this season's would block a
+// captain from entering again, or a team from reusing its own name.
+//
+// Nothing here points at User. A player who deletes their account should not
+// erase the record of a tournament that happened.
+// ---------------------------------------------------------------------------
+model ArchivedTeam {
+  id              String    @id @default(uuid())
+  season          String
+  name            String
+  division        String
+  captainId       String
+  captainUsername String
+  captainRole     LaneRole?
+  paid            Boolean   @default(false)
+  paidAt          DateTime?
+  registeredAt    DateTime  // the team's original createdAt
+  archivedAt      DateTime  @default(now())
+
+  members ArchivedTeamMember[]
+
+  @@index([season])
+}
+
+model ArchivedTeamMember {
+  id           String       @id @default(uuid())
+  teamId       String
+  team         ArchivedTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamName     String
+  username     String
+  role         LaneRole
+  division     String?
+  registeredAt DateTime
+}
+
+model ArchivedIndividual {
+  id           String    @id @default(uuid())
+  season       String
+  userId       String
+  username     String
+  division     String
+  role         LaneRole
+  paid         Boolean   @default(false)
+  paidAt       DateTime?
+  registeredAt DateTime
+  archivedAt   DateTime  @default(now())
+
+  @@index([season])
+}

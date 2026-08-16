@@ -4,6 +4,8 @@ import {
   togglePayment,
   cancelRegistration,
   moveMember,
+  getSeasons,
+  archiveCurrentSeason,
   seedBracket,
   setMatchResult,
   upsertRanking,
@@ -22,6 +24,8 @@ router.get('/registrations', getRegistrations);
 router.post('/payment/toggle', togglePayment);
 router.delete('/registration/:type/:id', cancelRegistration);
 router.patch('/team/member/:id', moveMember);
+router.get('/seasons', getSeasons);
+router.post('/seasons/archive', archiveCurrentSeason);
 router.post('/bracket/seed', seedBracket);
 router.post('/match/:code/result', setMatchResult);
 router.post('/ranking', upsertRanking);

@@ -59,6 +59,8 @@ export default function Admin() {
   const [newRank, setNewRank] = useState({ username: '', team: '', tier: '', division: '', points: '', riotId: '' });
   const [riotEdits, setRiotEdits] = useState({}); // { id: "Name#TAG" }
   const [move, setMove] = useState({}); // { memberId: { teamId, role } }
+  const [seasons, setSeasons] = useState([]);
+  const [seasonName, setSeasonName] = useState('');
 
   const loadRegs = () =>
     fetch(api('/admin/registrations'), { credentials: 'include' })
@@ -94,7 +96,36 @@ export default function Admin() {
       })
       .catch(() => {});
 
-  useEffect(() => { loadRegs(); loadBracket(); loadRankings(); }, []);
+  const loadSeasons = () =>
+    fetch(api('/admin/seasons'), { credentials: 'include' })
+      .then((r) => r.json())
+      .then((d) => setSeasons(Array.isArray(d) ? d : []))
+      .catch(() => {});
+
+  useEffect(() => { loadRegs(); loadBracket(); loadRankings(); loadSeasons(); }, []);
+
+  // Closes the season: registrations move to the archive and the live tables
+  // empty out. Irreversible from the panel, so it asks twice — once for the
+  // name, once to be sure — and says exactly what is about to move.
+  async function archiveSeason() {
+    const name = seasonName.trim();
+    if (!name) return;
+    const teams = regs.teams.length;
+    const solo = regs.individuals.length;
+    if (!confirm(`Archive ${teams} team(s) and ${solo} solo player(s) as "${name}"?\n\nThey move out of the live tables and the board starts empty. Player accounts are not touched.`)) return;
+    setBusy('season');
+    try {
+      const res = await post('/admin/seasons/archive', { season: name });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) alert(data?.message || 'Could not archive the season.');
+      else if (data?.empty) alert('Nothing to archive — there are no registrations.');
+      else alert(`Archived ${data.teams} team(s), ${data.members} roster player(s) and ${data.individuals} solo player(s) as "${data.season}".`);
+      setSeasonName('');
+    } finally {
+      await Promise.all([loadRegs(), loadSeasons()]);
+      setBusy('');
+    }
+  }
 
   // Returns whether it saved, so the add-form only clears on success.
   // A rejected Riot ID has to be shown: silently keeping the old value would
@@ -340,6 +371,45 @@ export default function Admin() {
                       Cancel
                     </button>
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Close the season */}
+        <div className={card}>
+          <p className={heading}>Season Archive</p>
+          <p className="font-body text-[13px] text-neutral-400 mb-4">
+            Moves every team and solo registration out of the live tables and into the archive, so the
+            next tournament starts from an empty board. Player accounts, the leaderboard and the
+            bracket are left alone.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={seasonName}
+              onChange={(e) => setSeasonName(e.target.value)}
+              placeholder="Season name — e.g. Season Two"
+              className="flex-1 min-w-[200px] px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none focus:border-[#DC143C]"
+            />
+            <button
+              onClick={archiveSeason}
+              disabled={!seasonName.trim() || busy === 'season' || (regs.teams.length === 0 && regs.individuals.length === 0)}
+              className="font-slogan text-[10px] font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C] disabled:opacity-40"
+            >
+              {busy === 'season' ? 'Archiving…' : `Archive ${regs.teams.length + regs.individuals.length} registration(s)`}
+            </button>
+          </div>
+
+          {seasons.length > 0 && (
+            <div className="mt-4 flex flex-col gap-1.5">
+              {seasons.map((s) => (
+                <div key={s.season} className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-black/30 border border-[rgba(102,0,0,0.25)]">
+                  <span className="font-slogan text-[13px] font-bold text-white">{s.season}</span>
+                  <span className="font-slogan text-[11px] text-neutral-500">
+                    {s.teams} team(s) · {s.individuals} solo
+                  </span>
                 </div>
               ))}
             </div>

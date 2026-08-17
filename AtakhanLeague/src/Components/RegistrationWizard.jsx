@@ -277,31 +277,61 @@ export default function RegistrationWizard() {
             </button>
           </div>
 
-          {/* What we already know */}
-          <div className="mb-7 rounded-xl border border-[rgba(102,0,0,0.3)] bg-black/40 px-5 py-4">
-            <p className="mb-3 font-slogan text-[10px] font-bold uppercase tracking-[3px] text-neutral-500">
-              From your account
-            </p>
-            <dl className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between gap-3">
-                <dt className="font-slogan text-[12px] uppercase tracking-wider text-neutral-500">Summoner</dt>
-                <dd className="flex items-center gap-2 truncate font-slogan text-[14px] font-bold text-white">
-                  {currentUser.username}
-                  <span className="shrink-0 rounded border border-[rgba(74,222,128,0.35)] bg-[rgba(74,222,128,0.08)] px-1.5 py-0.5 font-slogan text-[9px] font-bold uppercase tracking-[1px] text-[#4ade80]">
-                    Riot verified
-                  </span>
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="font-slogan text-[12px] uppercase tracking-wider text-neutral-500">Rank</dt>
-                <dd className="font-slogan text-[14px] font-bold text-white">
-                  {rank.state === 'loading' && <span className="text-neutral-500">Reading from Riot…</span>}
-                  {rank.state === 'ok' && rank.label}
-                  {rank.state === 'unranked' && <span className="text-neutral-400">Unranked this season</span>}
-                  {rank.state === 'failed' && <span className="text-neutral-400">Riot didn&apos;t answer</span>}
-                </dd>
-              </div>
+          {/* What we already know.
+              Deliberately not shaped like the inputs below — no boxes, a lock
+              on the header and a tick on each row — because a bordered row with
+              a label beside it reads as something waiting to be filled in. */}
+          <div className="mb-7 rounded-xl border border-[rgba(74,222,128,0.22)] bg-[rgba(74,222,128,0.04)] px-5 py-4">
+            <div className="mb-3 flex items-center gap-2">
+              <svg className="h-3.5 w-3.5 shrink-0 text-[#4ade80]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <p className="font-slogan text-[10px] font-bold uppercase tracking-[3px] text-[#4ade80]">
+                Already taken from your account — don&apos;t type these
+              </p>
+            </div>
+
+            <dl className="flex flex-col gap-2">
+              {[
+                { label: 'Summoner name', value: currentUser.username, note: 'Riot verified' },
+                {
+                  label: 'Rank',
+                  value:
+                    rank.state === 'ok' ? rank.label
+                    : rank.state === 'loading' ? 'Reading from Riot…'
+                    : rank.state === 'unranked' ? 'Unranked this season'
+                    : 'Riot didn’t answer',
+                  note: rank.state === 'ok' ? 'Live from Riot' : null,
+                  muted: rank.state !== 'ok',
+                },
+              ].map((row) => (
+                <div key={row.label} className="flex items-baseline gap-2.5">
+                  <svg className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[#4ade80]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <dt className="font-slogan text-[12px] uppercase tracking-wider text-neutral-500">
+                    {row.label}
+                  </dt>
+                  <dd className={`ml-auto truncate text-right font-slogan text-[14px] font-bold ${row.muted ? 'text-neutral-400' : 'text-white'}`}>
+                    {row.value}
+                    {row.note && (
+                      <span className="ml-2 font-slogan text-[10px] font-normal uppercase tracking-[1px] text-neutral-500">
+                        {row.note}
+                      </span>
+                    )}
+                  </dd>
+                </div>
+              ))}
             </dl>
+          </div>
+
+          {/* And the line that separates the two, so there is no doubt which
+              half is yours to fill. */}
+          <div className="mb-5 flex items-center gap-3">
+            <span className="font-slogan text-[10px] font-bold uppercase tracking-[3px] text-[#DC143C]">
+              Now your part
+            </span>
+            <span className="h-px flex-1 bg-[rgba(102,0,0,0.4)]" />
           </div>
 
           {/* Only asked when Riot couldn't supply it */}

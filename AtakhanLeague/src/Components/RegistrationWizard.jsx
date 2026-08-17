@@ -34,6 +34,14 @@ const PATHS = [
 
 const STEPS = ['Entry', 'Details', 'Done'];
 
+// Riot's platform codes, as the players themselves say them.
+const PLATFORMS = {
+  eun1: 'EUNE', euw1: 'EUW', na1: 'NA', kr: 'KR', jp1: 'JP', br1: 'BR',
+  la1: 'LAN', la2: 'LAS', oc1: 'OCE', tr1: 'TR', ru: 'RU', me1: 'ME',
+  ph2: 'PH', sg2: 'SG', th2: 'TH', tw2: 'TW', vn2: 'VN',
+};
+const ALLOWED_PLATFORM = 'eun1';
+
 // "EMERALD" + "II" → "Emerald II". Master and above carry no division.
 function rankLabel(entry) {
   if (!entry?.tier) return null;
@@ -91,6 +99,7 @@ export default function RegistrationWizard() {
   const [teamName, setTeamName] = useState('');
   const [lane, setLane] = useState('');
   const [rank, setRank] = useState({ state: 'loading', label: null });
+  const [platform, setPlatform] = useState(null);   // 'eun1', 'euw1', … or null
   const [manualRank, setManualRank] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -110,6 +119,9 @@ export default function RegistrationWizard() {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`riot/me ${r.status}`))))
       .then((d) => {
         if (!alive) return;
+        // Riot names the region outright, so a player on the wrong one can be
+        // told before filling anything in rather than at submit.
+        setPlatform(d?.profile?.platform || null);
         const label = rankLabel(d?.ranked?.solo) || rankLabel(d?.ranked?.flex);
         setRank(label ? { state: 'ok', label } : { state: 'unranked', label: null });
       })
@@ -119,9 +131,15 @@ export default function RegistrationWizard() {
 
   // Riot is the source, but a player it can't place must still be able to
   // enter — an unreachable API is not their problem.
+  // Only ever true once Riot has actually named a region — an unknown region
+  // is not a wrong one, and the backend re-checks either way.
+  const wrongRegion = Boolean(platform) && platform !== ALLOWED_PLATFORM;
+  const regionLabel = platform ? PLATFORMS[platform] || platform.toUpperCase() : null;
+
   const needsManualRank = rank.state === 'unranked' || rank.state === 'failed';
   const division = rank.label || manualRank.trim();
   const ready =
+    !wrongRegion &&
     Boolean(lane) && Boolean(division) && (path === 'team' ? teamName.trim().length > 1 : true);
 
   async function submit(e) {
@@ -261,6 +279,52 @@ export default function RegistrationWizard() {
             </button>
           ))}
         </div>
+      ) : wrongRegion ? (
+        /* ---------- STEP 2, blocked: right account, wrong region ----------
+           The account itself is fine and stays — it's this tournament that is
+           EUNE only. Said before anything is filled in, and framed as a
+           not-yet rather than a rejection. */
+        <div className={`${CARD} px-6 py-9 text-center animate-form-fade-in sm:px-10`}>
+          <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-full border border-[rgba(245,158,11,0.4)] bg-[rgba(245,158,11,0.1)]">
+            <svg className="h-7 w-7 text-[#f59e0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+          </div>
+
+          <h3 className="font-heading text-[28px] leading-none tracking-wide text-white [text-shadow:0_0_16px_rgba(139,0,0,0.6)] sm:text-[34px]">
+            Your account is on {regionLabel}
+          </h3>
+
+          <p className="mx-auto mt-4 max-w-md font-body text-[15px] leading-7 text-neutral-400">
+            Atakhan League tournaments run on <span className="font-bold text-white">EUNE</span> for
+            now, so this one isn&apos;t open to you yet. Nothing is wrong with your account — it
+            stays, your rank keeps updating, and you&apos;re on the leaderboard like everyone else.
+          </p>
+
+          <p className="mx-auto mt-3 max-w-md font-body text-[14px] leading-6 text-neutral-500">
+            {/* Worded without an article on purpose: "a EUW" is wrong, "an NA"
+                and "a KR" disagree, and the label is whatever Riot returns. */}
+            When a {regionLabel} bracket opens, you&apos;ll enter it with this same account.
+          </p>
+
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <a
+              href="https://discord.gg/WuNn2G8PxY"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-ripple relative overflow-hidden rounded-xl border-0 bg-[linear-gradient(270deg,#660000,#8B0000,#DC143C,#8B0000,#660000)] bg-[length:300%_300%] px-7 py-3 font-slogan text-[12px] font-bold uppercase tracking-[3px] text-white animate-wind-flow-login transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_24px_rgba(220,20,60,0.6)]"
+            >
+              Get told when {regionLabel} opens
+            </a>
+            <button
+              type="button"
+              onClick={() => { setPath(null); setError(null); }}
+              className="rounded-xl border border-[rgba(102,0,0,0.4)] bg-black/40 px-7 py-3 font-slogan text-[12px] font-bold uppercase tracking-[3px] text-neutral-300 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#660000] hover:text-white"
+            >
+              Back
+            </button>
+          </div>
+        </div>
       ) : (
         /* ---------- STEP 2: the two things we can't know ---------- */
         <form onSubmit={submit} noValidate className={`${CARD} px-6 py-8 animate-form-fade-in sm:px-10`}>
@@ -294,6 +358,12 @@ export default function RegistrationWizard() {
             <dl className="flex flex-col gap-2">
               {[
                 { label: 'Summoner name', value: currentUser.username, note: 'Riot verified' },
+                {
+                  label: 'Server',
+                  value: regionLabel || (rank.state === 'loading' ? 'Reading from Riot…' : 'Unknown'),
+                  note: platform === ALLOWED_PLATFORM ? 'Eligible' : null,
+                  muted: !platform,
+                },
                 {
                   label: 'Rank',
                   value:

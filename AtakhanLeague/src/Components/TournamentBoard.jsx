@@ -3,6 +3,19 @@ import { api } from '../api';
 import useReveal from '../utils/useReveal';
 import { fullPoolTeams } from '../utils/pool';
 
+// Standalone it owns its own section; inside the Registrations section it is
+// just a block filling its column, and the spacing and width belong to the
+// parent. Gated on `tournament` so the tutorial's plain <TournamentBoard /> is
+// untouched.
+function Shell({ embedded, innerRef, children }) {
+  if (embedded) return <div ref={innerRef} className="w-full">{children}</div>;
+  return (
+    <section ref={innerRef} className="relative z-[2] mt-[80px] sm:mt-[100px] px-5 pb-12">
+      <div className="mx-auto max-w-3xl">{children}</div>
+    </section>
+  );
+}
+
 // `teams` — pass static data (e.g. the tutorial demo) to skip the live fetch.
 // `tournament` — which tournament's board this is; its slot count and name come
 // from there. Without one it behaves as it always did: a single 8-slot board.
@@ -58,8 +71,7 @@ export default function TournamentBoard({ teams: teamsProp, tournament }) {
   const slots = Array.from({ length: TOTAL_SLOTS }, (_, i) => teams[i] || null);
 
   return (
-    <section ref={ref} className="relative z-[2] mt-[80px] sm:mt-[100px] px-5 pb-12">
-      <div className="mx-auto max-w-3xl">
+    <Shell embedded={Boolean(tournament)} innerRef={ref}>
         {/* Heading */}
         <div className="text-center mb-8 sm:mb-10">
           <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 border border-[rgba(220,20,60,0.4)] bg-[rgba(220,20,60,0.12)]">
@@ -174,7 +186,6 @@ export default function TournamentBoard({ teams: teamsProp, tournament }) {
             </div>
           ))}
         </div>
-      </div>
-    </section>
+    </Shell>
   );
 }

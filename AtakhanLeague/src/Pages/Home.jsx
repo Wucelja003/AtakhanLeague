@@ -31,10 +31,8 @@ import GlowDivider from '../Components/GlowDivider';
 import ChampionQuotes from '../Components/ChampionQuotes';
 import TournamentInfo from '../Components/TournamentInfo';
 import Registration from '../Components/Registration';
-import TournamentBoard from '../Components/TournamentBoard';
-import PlayersPool from '../Components/PlayersPool';
+import Standings from '../Components/Standings';
 import CommunitySection from '../Components/CommunitySection';
-import { TOURNAMENTS } from '../utils/tournaments';
 
 // Target: 15 August 2026 at 18:00 (Belgrade / Central European Summer Time)
 const TOURNAMENT_DATE = new Date('2026-08-15T18:00:00+02:00');
@@ -157,14 +155,7 @@ export default function Home() {
       <div id="registration-section">
         <Registration />
       </div>
-      {/* A board and a pool per tournament, so nobody has to work out which
-          entries belong to which. */}
-      {TOURNAMENTS.map((t) => (
-        <div key={t.id}>
-          <TournamentBoard tournament={t} />
-          <PlayersPool tournament={t} />
-        </div>
-      ))}
+      <Standings />
       <CommunitySection />
     </>
   );

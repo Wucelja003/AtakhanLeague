@@ -10,6 +10,17 @@ const roles = LANES.map((key) => ({ key, ...LANE_META[key] }));
 // One slot per lane per stand-in team.
 const SLOTS_PER_ROLE = POOL_TEAM_NAMES.length;
 
+// Same arrangement as the board: its own section standalone, a plain block
+// when it sits in a column of the Registrations section.
+function Shell({ embedded, innerRef, children }) {
+  if (embedded) return <div ref={innerRef} className="w-full">{children}</div>;
+  return (
+    <section ref={innerRef} className="relative z-[2] mt-[100px] px-5 pt-4 pb-20">
+      <div className="mx-auto max-w-6xl">{children}</div>
+    </section>
+  );
+}
+
 // `registrations` — pass static data (e.g. the tutorial demo) to skip the live fetch.
 // `tournament` — which tournament's pool this is; solo entries that don't name
 // it are left out. Without one it pools everything, as it always did.
@@ -55,8 +66,7 @@ export default function PlayersPool({ registrations: regProp, tournament }) {
   }, {});
 
   return (
-    <section ref={ref} className="relative z-[2] mt-[100px] px-5 pt-4 pb-20">
-      <div className="mx-auto max-w-6xl">
+    <Shell embedded={Boolean(tournament)} innerRef={ref}>
         {tournament && (
           <p className="text-center font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#DC143C] mb-2">
             {tournament.label} · {tournament.divisions}
@@ -192,7 +202,6 @@ export default function PlayersPool({ registrations: regProp, tournament }) {
             })}
           </div>
         </div>
-      </div>
-    </section>
+    </Shell>
   );
 }

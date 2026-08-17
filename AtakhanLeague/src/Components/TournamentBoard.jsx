@@ -3,10 +3,11 @@ import { api } from '../api';
 import useReveal from '../utils/useReveal';
 import { fullPoolTeams } from '../utils/pool';
 
-const TOTAL_SLOTS = 8; // Number of teams competing in the tournament
-
 // `teams` — pass static data (e.g. the tutorial demo) to skip the live fetch.
-export default function TournamentBoard({ teams: teamsProp }) {
+// `tournament` — which tournament's board this is; its slot count and name come
+// from there. Without one it behaves as it always did: a single 8-slot board.
+export default function TournamentBoard({ teams: teamsProp, tournament }) {
+  const TOTAL_SLOTS = tournament?.slots ?? 8;
   const [fetched, setFetched] = useState([]);
   const [solo, setSolo] = useState([]);
   const { ref, shown } = useReveal({ threshold: 0 });
@@ -41,7 +42,14 @@ export default function TournamentBoard({ teams: teamsProp }) {
 
   // Registered teams keep their registration order, then any pool team that has
   // filled all five lanes. Static data (the tutorial demo) is used verbatim.
-  const teams = teamsProp ?? [...fetched, ...fullPoolTeams(solo)];
+  //
+  // Registrations don't carry a tournament yet — the backend has no field for
+  // it. Until they do, a board that belongs to a tournament shows only entries
+  // that name it, which is none: better an honest empty board than the same
+  // teams listed under both.
+  const forThis = (r) => !tournament || r.tournament === tournament.id;
+  const teams =
+    teamsProp ?? [...fetched.filter(forThis), ...fullPoolTeams(solo.filter(forThis))];
 
   const filled = Math.min(teams.length, TOTAL_SLOTS);
   const remaining = TOTAL_SLOTS - filled;
@@ -57,12 +65,17 @@ export default function TournamentBoard({ teams: teamsProp }) {
           <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 border border-[rgba(220,20,60,0.4)] bg-[rgba(220,20,60,0.12)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#DC143C]" />
             <span className="font-slogan text-xs font-bold uppercase tracking-[3px] text-[#DC143C]">
-              Registered Teams
+              {tournament ? `${tournament.label} · Registered Teams` : 'Registered Teams'}
             </span>
           </div>
           <h2 className="font-heading text-white text-[32px] sm:text-[44px] leading-none [text-shadow:0_0_18px_rgba(139,0,0,0.9),0_0_40px_rgba(102,0,0,0.5)]">
-            Tournament Board
+            {tournament ? `${tournament.label} Board` : 'Tournament Board'}
           </h2>
+          {tournament && (
+            <p className="font-slogan text-[11px] uppercase tracking-[2px] text-neutral-500 mt-2">
+              {tournament.divisions}
+            </p>
+          )}
           <p className="font-body text-[14px] sm:text-[16px] text-neutral-400 mt-3">
             <span className="text-white font-bold">{filled}</span> of{' '}
             <span className="text-white font-bold">{TOTAL_SLOTS}</span> team slots filled

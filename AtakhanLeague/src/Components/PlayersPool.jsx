@@ -11,7 +11,9 @@ const roles = LANES.map((key) => ({ key, ...LANE_META[key] }));
 const SLOTS_PER_ROLE = POOL_TEAM_NAMES.length;
 
 // `registrations` — pass static data (e.g. the tutorial demo) to skip the live fetch.
-export default function PlayersPool({ registrations: regProp }) {
+// `tournament` — which tournament's pool this is; solo entries that don't name
+// it are left out. Without one it pools everything, as it always did.
+export default function PlayersPool({ registrations: regProp, tournament }) {
   const [fetched, setFetched] = useState([]);
   const { ref, shown, animate } = useReveal({ threshold: 0 });
 
@@ -35,7 +37,11 @@ export default function PlayersPool({ registrations: regProp }) {
     };
   }, [regProp, shown]);
 
-  const registrations = regProp ?? fetched;
+  // Solo registrations don't carry a tournament yet — the backend has no field
+  // for it. A pool that belongs to one therefore shows only entries naming it,
+  // which is none for now: an empty pool per tournament is honest, the same
+  // five players shown under both would not be.
+  const registrations = regProp ?? (tournament ? fetched.filter((r) => r.tournament === tournament.id) : fetched);
 
   // Same grouping the Tournament Board reads, so a team shown as complete here
   // is exactly the one that earns a slot there.
@@ -51,8 +57,13 @@ export default function PlayersPool({ registrations: regProp }) {
   return (
     <section ref={ref} className="relative z-[2] mt-[100px] px-5 pt-4 pb-20">
       <div className="mx-auto max-w-6xl">
+        {tournament && (
+          <p className="text-center font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#DC143C] mb-2">
+            {tournament.label} · {tournament.divisions}
+          </p>
+        )}
         <h2 className="text-center font-heading text-white text-[32px] sm:text-[44px] mb-2.5 [text-shadow:0_0_18px_rgba(139,0,0,0.9),0_0_40px_rgba(102,0,0,0.5)]">
-          Players Pool
+          {tournament ? `${tournament.label} Players Pool` : 'Players Pool'}
         </h2>
         <p className="text-center font-body text-[15px] sm:text-[20px] text-neutral-300 mb-8 sm:mb-12 px-4">
           A list of individually registered players competing in this tournament.

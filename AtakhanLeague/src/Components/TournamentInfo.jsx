@@ -2,16 +2,20 @@
 // EDIT HERE. One entry per upcoming tournament — the layout is identical for
 // each, so adding a third is another entry in this array.
 //
-// `image` is a file in AtakhanLeague/public/. `rows` is the specification
-// list; a row can carry `color` to pick its value out (the prize does).
+// `image` is a file in AtakhanLeague/public/. The banner is a wide box and the
+// image fills it by cropping, so a portrait source loses most of its height —
+// `focus` says which part to keep (a CSS object-position). `rows` is the
+// specification list; a row can carry `color` to pick its value out.
 // ---------------------------------------------------------------------------
 const TBA = 'TBA';
 
 const TOURNAMENTS = [
   {
     id: 'low-elo',
-    image: '/low-elo-tournament.webp',
+    image: '/LowEloTournament.webp',
     alt: 'Low Elo Tournament',
+    // Landscape and almost exactly the banner's shape — nothing to choose.
+    focus: 'center',
     title: 'Low Elo',
     accent: 'Tournament',
     pills: ['Date TBA', '8 Teams', 'Single Elimination'],
@@ -30,8 +34,12 @@ const TOURNAMENTS = [
   },
   {
     id: 'high-elo',
-    image: '/high-elo-tournament.webp',
+    image: '/HighEloTournament.webp',
     alt: 'High Elo Tournament',
+    // 736x1070: a tall portrait in a wide box shows only 41% of its height.
+    // Held high so the throne and Viego himself stay in frame instead of a
+    // band across his middle.
+    focus: 'center 22%',
     title: 'High Elo',
     accent: 'Tournament',
     pills: ['Date TBA', '8 Teams', 'Single Elimination'],
@@ -58,7 +66,7 @@ function Pill({ children }) {
   );
 }
 
-function Tournament({ image, alt, title, accent, pills, rows }) {
+function Tournament({ image, alt, focus, title, accent, pills, rows }) {
   return (
     <div className="w-full max-w-[860px] flex flex-col gap-6">
       {/* ===== HERO BANNER ===== */}
@@ -68,6 +76,7 @@ function Tournament({ image, alt, title, accent, pills, rows }) {
           alt={alt}
           loading="lazy"
           decoding="async"
+          style={{ objectPosition: focus }}
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/75 to-black/20" />

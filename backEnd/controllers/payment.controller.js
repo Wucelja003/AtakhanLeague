@@ -8,16 +8,32 @@ import {
   createNowpaymentsInvoice,
   verifyNowpaymentsIpn,
 } from '../utils/payments.js';
+import { findTournament, TEAM_SIZE } from '../utils/tournaments.js';
 
-const TEAM_FEE_CENTS = 3000;       // 30€ — captain pays for the whole team
-const INDIVIDUAL_FEE_CENTS = 600;  // 6€ — solo player
+// The fee is per player and belongs to the tournament, not to this file — it
+// was hardcoded at 30€/6€, which is last season's price. A captain pays for the
+// whole team, a solo player for themselves.
+//
+// Registrations from before tournaments existed carry none; those fall back to
+// what they were charged at the time, since re-pricing an old entry retroactively
+// would be wrong.
+const LEGACY_TEAM_FEE_CENTS = 3000;
+const LEGACY_INDIVIDUAL_FEE_CENTS = 600;
+
+function feeFor(kind, registration) {
+  const tournament = findTournament(registration.tournament);
+  if (!tournament) {
+    return kind === 'team' ? LEGACY_TEAM_FEE_CENTS : LEGACY_INDIVIDUAL_FEE_CENTS;
+  }
+  return kind === 'team' ? tournament.feeCents * TEAM_SIZE : tournament.feeCents;
+}
 
 // Resolve the caller's registration → { kind, amount } or null.
 async function resolveRegistration(userId) {
   const team = await prisma.team.findUnique({ where: { captainId: userId } });
-  if (team) return { kind: 'team', amount: TEAM_FEE_CENTS, registration: team };
+  if (team) return { kind: 'team', amount: feeFor('team', team), registration: team };
   const solo = await prisma.individualRegistration.findUnique({ where: { userId } });
-  if (solo) return { kind: 'individual', amount: INDIVIDUAL_FEE_CENTS, registration: solo };
+  if (solo) return { kind: 'individual', amount: feeFor('individual', solo), registration: solo };
   return null;
 }
 

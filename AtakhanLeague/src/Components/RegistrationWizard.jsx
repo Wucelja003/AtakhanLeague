@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { api } from '../api';
 import { LANES, LANE_META } from '../utils/pool';
+import { TOURNAMENTS } from '../utils/tournaments';
 
 // Registration as a short path rather than two forms side by side.
 //
@@ -32,7 +33,7 @@ const PATHS = [
   },
 ];
 
-const STEPS = ['Entry', 'Details', 'Done'];
+const STEPS = ['Tournament', 'Entry', 'Details', 'Done'];
 
 // Riot's platform codes, as the players themselves say them.
 const PLATFORMS = {
@@ -95,6 +96,7 @@ export default function RegistrationWizard() {
   const { currentUser } = useSelector((s) => s.user);
   const navigate = useNavigate();
 
+  const [tour, setTour] = useState(null);     // which tournament
   const [path, setPath] = useState(null);     // 'team' | 'individual'
   const [teamName, setTeamName] = useState('');
   const [lane, setLane] = useState('');
@@ -105,7 +107,7 @@ export default function RegistrationWizard() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  const step = done ? 2 : path ? 1 : 0;
+  const step = done ? 3 : path ? 2 : tour ? 1 : 0;
 
   // The rank is fetched once the player has chosen a path — before that it
   // isn't needed, and this call reaches out to Riot.
@@ -155,7 +157,13 @@ export default function RegistrationWizard() {
         // The server is sent rather than typed: the backend asks Riot which
         // region the account really lives on anyway, so a text field only ever
         // added a way to get it wrong.
-        body: JSON.stringify({ teamName: teamName.trim(), division, role: lane, server: 'EUNE' }),
+        body: JSON.stringify({
+          tournament: tour.id,
+          teamName: teamName.trim(),
+          division,
+          role: lane,
+          server: 'EUNE',
+        }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -248,8 +256,72 @@ export default function RegistrationWizard() {
             Go to my profile
           </button>
         </div>
+      ) : !tour ? (
+        /* ---------- STEP 1: which tournament ---------- */
+        <div className="grid gap-5 sm:grid-cols-2">
+          {TOURNAMENTS.map((t, i) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTour(t)}
+              style={{ animationDelay: `${0.05 + i * 0.1}s` }}
+              className={`${CARD} group relative overflow-hidden text-left animate-field-slide-in transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(220,20,60,0.55)] hover:shadow-[0_12px_40px_rgba(139,0,0,0.4)]`}
+            >
+              <span className="relative block h-32 w-full overflow-hidden">
+                <img
+                  src={t.image}
+                  alt=""
+                  style={{ objectPosition: t.focus }}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute inset-0 bg-gradient-to-t from-[rgba(10,10,10,0.95)] via-[rgba(10,10,10,0.55)] to-transparent" />
+                <span className="absolute bottom-3 left-5 font-heading text-[28px] leading-none tracking-wide text-white [text-shadow:0_0_18px_rgba(139,0,0,0.9)]">
+                  {t.label}
+                </span>
+              </span>
+
+              <span className="block px-5 py-4">
+                <span className="flex flex-wrap gap-1.5">
+                  {[t.divisions, `${t.slots} teams`].map((chip) => (
+                    <span
+                      key={chip}
+                      className="rounded-full border border-[rgba(220,20,60,0.35)] bg-[rgba(220,20,60,0.08)] px-2.5 py-1 font-slogan text-[10px] font-bold uppercase tracking-[1px] text-neutral-300"
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                </span>
+                <span className="mt-3 flex items-center justify-between gap-3">
+                  <span className="font-slogan text-[12px] text-neutral-400">
+                    {t.rows.find((r) => r.key === 'Date')?.val}
+                  </span>
+                  <span className="font-slogan text-[12px] font-bold text-white">
+                    {t.rows.find((r) => r.key === 'Registration Fee')?.val}
+                  </span>
+                </span>
+                <span className="mt-3 inline-flex items-center gap-2 font-slogan text-[11px] font-bold uppercase tracking-[2px] text-[#cc3333] transition-colors group-hover:text-[#DC143C]">
+                  Enter this one
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
       ) : !path ? (
-        /* ---------- STEP 1: how are you entering ---------- */
+        /* ---------- STEP 2: how are you entering ---------- */
+        <div>
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <p className="font-slogan text-[12px] uppercase tracking-[2px] text-neutral-400">
+            Entering <span className="font-bold text-white">{tour.label}</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => setTour(null)}
+            className="font-slogan text-[10px] font-bold uppercase tracking-[2px] text-neutral-500 transition-colors hover:text-[#DC143C]"
+          >
+            ← Change tournament
+          </button>
+        </div>
         <div className="grid gap-5 sm:grid-cols-2">
           {PATHS.map((p, i) => (
             <button
@@ -278,6 +350,7 @@ export default function RegistrationWizard() {
               </span>
             </button>
           ))}
+        </div>
         </div>
       ) : wrongRegion ? (
         /* ---------- STEP 2, blocked: right account, wrong region ----------
@@ -330,7 +403,10 @@ export default function RegistrationWizard() {
         <form onSubmit={submit} noValidate className={`${CARD} px-6 py-8 animate-form-fade-in sm:px-10`}>
           <div className="mb-7 flex items-center justify-between gap-4">
             <h3 className="font-heading text-[26px] leading-none tracking-wide text-white sm:text-[30px]">
-              {path === 'team' ? 'Team Captain' : 'Solo Player'}
+              {path === 'team' ? 'Team Captain' : 'Solo Player'}{' '}
+              <span className="font-slogan text-[13px] font-normal uppercase tracking-[2px] text-neutral-500">
+                {tour.label}
+              </span>
             </h3>
             <button
               type="button"

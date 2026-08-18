@@ -3,7 +3,10 @@ import { errorHandler } from '../utils/error.js';
 import { sendTournamentConfirmation } from '../utils/mailer.js';
 import { parseDivision } from '../utils/rank.js';
 import { clearLeaderboardTeam } from '../utils/leaderboard.js';
-import { getPlatformForPuuid } from '../utils/riot.js';
+import { getPlatformForPuuid, getRankedEntries } from '../utils/riot.js';
+import { platformForUser } from '../utils/platform.js';
+import { rankFromEntries } from '../utils/rank.js';
+import { findTournament, tierAllowed } from '../utils/tournaments.js';
 
 // This tournament is EUNE only. The form sends the server the player picked;
 // reject anything else here too so the check can't be skipped client-side.
@@ -30,6 +33,40 @@ async function isOnEune(puuid) {
   }
 }
 
+// Which tournament is being entered, and may this player enter it?
+//
+// The division is checked against Riot rather than the text the form sent —
+// typing your own rank is how "Emerald 2 ( racunaj Dia... )" got in. An
+// unreachable Riot means we can't tell, and can't-tell lets them through: the
+// same rule as the region check, for the same reason.
+async function tournamentGate(user, tournamentId) {
+  const tournament = findTournament(tournamentId);
+  if (!tournament) {
+    return { error: errorHandler(400, 'Pick which tournament you are entering') };
+  }
+
+  let tier = null;
+  if (user?.riotPuuid) {
+    try {
+      const entries = await getRankedEntries(user.riotPuuid, await platformForUser(user));
+      tier = rankFromEntries(entries).tier;
+    } catch (err) {
+      console.error('[riot] rank check unavailable (allowing):', err.message);
+    }
+  }
+
+  if (tierAllowed(tournament, tier) === false) {
+    const pretty = tier.charAt(0) + tier.slice(1).toLowerCase();
+    return {
+      error: errorHandler(
+        400,
+        `${tournament.label} is for ${tournament.divisions}. Riot has you at ${pretty}.`
+      ),
+    };
+  }
+  return { tournament };
+}
+
 const NOT_EUNE_MSG =
   'Your Riot account is not on EUNE — this tournament is for EUNE players only.';
 
@@ -44,7 +81,7 @@ const roleMap = {
 
 // --- POST /api/registration/team ---
 export const registerTeam = async (req, res, next) => {
-  const { teamName, division, role, server } = req.body;
+  const { teamName, division, role, server, tournament: tournamentId } = req.body;
   const captainId = req.user.id; // from verifyToken middleware
 
   if (!teamName || !division) {
@@ -81,9 +118,13 @@ export const registerTeam = async (req, res, next) => {
       return next(errorHandler(400, NOT_EUNE_MSG));
     }
 
+    const gate = await tournamentGate(captain, tournamentId);
+    if (gate.error) return next(gate.error);
+
     const team = await prisma.team.create({
       data: {
         name: teamName,
+        tournament: gate.tournament.id,
         division,
         captainId,
         captainUsername: captain.username,
@@ -123,7 +164,7 @@ export const registerTeam = async (req, res, next) => {
 
 // --- POST /api/registration/individual ---
 export const registerIndividual = async (req, res, next) => {
-  const { division, role, server } = req.body;
+  const { division, role, server, tournament: tournamentId } = req.body;
   const userId = req.user.id;
 
   if (!division || !role) {
@@ -153,8 +194,17 @@ export const registerIndividual = async (req, res, next) => {
       return next(errorHandler(400, NOT_EUNE_MSG));
     }
 
+    const gate = await tournamentGate(user, tournamentId);
+    if (gate.error) return next(gate.error);
+
     const reg = await prisma.individualRegistration.create({
-      data: { userId, username: user.username, division, role: dbRole },
+      data: {
+        userId,
+        tournament: gate.tournament.id,
+        username: user.username,
+        division,
+        role: dbRole,
+      },
     });
 
     // Solo players land on the leaderboard too (no team yet — the organizer
@@ -239,6 +289,7 @@ export const listIndividuals = async (req, res, next) => {
     res.json(
       list.map((r) => ({
         id: r.id,
+        tournament: r.tournament,
         username: r.username,
         role: r.role.toLowerCase(),
         division: r.division,
@@ -263,6 +314,7 @@ export const listTeams = async (req, res, next) => {
     res.json(
       list.map((t) => ({
         id: t.id,
+        tournament: t.tournament,
         name: t.name,
         captainUsername: t.captainUsername,
         captainRole: t.captainRole ? t.captainRole.toLowerCase() : null,

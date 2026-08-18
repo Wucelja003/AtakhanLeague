@@ -43,6 +43,9 @@ enum Role {
 model Team {
   id              String       @id @default(uuid())
   name            String       @unique
+  // Which tournament this entry is for — see backEnd/utils/tournaments.js.
+  // Nullable because rows predating it exist; new registrations always set it.
+  tournament      String?
   division        String
   captainId       String       @unique
   captainUsername String       // snapshot of captain's summoner name at registration
@@ -52,6 +55,8 @@ model Team {
   paid            Boolean      @default(false) // entry fee paid (set by payment webhook)
   paidAt          DateTime?
   createdAt       DateTime     @default(now())
+
+  @@index([tournament])
 }
 
 // Other 4 players in a team (captain adds them later from Profile page).
@@ -71,8 +76,9 @@ model TeamMember {
 }
 
 model IndividualRegistration {
-  id        String   @id @default(uuid())
-  userId    String   @unique
+  id         String  @id @default(uuid())
+  userId     String  @unique
+  tournament String?          // see Team.tournament
   username  String   // snapshot of summoner name at registration
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   division  String
@@ -80,6 +86,8 @@ model IndividualRegistration {
   paid      Boolean  @default(false) // entry fee paid (set by payment webhook)
   paidAt    DateTime?
   createdAt DateTime @default(now())
+
+  @@index([tournament])
 }
 
 // One row per payment attempt. Reconciled by provider webhooks via orderId.

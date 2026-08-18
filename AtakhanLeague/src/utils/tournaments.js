@@ -20,6 +20,9 @@ export const TOURNAMENTS = [
     focus: 'center',
     label: 'Low Elo',
     slots: 8,
+    // The countdown needs a real instant, not "October 10-11". First day of the
+    // window at 18:00 CEST, the hour the last tournament started at.
+    startsAt: '2026-10-10T18:00:00+02:00',
     divisions: 'Silver – Platinum',
     title: 'Hunt or be Hunted',
     accent: 'Tournament',
@@ -46,6 +49,7 @@ export const TOURNAMENTS = [
     focus: 'center 25%',
     label: 'High Elo',
     slots: 12,
+    startsAt: '2026-10-24T18:00:00+02:00',
     divisions: 'Emerald – Low Master',
     title: 'The throne trembles',
     accent: 'Tournament',

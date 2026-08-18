@@ -32,41 +32,33 @@ import ChampionQuotes from '../Components/ChampionQuotes';
 import TournamentInfo from '../Components/TournamentInfo';
 import Registration from '../Components/Registration';
 import Standings from '../Components/Standings';
+import { TOURNAMENTS } from '../utils/tournaments';
 import CommunitySection from '../Components/CommunitySection';
 
-// Target: 15 August 2026 at 18:00 (Belgrade / Central European Summer Time)
-const TOURNAMENT_DATE = new Date('2026-08-15T18:00:00+02:00');
-
-function getTimeLeft() {
-  const diff = TOURNAMENT_DATE.getTime() - Date.now();
-  if (diff <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, ended: true };
-  }
+// One clock per tournament, driven by the same list the rest of the site reads,
+// so a date changed there changes here. Nothing is hardcoded in this file any
+// more — it used to point at 15 August, which has been and gone.
+function timeLeft(target) {
+  const diff = target - Date.now();
+  if (diff <= 0) return null;
   return {
-    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((diff / (1000 * 60)) % 60),
+    days: Math.floor(diff / 86400000),
+    hours: Math.floor((diff / 3600000) % 24),
+    minutes: Math.floor((diff / 60000) % 60),
     seconds: Math.floor((diff / 1000) % 60),
-    ended: false,
   };
 }
 
-function Countdown() {
-  const [t, setT] = useState(getTimeLeft());
+function Countdown({ tournament }) {
+  const target = new Date(tournament.startsAt).getTime();
+  const [t, setT] = useState(() => timeLeft(target));
+
   useEffect(() => {
-    const id = setInterval(() => setT(getTimeLeft()), 1000);
+    const id = setInterval(() => setT(timeLeft(target)), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [target]);
 
-  if (t.ended) {
-    return (
-      <p className="font-slogan text-[13px] sm:text-[15px] font-bold uppercase tracking-[3px] text-[#DC143C]">
-        Tournament is live
-      </p>
-    );
-  }
-
-  const cells = [
+  const cells = t && [
     { value: t.days, label: 'Days' },
     { value: t.hours, label: 'Hours' },
     { value: t.minutes, label: 'Min' },
@@ -74,24 +66,39 @@ function Countdown() {
   ];
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3 animate-fade-in-up-delayed">
-      {cells.map((c, i) => (
-        <div key={c.label} className="flex items-center gap-2 sm:gap-3">
-          <div className="flex flex-col items-center min-w-[54px] sm:min-w-[70px] rounded-xl px-2 sm:px-3 py-2 sm:py-2.5 bg-black/55 border border-[rgba(102,0,0,0.45)] backdrop-blur-md shadow-[0_0_18px_rgba(139,0,0,0.25)]">
-            <span className="font-heading text-white text-[26px] sm:text-[36px] leading-none tabular-nums [text-shadow:0_0_12px_rgba(220,20,60,0.5)]">
-              {String(c.value).padStart(2, '0')}
-            </span>
-            <span className="font-slogan text-[9px] sm:text-[10px] uppercase tracking-[2px] text-neutral-400 mt-0.5">
-              {c.label}
-            </span>
-          </div>
-          {i < cells.length - 1 && (
-            <span className="font-heading text-[18px] sm:text-[24px] text-[#DC143C] leading-none">
-              :
-            </span>
-          )}
+    <div className="flex flex-col items-center gap-2.5">
+      <span className="font-slogan text-[11px] font-bold uppercase tracking-[3px] text-[#cc3333]">
+        {tournament.label}
+      </span>
+
+      {cells ? (
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {cells.map((c, i) => (
+            <div key={c.label} className="flex items-center gap-1.5 sm:gap-2">
+              <div className="flex min-w-[46px] flex-col items-center rounded-xl border border-[rgba(102,0,0,0.45)] bg-black/55 px-1.5 py-1.5 backdrop-blur-md shadow-[0_0_18px_rgba(139,0,0,0.25)] sm:min-w-[58px] sm:px-2.5 sm:py-2">
+                <span className="font-heading text-[22px] leading-none tabular-nums text-white [text-shadow:0_0_12px_rgba(220,20,60,0.5)] sm:text-[30px]">
+                  {String(c.value).padStart(2, '0')}
+                </span>
+                <span className="mt-0.5 font-slogan text-[8px] uppercase tracking-[2px] text-neutral-400 sm:text-[9px]">
+                  {c.label}
+                </span>
+              </div>
+              {i < cells.length - 1 && (
+                <span className="font-heading text-[16px] leading-none text-[#DC143C] sm:text-[20px]">:</span>
+              )}
+            </div>
+          ))}
         </div>
-      ))}
+      ) : (
+        /* Past its start: says so rather than sitting at 00:00:00:00. */
+        <p className="rounded-xl border border-[rgba(220,20,60,0.45)] bg-[rgba(220,20,60,0.12)] px-4 py-2.5 font-slogan text-[12px] font-bold uppercase tracking-[3px] text-[#DC143C] sm:text-[14px]">
+          Under way
+        </p>
+      )}
+
+      <span className="font-slogan text-[10px] uppercase tracking-[2px] text-neutral-500">
+        {tournament.rows.find((r) => r.key === 'Date')?.val}
+      </span>
     </div>
   );
 }
@@ -131,10 +138,14 @@ export default function Home() {
 
           <div className="mt-[30px] sm:mt-[50px] flex flex-col items-center gap-4 sm:gap-5">
             <p className="px-5 sm:px-[30px] py-2.5 sm:py-3 rounded-full font-slogan text-[11px] sm:text-[14px] font-bold uppercase tracking-[2px] sm:tracking-[3px] text-[#cc3333] border border-[rgba(139,0,0,0.6)] bg-[rgba(123,26,26,0.12)] backdrop-blur-md shadow-[0_0_16px_rgba(139,0,0,0.25),inset_0_0_12px_rgba(139,0,0,0.08)] animate-fade-in-up-delayed text-center">
-              Next Tournament: 15 August 2026 · 18:00
+              Two tournaments this October
             </p>
 
-            <Countdown />
+            <div className="flex flex-col items-center gap-7 animate-fade-in-up-delayed sm:flex-row sm:items-start sm:gap-10">
+              {TOURNAMENTS.map((t) => (
+                <Countdown key={t.id} tournament={t} />
+              ))}
+            </div>
 
             <button
               onClick={handleJoinClick}

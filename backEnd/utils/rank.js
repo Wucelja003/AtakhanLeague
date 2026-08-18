@@ -23,6 +23,14 @@ export function parseDivision(text) {
   return { tier, division: m ? ROMAN[m[1]] || null : null };
 }
 
+// "EMERALD" + "II" → "Emerald II". Master and above carry no division, so they
+// are just the tier. Null when there's no tier to format.
+export function formatRank(tier, division) {
+  if (!tier) return null;
+  const t = String(tier).charAt(0) + String(tier).slice(1).toLowerCase();
+  return division ? `${t} ${division}` : t;
+}
+
 // Turns Riot League-V4 entries into a { tier, division } for the leaderboard.
 // Prefers Solo/Duo, falls back to Flex, then any queue. MASTER+ has no division.
 // Unranked (no entries) → { tier: null, division: null }.

@@ -5,7 +5,7 @@ import { parseDivision } from '../utils/rank.js';
 import { clearLeaderboardTeam } from '../utils/leaderboard.js';
 import { getPlatformForPuuid, getRankedEntries } from '../utils/riot.js';
 import { platformForUser } from '../utils/platform.js';
-import { rankFromEntries } from '../utils/rank.js';
+import { rankFromEntries, formatRank } from '../utils/rank.js';
 import { findTournament, tierAllowed } from '../utils/tournaments.js';
 
 // This tournament is EUNE only. The form sends the server the player picked;
@@ -46,10 +46,13 @@ async function tournamentGate(user, tournamentId) {
   }
 
   let tier = null;
+  let riotDivision = null;
   if (user?.riotPuuid) {
     try {
       const entries = await getRankedEntries(user.riotPuuid, await platformForUser(user));
-      tier = rankFromEntries(entries).tier;
+      const rank = rankFromEntries(entries);
+      tier = rank.tier;
+      riotDivision = formatRank(rank.tier, rank.division);
     } catch (err) {
       console.error('[riot] rank check unavailable (allowing):', err.message);
     }
@@ -64,7 +67,10 @@ async function tournamentGate(user, tournamentId) {
       ),
     };
   }
-  return { tournament };
+  // The division Riot names, so what gets stored is not whatever the form
+  // typed. Null when Riot couldn't say — then the submitted text is all there
+  // is, and an unranked player still has to give one.
+  return { tournament, riotDivision };
 }
 
 const NOT_EUNE_MSG =
@@ -84,8 +90,8 @@ export const registerTeam = async (req, res, next) => {
   const { teamName, division, role, server, tournament: tournamentId } = req.body;
   const captainId = req.user.id; // from verifyToken middleware
 
-  if (!teamName || !division) {
-    return next(errorHandler(400, 'Team name and division are required'));
+  if (!teamName) {
+    return next(errorHandler(400, 'Team name is required'));
   }
   if (wrongServer(server)) {
     return next(errorHandler(400, 'This tournament is for EUNE only.'));
@@ -121,11 +127,18 @@ export const registerTeam = async (req, res, next) => {
     const gate = await tournamentGate(captain, tournamentId);
     if (gate.error) return next(gate.error);
 
+    // Riot's answer wins over the submitted text — typing your own rank is how
+    // "Emerald 2 ( racunaj Dia posto nisam igrao toliko solo q )" got stored.
+    const finalDivision = gate.riotDivision || division;
+    if (!finalDivision) {
+      return next(errorHandler(400, 'Riot has no rank for you — enter your division'));
+    }
+
     const team = await prisma.team.create({
       data: {
         name: teamName,
         tournament: gate.tournament.id,
-        division,
+        division: finalDivision,
         captainId,
         captainUsername: captain.username,
         captainRole,
@@ -167,8 +180,8 @@ export const registerIndividual = async (req, res, next) => {
   const { division, role, server, tournament: tournamentId } = req.body;
   const userId = req.user.id;
 
-  if (!division || !role) {
-    return next(errorHandler(400, 'Division and role are required'));
+  if (!role) {
+    return next(errorHandler(400, 'Your lane is required'));
   }
   if (wrongServer(server)) {
     return next(errorHandler(400, 'This tournament is for EUNE only.'));
@@ -197,12 +210,17 @@ export const registerIndividual = async (req, res, next) => {
     const gate = await tournamentGate(user, tournamentId);
     if (gate.error) return next(gate.error);
 
+    const finalDivision = gate.riotDivision || division;
+    if (!finalDivision) {
+      return next(errorHandler(400, 'Riot has no rank for you — enter your division'));
+    }
+
     const reg = await prisma.individualRegistration.create({
       data: {
         userId,
         tournament: gate.tournament.id,
         username: user.username,
-        division,
+        division: finalDivision,
         role: dbRole,
       },
     });

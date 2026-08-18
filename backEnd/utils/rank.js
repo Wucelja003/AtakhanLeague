@@ -31,12 +31,16 @@ export function formatRank(tier, division) {
   return division ? `${t} ${division}` : t;
 }
 
-// Turns Riot League-V4 entries into a { tier, division } for the leaderboard.
-// Prefers Solo/Duo, falls back to Flex, then any queue. MASTER+ has no division.
-// Unranked (no entries) → { tier: null, division: null }.
+// Turns Riot League-V4 entries into a { tier, division, lp } for the
+// leaderboard. Prefers Solo/Duo, falls back to Flex, then any queue. MASTER+ has
+// no division. Unranked (no entries) → all null.
+//
+// lp comes along because above Diamond it's the only thing separating players:
+// Master runs from 0 LP to wherever Grandmaster starts, so a tier alone can't
+// say whether someone belongs in a "low Master" bracket.
 export function rankFromEntries(entries) {
   if (!Array.isArray(entries) || entries.length === 0) {
-    return { tier: null, division: null };
+    return { tier: null, division: null, lp: null };
   }
   const entry =
     entries.find((e) => e.queueType === 'RANKED_SOLO_5x5') ||
@@ -44,7 +48,8 @@ export function rankFromEntries(entries) {
     entries[0];
 
   const tier = entry?.tier ? String(entry.tier).toUpperCase() : null;
-  if (!tier) return { tier: null, division: null };
-  if (NO_DIVISION.includes(tier)) return { tier, division: null };
-  return { tier, division: ROMAN[entry.rank] || null };
+  const lp = Number.isFinite(entry?.leaguePoints) ? entry.leaguePoints : null;
+  if (!tier) return { tier: null, division: null, lp: null };
+  if (NO_DIVISION.includes(tier)) return { tier, division: null, lp };
+  return { tier, division: ROMAN[entry.rank] || null, lp };
 }

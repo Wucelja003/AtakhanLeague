@@ -22,6 +22,10 @@ export const TOURNAMENTS = [
     slots: 12,
     feeCents: 900,
     tiers: ['EMERALD', 'DIAMOND', 'MASTER'],
+    // "Low Master" with the limit actually enforced. Grandmaster starts at 400
+    // LP on EUNE, so 200 keeps the bracket to the bottom half of Master rather
+    // than to anyone who happens not to have been promoted yet.
+    maxLp: { MASTER: 200 },
     divisions: 'Emerald – Low Master',
   },
 ];
@@ -30,11 +34,23 @@ export const TEAM_SIZE = 5;
 
 export const findTournament = (id) => TOURNAMENTS.find((t) => t.id === id) || null;
 
-// Does this tier belong in that tournament? An unknown tier (Riot couldn't be
-// reached, or the player is unranked) returns null — not eligible, not
-// ineligible — and callers treat that as "can't tell, let them in", the same way
-// the region check does. We never punish a player for our own outage.
-export function tierAllowed(tournament, tier) {
-  if (!tournament || !tier) return null;
-  return tournament.tiers.includes(String(tier).toUpperCase());
+// May this rank enter that tournament?
+//
+//   true  → yes
+//   false → no, and `reason` says which way it failed
+//   null  → can't tell (no tier: Riot unreachable, or unranked). Callers let
+//           those through — we never punish a player for our own outage.
+//
+// LP matters only where a tier carries a cap. An unknown LP inside a capped tier
+// is the same can't-tell as an unknown tier, for the same reason.
+export function rankAllowed(tournament, { tier, lp } = {}) {
+  if (!tournament || !tier) return { ok: null };
+
+  const upper = String(tier).toUpperCase();
+  if (!tournament.tiers.includes(upper)) return { ok: false, reason: 'tier' };
+
+  const cap = tournament.maxLp?.[upper];
+  if (cap == null) return { ok: true };
+  if (!Number.isFinite(lp)) return { ok: null };
+  return lp <= cap ? { ok: true } : { ok: false, reason: 'lp', cap };
 }

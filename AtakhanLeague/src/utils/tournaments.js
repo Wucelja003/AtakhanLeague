@@ -56,7 +56,7 @@ export const TOURNAMENTS = [
       { key: 'Start', val: 'October 24'},
       { key: 'Number of Teams', val: '12' },
       { key: 'Format', val: 'Round Robin' },
-      { key: 'Divisions', val: 'Emerald -  Low Master' },
+      { key: 'Divisions', val: 'Emerald – Low Master (max 200 LP)' },
       { key: 'Registration Fee', val: '9e/Player' },
       { key: '1st Place', val: '350e', color: 'text-[#DC143C]' },
       { key: '2nd Place', val: 'Legendary skins' },

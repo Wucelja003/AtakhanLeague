@@ -6,7 +6,7 @@ import { clearLeaderboardTeam } from '../utils/leaderboard.js';
 import { getPlatformForPuuid, getRankedEntries } from '../utils/riot.js';
 import { platformForUser } from '../utils/platform.js';
 import { rankFromEntries, formatRank } from '../utils/rank.js';
-import { findTournament, tierAllowed } from '../utils/tournaments.js';
+import { findTournament, rankAllowed } from '../utils/tournaments.js';
 
 // This tournament is EUNE only. The form sends the server the player picked;
 // reject anything else here too so the check can't be skipped client-side.
@@ -45,25 +45,27 @@ async function tournamentGate(user, tournamentId) {
     return { error: errorHandler(400, 'Pick which tournament you are entering') };
   }
 
-  let tier = null;
-  let riotDivision = null;
+  let rank = { tier: null, division: null, lp: null };
   if (user?.riotPuuid) {
     try {
       const entries = await getRankedEntries(user.riotPuuid, await platformForUser(user));
-      const rank = rankFromEntries(entries);
-      tier = rank.tier;
-      riotDivision = formatRank(rank.tier, rank.division);
+      rank = rankFromEntries(entries);
     } catch (err) {
       console.error('[riot] rank check unavailable (allowing):', err.message);
     }
   }
+  const riotDivision = formatRank(rank.tier, rank.division);
 
-  if (tierAllowed(tournament, tier) === false) {
-    const pretty = tier.charAt(0) + tier.slice(1).toLowerCase();
+  const verdict = rankAllowed(tournament, rank);
+  if (verdict.ok === false) {
+    // Name the rank the way the player sees it, and when it's the LP that put
+    // them out, say the number — "you're too high" without one is no use.
+    const at = verdict.reason === 'lp' ? `${riotDivision} ${rank.lp} LP` : riotDivision;
+    const limit = verdict.reason === 'lp' ? ` The cap is ${verdict.cap} LP.` : '';
     return {
       error: errorHandler(
         400,
-        `${tournament.label} is for ${tournament.divisions}. Riot has you at ${pretty}.`
+        `${tournament.label} is for ${tournament.divisions}. Riot has you at ${at}.${limit}`
       ),
     };
   }

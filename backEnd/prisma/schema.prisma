@@ -215,3 +215,58 @@ model ArchivedIndividual {
 
   @@index([season])
 }
+
+// ---------------------------------------------------------------------------
+// Round-robin group stage. Teams are held by name, the same way Match does —
+// a group entry survives a team being renamed or withdrawing, and the bracket
+// already works that way.
+//
+// Kills are stored per match because they are the agreed tiebreaker: with four
+// teams playing three Bo1 games each, records are only ever 3-0, 2-1, 1-2 or
+// 0-3, so ties are the normal case rather than the exception, and a Bo1 has no
+// game difference to fall back on.
+// ---------------------------------------------------------------------------
+model Group {
+  id         String  @id @default(uuid())
+  tournament String          // 'low-elo' | 'high-elo'
+  name       String          // 'A' | 'B' | 'C'
+  order      Int
+
+  teams   GroupTeam[]
+  matches GroupMatch[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([tournament, name])
+  @@index([tournament])
+}
+
+model GroupTeam {
+  id       String @id @default(uuid())
+  groupId  String
+  group    Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  teamName String
+  seed     Int    // where it came from in the snake draw, so the draw is reproducible
+
+  @@unique([groupId, teamName])
+}
+
+model GroupMatch {
+  id      String @id @default(uuid())
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  order   Int
+
+  teamAName String
+  teamBName String
+
+  // Who won, and the kill score. The winner is entered rather than derived:
+  // a team can win a game while losing the kill count.
+  winnerName String?
+  killsA     Int?
+  killsB     Int?
+
+  updatedAt DateTime @updatedAt
+
+  @@index([groupId])
+}

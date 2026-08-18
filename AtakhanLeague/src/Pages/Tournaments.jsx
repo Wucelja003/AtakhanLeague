@@ -4,6 +4,8 @@ import SEO from '../Components/SEO';
 import { LANE_META } from '../utils/pool';
 import { buildRosters } from '../utils/rosters';
 import StreamBanner from '../Components/StreamBanner';
+import GroupTables from '../Components/GroupTables';
+import { TOURNAMENTS } from '../utils/tournaments';
 
 // Shown until the live bracket loads (and if the API is unavailable).
 const FALLBACK_BRACKET = {
@@ -164,7 +166,7 @@ export default function Tournaments() {
       <SEO
         title="Tournaments"
         path="/tournaments"
-        description="View the upcoming Atakhan League tournament bracket — quarterfinals, semifinals and grand final. 8 teams battle for the Rift."
+        description="Atakhan League tournament format — round-robin groups then knockout. Low Elo and High Elo brackets this October."
       />
       <div className="mx-auto max-w-5xl">
         {/* Heading */}
@@ -172,14 +174,26 @@ export default function Tournaments() {
           <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-5 border border-[rgba(220,20,60,0.4)] bg-[rgba(220,20,60,0.12)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#DC143C]" />
             <span className="font-slogan text-xs font-bold uppercase tracking-[3px] text-[#DC143C]">
-              Tournament Date
+              Tournament Dates
             </span>
           </div>
+          {/* Read from the tournament list rather than written here — this said
+              "August 15" for a while after that tournament had been played. */}
           <h1 className="font-heading text-white text-[clamp(2.5rem,5vw,4rem)] leading-none tracking-wide [text-shadow:0_0_18px_rgba(139,0,0,0.8),0_0_40px_rgba(102,0,0,0.4)]">
-            August 15 
+            October
           </h1>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+            {TOURNAMENTS.map((t) => (
+              <span
+                key={t.id}
+                className="rounded-full border border-[rgba(220,20,60,0.4)] bg-[rgba(139,0,0,0.18)] px-4 py-1.5 font-slogan text-[11px] font-bold uppercase tracking-[2px] text-neutral-300"
+              >
+                {t.label} · {t.rows.find((r) => r.key === 'Date')?.val}
+              </span>
+            ))}
+          </div>
           <p className="font-body text-base text-neutral-400 mt-4 max-w-md mx-auto">
-            Single-elimination bracket. 8 teams enter — only one will be crowned.
+            Round-robin groups, then knockout. Two tournaments this October.
           </p>
         </div>
 
@@ -198,6 +212,8 @@ export default function Tournaments() {
             </div>
           );
         })()}
+
+        <GroupTables />
 
         {/* Bracket */}
         <div className="rounded-2xl bg-[rgba(10,10,10,0.4)] border border-[rgba(102,0,0,0.2)] p-6 lg:p-10 backdrop-blur-sm animate-form-fade-in">

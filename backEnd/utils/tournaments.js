@@ -9,6 +9,8 @@ export const TOURNAMENTS = [
     id: 'low-elo',
     label: 'Low Elo',
     slots: 8,
+    // Group stage: two groups of four, top two from each into the semifinals.
+    groups: { count: 2, size: 4, advance: 2, extraThirds: 0 },
     // Per-player fee in cents. A captain pays for five.
     feeCents: 800,
     // Membership rather than a numeric range: it's how the divisions were
@@ -20,6 +22,9 @@ export const TOURNAMENTS = [
     id: 'high-elo',
     label: 'High Elo',
     slots: 12,
+    // Three groups of four. Top two from each is six, so the two best
+    // third-placed teams come along to make a clean eight for the quarterfinals.
+    groups: { count: 3, size: 4, advance: 2, extraThirds: 2 },
     feeCents: 900,
     tiers: ['EMERALD', 'DIAMOND', 'MASTER'],
     // "Low Master" with the limit actually enforced. Grandmaster starts at 400

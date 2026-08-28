@@ -4,12 +4,14 @@ import {
   capturePaypal,
   nowpaymentsWebhook,
   paypalWebhook,
+  getQuote,
 } from '../controllers/payment.controller.js';
 import { verifyToken } from '../utils/verifyUser.js';
 
 const router = express.Router();
 
 // User-initiated
+router.get('/quote', verifyToken, getQuote);
 router.post('/create', verifyToken, createPayment);
 // Capture is keyed by the unguessable PayPal order token and is idempotent, so
 // it must NOT depend on the login session (which can drop during the redirect).

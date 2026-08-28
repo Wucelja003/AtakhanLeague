@@ -52,7 +52,10 @@ export default function Profile() {
 
   const unpaidTeam = registration.team && !registration.team.paid;
   const unpaidIndividual = registration.individual && !registration.individual.paid;
-  const unpaidFee = unpaidTeam ? '30€' : unpaidIndividual ? '6€' : null;
+  // Whether a fee is outstanding, not how much — the amount comes from the
+  // server inside PaymentPanel, since it depends on which tournament they
+  // entered. It was written here as '30€'/'6€' and survived two price changes.
+  const unpaidFee = unpaidTeam || unpaidIndividual;
 
   return (
     <div className="relative min-h-screen px-5 py-12">
@@ -68,12 +71,12 @@ export default function Profile() {
               </span>
               <div className="flex-1">
                 <p className="font-slogan text-[13px] font-bold uppercase tracking-[2px] text-[#DC143C]">
-                  Entry fee pending — {unpaidFee}
+                  Entry fee pending
                 </p>
                 <p className="font-body text-[13px] text-neutral-300 mt-1">
                   Your spot isn't final until the entry fee is paid. Complete it below to lock it in.
                 </p>
-                <PaymentPanel paid={false} fee={unpaidFee} />
+                <PaymentPanel paid={false} />
               </div>
             </div>
           </div>
@@ -132,7 +135,7 @@ export default function Profile() {
                   Cancel
                 </button>
               </div>
-              <PaymentPanel paid={registration.individual.paid} fee="6€" />
+              <PaymentPanel paid={registration.individual.paid} />
             </div>
           )}
 
@@ -164,7 +167,7 @@ export default function Profile() {
                   Cancel
                 </button>
               </div>
-              <PaymentPanel paid={registration.team.paid} fee="30€" />
+              <PaymentPanel paid={registration.team.paid} />
             </div>
           )}
 

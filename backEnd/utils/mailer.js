@@ -184,8 +184,13 @@ Good luck, summoner. The Rift remembers the name of every champion who dared to 
 
 // ---- Tournament registration confirmation -------------------------------
 
-export async function sendTournamentConfirmation(to, { username, type, teamName, role, division }) {
+// `tournament` carries the label, the date window and the per-player fee. Those
+// three used to be written into this template as "15. August 2026." and "30 €" /
+// "6 €" — a tournament that has been played and prices from two before it.
+export async function sendTournamentConfirmation(to, { username, type, teamName, role, division, tournament }) {
   const isTeam = type === 'team';
+  const eur = (cents) => `${(cents / 100).toFixed(2).replace(/\.00$/, '')} €`;
+  const fee = tournament ? eur(isTeam ? tournament.feeCents * 5 : tournament.feeCents) : null;
   const detailRows = isTeam
     ? `
       <tr><td style="padding: 6px 0; color: #999;">Team Name</td><td style="color: #fff; font-weight: bold;">${teamName}</td></tr>
@@ -230,11 +235,14 @@ export async function sendTournamentConfirmation(to, { username, type, teamName,
 
       <div style="background: rgba(220,20,60,0.08); border-left: 3px solid #DC143C; padding: 16px 20px; margin: 24px 0; border-radius: 4px;">
         <p style="color: #fff; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 8px;">
-          Tournament Date
+          ${tournament ? tournament.label : 'Tournament'}
         </p>
         <p style="color: #DC143C; font-size: 22px; font-weight: bold; margin: 0;">
-          15. August 2026.
+          ${tournament?.dates || 'Date to be announced'}
         </p>
+        ${tournament?.divisions
+          ? `<p style="color: #999; font-size: 13px; margin: 8px 0 0;">${tournament.divisions}</p>`
+          : ''}
       </div>
 
       <div style="text-align: center; background: #1a1a1a; border: 1px solid rgba(220,20,60,0.35); border-radius: 8px; padding: 24px; margin: 24px 0;">
@@ -242,16 +250,19 @@ export async function sendTournamentConfirmation(to, { username, type, teamName,
           Entry Fee
         </p>
         <p style="color: #fff; font-size: 26px; font-weight: bold; margin: 0 0 4px;">
-          ${isTeam ? '30 €' : '6 €'}
+          ${fee || 'See your profile'}
         </p>
         <p style="color: #999; font-size: 13px; margin: 0 0 18px;">
-          ${isTeam ? 'One payment covers your whole team.' : 'Secure your spot in the pool.'}
+          ${isTeam
+            ? `One payment covers your whole team${tournament ? ` — ${eur(tournament.feeCents)} per player` : ''}.`
+            : 'Secure your spot in the pool.'}
         </p>
         <a href="${FRONTEND_URL}/profile" style="display: inline-block; background: #DC143C; color: #fff; text-decoration: none; font-size: 14px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; padding: 13px 32px; border-radius: 8px;">
           Pay entry fee
         </a>
         <p style="color: #777; font-size: 12px; margin: 14px 0 0;">
-          Pay securely with PayPal or crypto. Your spot isn't final until the fee is paid.
+          Pay securely with PayPal or crypto. PayPal adds a small transaction fee;
+          crypto doesn't. Your spot isn't final until the fee is paid.
         </p>
       </div>
 

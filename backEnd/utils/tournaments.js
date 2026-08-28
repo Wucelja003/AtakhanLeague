@@ -12,11 +12,12 @@ export const TOURNAMENTS = [
     // Group stage: two groups of four, top two from each into the semifinals.
     groups: { count: 2, size: 4, advance: 2, extraThirds: 0 },
     // Per-player fee in cents. A captain pays for five.
-    feeCents: 800,
+    feeCents: 700,
     // Membership rather than a numeric range: it's how the divisions were
     // written down ("Silver – Platinum"), and there's nothing to get wrong.
     tiers: ['SILVER', 'GOLD', 'PLATINUM'],
     divisions: 'Silver – Platinum',
+    dates: 'October 10-11, 2026',
   },
   {
     id: 'high-elo',
@@ -25,17 +26,23 @@ export const TOURNAMENTS = [
     // Three groups of four. Top two from each is six, so the two best
     // third-placed teams come along to make a clean eight for the quarterfinals.
     groups: { count: 3, size: 4, advance: 2, extraThirds: 2 },
-    feeCents: 900,
+    feeCents: 800,
     tiers: ['EMERALD', 'DIAMOND', 'MASTER'],
     // "Low Master" with the limit actually enforced. Grandmaster starts at 400
     // LP on EUNE, so 200 keeps the bracket to the bottom half of Master rather
     // than to anyone who happens not to have been promoted yet.
     maxLp: { MASTER: 200 },
     divisions: 'Emerald – Low Master',
+    dates: 'October 24-25, 2026',
   },
 ];
 
 export const TEAM_SIZE = 5;
+
+// PayPal takes a cut of every transaction and passes none of it back, so a card
+// payment costs the league more than the crypto route does. This is added on top
+// for PayPal only — the tournament fee itself is the same either way.
+export const PAYPAL_FEE_CENTS = 50;
 
 export const findTournament = (id) => TOURNAMENTS.find((t) => t.id === id) || null;
 

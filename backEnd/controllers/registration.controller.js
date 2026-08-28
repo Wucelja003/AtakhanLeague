@@ -164,6 +164,7 @@ export const registerTeam = async (req, res, next) => {
       type: 'team',
       teamName: team.name,
       division: team.division,
+      tournament: gate.tournament,
     }).catch((err) => {
       console.error('[mail] Failed to send team confirmation:', err.message);
     });
@@ -244,6 +245,7 @@ export const registerIndividual = async (req, res, next) => {
       type: 'individual',
       role: role,
       division: reg.division,
+      tournament: gate.tournament,
     }).catch((err) => {
       console.error('[mail] Failed to send individual confirmation:', err.message);
     });

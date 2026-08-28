@@ -8,7 +8,7 @@ import {
   createNowpaymentsInvoice,
   verifyNowpaymentsIpn,
 } from '../utils/payments.js';
-import { findTournament, TEAM_SIZE } from '../utils/tournaments.js';
+import { findTournament, TEAM_SIZE, PAYPAL_FEE_CENTS } from '../utils/tournaments.js';
 
 // The fee is per player and belongs to the tournament, not to this file — it
 // was hardcoded at 30€/6€, which is last season's price. A captain pays for the
@@ -27,6 +27,10 @@ function feeFor(kind, registration) {
   }
   return kind === 'team' ? tournament.feeCents * TEAM_SIZE : tournament.feeCents;
 }
+
+// What a given method costs on top. PayPal charges the league per transaction;
+// crypto doesn't, so it isn't surcharged.
+export const surchargeFor = (method) => (method === 'paypal' ? PAYPAL_FEE_CENTS : 0);
 
 // Resolve the caller's registration → { kind, amount } or null.
 async function resolveRegistration(userId) {
@@ -86,6 +90,9 @@ export const createPayment = async (req, res, next) => {
     if (reg.registration.paid) return next(errorHandler(409, 'Entry fee is already paid'));
 
     const provider = method === 'paypal' ? 'paypal' : 'nowpayments';
+    // What is actually charged, surcharge included — the Payment row has to say
+    // what left the payer's account, not what the fee would have been.
+    const total = reg.amount + surchargeFor(provider);
 
     // Snapshot who is paying so the Payment row is identifiable on its own
     // (the raw table only had a userId UUID otherwise).
@@ -106,23 +113,23 @@ export const createPayment = async (req, res, next) => {
       orderId = existing.orderId;
       await prisma.payment.update({
         where: { orderId },
-        data: { provider, amount: reg.amount, kind: reg.kind, externalId: null, username, email },
+        data: { provider, amount: total, kind: reg.kind, externalId: null, username, email },
       });
     } else {
       orderId = crypto.randomUUID();
       await prisma.payment.create({
-        data: { orderId, provider, amount: reg.amount, kind: reg.kind, userId, status: 'pending', username, email },
+        data: { orderId, provider, amount: total, kind: reg.kind, userId, status: 'pending', username, email },
       });
     }
 
     let url;
     let externalId;
     if (method === 'paypal') {
-      const r = await createPaypalOrder(reg.amount, orderId);
+      const r = await createPaypalOrder(total, orderId);
       url = r.approveUrl;
       externalId = r.externalId;
     } else {
-      const r = await createNowpaymentsInvoice(reg.amount, orderId);
+      const r = await createNowpaymentsInvoice(total, orderId);
       url = r.invoiceUrl;
       externalId = r.externalId;
     }
@@ -136,6 +143,33 @@ export const createPayment = async (req, res, next) => {
   } catch (err) {
     console.error('[payment] create failed:', err.message);
     next(errorHandler(502, 'Could not start payment. Try again in a moment.'));
+  }
+};
+
+// ---- GET /api/payment/quote ----
+// What the caller owes, per method. The prices used to be written into the
+// profile page and the confirmation email as "6€" and "30€", which is two
+// tournaments out of date; there is one source now and it is this.
+export const getQuote = async (req, res, next) => {
+  try {
+    const reg = await resolveRegistration(req.user.id);
+    if (!reg) return next(errorHandler(404, 'You have no registration to pay for'));
+
+    const tournament = findTournament(reg.registration.tournament);
+    res.json({
+      kind: reg.kind,
+      tournament: tournament?.label ?? null,
+      currency: 'EUR',
+      base: reg.amount,
+      perPlayer: tournament ? tournament.feeCents : null,
+      teamSize: reg.kind === 'team' ? TEAM_SIZE : 1,
+      paypal: reg.amount + surchargeFor('paypal'),
+      paypalSurcharge: surchargeFor('paypal'),
+      crypto: reg.amount,
+      paid: reg.registration.paid,
+    });
+  } catch (err) {
+    next(err);
   }
 };
 

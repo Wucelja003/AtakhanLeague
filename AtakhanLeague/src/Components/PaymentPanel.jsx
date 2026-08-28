@@ -1,12 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../api';
 
+const eur = (cents) => `${(cents / 100).toFixed(2).replace(/\.00$/, '')} €`;
+
 // Entry-fee status + payment starter for a registration.
-// `paid` — whether the fee is already paid; `fee` — display label (e.g. "30€").
-export default function PaymentPanel({ paid, fee }) {
+//
+// The price is asked for rather than passed in: it used to be a string written
+// into the profile page ("30€", "6€"), which stayed put through two changes of
+// fee. The server knows what this registration's tournament charges, and what
+// each method adds on top.
+export default function PaymentPanel({ paid }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState('');
   const [error, setError] = useState(null);
+  const [quote, setQuote] = useState(null);
+
+  useEffect(() => {
+    if (paid) return;
+    let alive = true;
+    fetch(api('/payment/quote'), { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => alive && d && setQuote(d))
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [paid]);
 
   if (paid) {
     return (
@@ -44,7 +61,8 @@ export default function PaymentPanel({ paid, fee }) {
     <div className="mt-4 rounded-lg bg-black/30 border border-[rgba(102,0,0,0.35)] px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <p className="font-slogan text-[12px] tracking-wider text-neutral-300">
-          Entry fee <span className="text-white font-bold">{fee}</span>
+          Entry fee{' '}
+          <span className="text-white font-bold">{quote ? eur(quote.base) : '—'}</span>
           <span className="text-[#DC143C] font-bold ml-2 uppercase text-[10px] tracking-[2px]">Pending</span>
         </p>
         <button
@@ -55,6 +73,13 @@ export default function PaymentPanel({ paid, fee }) {
         </button>
       </div>
 
+      {open && quote?.paypalSurcharge > 0 && (
+        <p className="mt-3 font-body text-[11px] leading-5 text-neutral-500">
+          PayPal charges the league {eur(quote.paypalSurcharge)} per transaction, so it&apos;s added
+          to that option. Crypto costs nothing extra.
+        </p>
+      )}
+
       {open && (
         <div className="mt-3 flex flex-col sm:flex-row gap-2.5">
           <button
@@ -62,7 +87,9 @@ export default function PaymentPanel({ paid, fee }) {
             disabled={!!loading}
             className="flex-1 font-slogan text-[11px] font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C] transition-colors disabled:opacity-50"
           >
-            {loading === 'paypal' ? 'Opening…' : 'Pay with PayPal'}
+            {loading === 'paypal'
+              ? 'Opening…'
+              : `PayPal${quote ? ` · ${eur(quote.paypal)}` : ''}`}
           </button>
           <button
             onClick={() => pay('crypto')}

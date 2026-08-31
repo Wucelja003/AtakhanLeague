@@ -164,11 +164,10 @@ export const archiveCurrentSeason = async (req, res, next) => {
   }
 };
 
-// ---- POST /api/admin/ranking ----  body: { username, team, tier, division, points }
+// ---- POST /api/admin/ranking ----  body: { username, tier, division, points, riotId }
 // Creates or updates a leaderboard entry (keyed by summoner name).
 export const upsertRanking = async (req, res, next) => {
   const username = (req.body?.username || '').trim();
-  const team = (req.body?.team || '').trim() || null;
   const tier = (req.body?.tier || '').trim().toUpperCase() || null;
   const division = (req.body?.division || '').trim().toUpperCase() || null;
   const points = Number(req.body?.points);
@@ -179,7 +178,11 @@ export const upsertRanking = async (req, res, next) => {
     if (!username) return next(errorHandler(400, 'Summoner name is required'));
     if (!Number.isFinite(points)) return next(errorHandler(400, 'Points must be a number'));
 
-    const data = { team, tier, division, points: Math.trunc(points) };
+    // `team` is deliberately absent: the leaderboard shows name, rank and
+    // points, so writing one here would keep a field nobody reads — and taking
+    // it from the body would blank existing values on every save now that the
+    // panel no longer sends one.
+    const data = { tier, division, points: Math.trunc(points) };
 
     // Verify the Riot ID before storing it. A typo saved as-is would look
     // linked while silently never updating, which is worse than a rejection.
@@ -245,7 +248,7 @@ export const syncPlayers = async (req, res, next) => {
 
     for (const team of teams) {
       const { tier, division } = parseDivision(team.division);
-      await put(team.captainUsername, { team: team.name, tier, division });
+      await put(team.captainUsername, { tier, division });
     }
     for (const solo of solos) {
       const { tier, division } = parseDivision(solo.division);

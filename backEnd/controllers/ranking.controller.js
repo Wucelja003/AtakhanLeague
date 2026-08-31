@@ -8,11 +8,14 @@ export const getRankings = async (req, res, next) => {
     // identifier and has no business being broadcast. The game name and tag are
     // the player's public Riot ID and are safe — the admin panel reads this
     // same endpoint and needs them to show what a row is linked to.
+    //
+    // No team: this is a player ranking. A team column went stale the moment
+    // anyone changed squad, and sitting beside a personal points total it read
+    // as though the points belonged to the team.
     const rankings = await prisma.ranking.findMany({
       select: {
         id: true,
         username: true,
-        team: true,
         tier: true,
         division: true,
         points: true,

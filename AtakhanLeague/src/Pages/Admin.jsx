@@ -56,7 +56,11 @@ export default function Admin() {
   const [busy, setBusy] = useState('');
   const [rankings, setRankings] = useState([]);
   const [rankEdits, setRankEdits] = useState({}); // { id: points }
-  const [newRank, setNewRank] = useState({ username: '', team: '', tier: '', division: '', points: '', riotId: '' });
+  // No team here: the leaderboard is a player ranking — name, rank, points. It
+  // carried a team column that went stale the moment anyone changed squad, and
+  // showing a team next to a personal points total suggested the points were the
+  // team's.
+  const [newRank, setNewRank] = useState({ username: '', tier: '', division: '', points: '', riotId: '' });
   const [riotEdits, setRiotEdits] = useState({}); // { id: "Name#TAG" }
   const [move, setMove] = useState({}); // { memberId: { teamId, role } }
   const [seasons, setSeasons] = useState([]);
@@ -180,7 +184,7 @@ export default function Admin() {
 
   async function addRanking() {
     const ok = await saveRanking({ ...newRank, points: Number(newRank.points) || 0 });
-    if (ok) setNewRank({ username: '', team: '', tier: '', division: '', points: '', riotId: '' });
+    if (ok) setNewRank({ username: '', tier: '', division: '', points: '', riotId: '' });
   }
 
   const teamNames = regs.teams.map((t) => t.name);
@@ -509,12 +513,6 @@ export default function Admin() {
               placeholder="Summoner name"
               className="flex-1 min-w-[150px] px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none focus:border-[#DC143C]"
             />
-            <input
-              value={newRank.team}
-              onChange={(e) => setNewRank((p) => ({ ...p, team: e.target.value }))}
-              placeholder="Team"
-              className="w-36 px-3 py-2 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white font-slogan text-sm outline-none focus:border-[#DC143C]"
-            />
             {/* Optional. With it, this player's rank tracks Riot from now on;
                 without it the rank stays whatever is typed here. */}
             <input
@@ -573,7 +571,6 @@ export default function Admin() {
                     />
                   )}
                   <span className="font-slogan text-[14px] font-bold text-white">{e.username}</span>
-                  {e.team && <span className="font-slogan text-[11px] text-neutral-500">{e.team}</span>}
                   {e.tier && (
                     <span className={`font-slogan text-[11px] font-bold ${tierColor(e.tier)}`}>
                       {rankLabel(e.tier, e.division)}
@@ -608,7 +605,7 @@ export default function Admin() {
                       className="w-20 px-2 py-1.5 rounded-lg bg-black/50 border border-[rgba(102,0,0,0.3)] text-white text-center outline-none focus:border-[#DC143C]"
                     />
                     <button
-                      onClick={() => saveRanking({ username: e.username, team: e.team, tier: e.tier, division: e.division, points: Number(rankEdits[e.id]) || 0, riotId: riotEdits[e.id] ?? '' })}
+                      onClick={() => saveRanking({ username: e.username, tier: e.tier, division: e.division, points: Number(rankEdits[e.id]) || 0, riotId: riotEdits[e.id] ?? '' })}
                       disabled={busy === `rank-${e.username}`}
                       className="font-slogan text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg text-white border border-[rgba(102,0,0,0.4)] bg-black/40 hover:border-[#DC143C]"
                     >

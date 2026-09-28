@@ -11,6 +11,24 @@
 // ---------------------------------------------------------------------------
 const TBA = 'TBA';
 
+// ---------------------------------------------------------------------------
+// Both October tournaments are cancelled and registration is shut. One flag for
+// the whole site: the hero, the specification blocks, the Tournaments page and
+// the registration form all read it, so turning it back on is one edit here.
+//
+// The tournaments themselves stay in the list rather than being deleted — a
+// cancelled tournament still has to say what it was, and an empty list would
+// leave the pages with nothing to render.
+// ---------------------------------------------------------------------------
+export const CANCELLED = true;
+export const REGISTRATION_OPEN = false;
+
+// Shown wherever the cancellation needs a sentence rather than a badge.
+// Deliberately says nothing about refunds — that is the organiser's call to
+// word, not this file's to assume.
+export const CANCELLED_NOTE =
+  'Both October tournaments have been cancelled and registration is closed. Thanks to everyone who signed up — if you were registered, get in touch and we will sort it out with you.';
+
 export const TOURNAMENTS = [
   {
     id: 'low-elo',

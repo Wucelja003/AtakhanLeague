@@ -8,7 +8,13 @@ import {
   createNowpaymentsInvoice,
   verifyNowpaymentsIpn,
 } from '../utils/payments.js';
-import { findTournament, TEAM_SIZE, PAYPAL_FEE_CENTS } from '../utils/tournaments.js';
+import {
+  findTournament,
+  TEAM_SIZE,
+  PAYPAL_FEE_CENTS,
+  REGISTRATION_OPEN,
+  REGISTRATION_CLOSED_MSG,
+} from '../utils/tournaments.js';
 
 // The fee is per player and belongs to the tournament, not to this file — it
 // was hardcoded at 30€/6€, which is last season's price. A captain pays for the
@@ -78,6 +84,10 @@ async function markPaymentStatus(orderId, status) {
 
 // ---- POST /api/payment/create -------------------------------------------
 export const createPayment = async (req, res, next) => {
+  // Taking an entry fee for a cancelled tournament is worse than refusing a
+  // registration, so this is shut as hard as the registration endpoints are.
+  if (!REGISTRATION_OPEN) return next(errorHandler(403, REGISTRATION_CLOSED_MSG));
+
   const userId = req.user.id;
   const method = req.body?.method; // 'paypal' | 'crypto'
   if (method !== 'paypal' && method !== 'crypto') {

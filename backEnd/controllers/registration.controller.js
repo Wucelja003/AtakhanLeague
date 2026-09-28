@@ -6,7 +6,12 @@ import { clearLeaderboardTeam } from '../utils/leaderboard.js';
 import { getPlatformForPuuid, getRankedEntries } from '../utils/riot.js';
 import { platformForUser } from '../utils/platform.js';
 import { rankFromEntries, formatRank } from '../utils/rank.js';
-import { findTournament, rankAllowed } from '../utils/tournaments.js';
+import {
+  findTournament,
+  rankAllowed,
+  REGISTRATION_OPEN,
+  REGISTRATION_CLOSED_MSG,
+} from '../utils/tournaments.js';
 
 // This tournament is EUNE only. The form sends the server the player picked;
 // reject anything else here too so the check can't be skipped client-side.
@@ -89,6 +94,8 @@ const roleMap = {
 
 // --- POST /api/registration/team ---
 export const registerTeam = async (req, res, next) => {
+  if (!REGISTRATION_OPEN) return next(errorHandler(403, REGISTRATION_CLOSED_MSG));
+
   const { teamName, division, role, server, tournament: tournamentId } = req.body;
   const captainId = req.user.id; // from verifyToken middleware
 
@@ -180,6 +187,8 @@ export const registerTeam = async (req, res, next) => {
 
 // --- POST /api/registration/individual ---
 export const registerIndividual = async (req, res, next) => {
+  if (!REGISTRATION_OPEN) return next(errorHandler(403, REGISTRATION_CLOSED_MSG));
+
   const { division, role, server, tournament: tournamentId } = req.body;
   const userId = req.user.id;
 

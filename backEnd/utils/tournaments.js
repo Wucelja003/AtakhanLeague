@@ -4,6 +4,15 @@
 // This holds only what has to be enforced, so a hand-made request can't enter a
 // tournament that doesn't exist, claim a division it doesn't allow, or pay the
 // wrong fee. The ids are the contract between the two.
+
+// Registration is shut: both October tournaments are cancelled. Taking the
+// form down on the frontend is not enough on its own — the endpoints still
+// accept a hand-made request — so the controllers check this before anything
+// else. Flip it back to true to reopen.
+export const REGISTRATION_OPEN = false;
+export const REGISTRATION_CLOSED_MSG =
+  'Registration is closed — the October tournaments have been cancelled.';
+
 export const TOURNAMENTS = [
   {
     id: 'low-elo',

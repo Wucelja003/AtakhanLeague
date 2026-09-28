@@ -5,7 +5,7 @@ import { LANE_META } from '../utils/pool';
 import { buildRosters } from '../utils/rosters';
 import StreamBanner from '../Components/StreamBanner';
 import GroupTables from '../Components/GroupTables';
-import { TOURNAMENTS } from '../utils/tournaments';
+import { TOURNAMENTS, CANCELLED, CANCELLED_NOTE } from '../utils/tournaments';
 
 // Shown until the live bracket loads (and if the API is unavailable).
 const FALLBACK_BRACKET = {
@@ -166,7 +166,7 @@ export default function Tournaments() {
       <SEO
         title="Tournaments"
         path="/tournaments"
-        description="Atakhan League tournament format — round-robin groups then knockout. Low Elo and High Elo brackets this October."
+        description="The Atakhan League Low Elo and High Elo tournaments have been cancelled and registration is closed."
       />
       <div className="mx-auto max-w-5xl">
         {/* Heading */}
@@ -174,7 +174,7 @@ export default function Tournaments() {
           <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-5 border border-[rgba(220,20,60,0.4)] bg-[rgba(220,20,60,0.12)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#DC143C]" />
             <span className="font-slogan text-xs font-bold uppercase tracking-[3px] text-[#DC143C]">
-              Tournament Dates
+              {CANCELLED ? 'Cancelled' : 'Tournament Dates'}
             </span>
           </div>
           {/* Read from the tournament list rather than written here — this said
@@ -186,15 +186,35 @@ export default function Tournaments() {
             {TOURNAMENTS.map((t) => (
               <span
                 key={t.id}
-                className="rounded-full border border-[rgba(220,20,60,0.4)] bg-[rgba(139,0,0,0.18)] px-4 py-1.5 font-slogan text-[11px] font-bold uppercase tracking-[2px] text-neutral-300"
+                className={`rounded-full border border-[rgba(220,20,60,0.4)] bg-[rgba(139,0,0,0.18)] px-4 py-1.5 font-slogan text-[11px] font-bold uppercase tracking-[2px] text-neutral-300 ${
+                  CANCELLED ? 'line-through decoration-[#DC143C]' : ''
+                }`}
               >
                 {t.label} · {t.rows.find((r) => r.key === 'Date')?.val}
               </span>
             ))}
           </div>
-          <p className="font-body text-base text-neutral-400 mt-4 max-w-md mx-auto">
-            Round-robin groups, then knockout. Two tournaments this October.
-          </p>
+
+          {CANCELLED ? (
+            /* Everything below — groups, bracket, fixtures — is what this was
+               going to be. It stays on the page as a record, so the notice has
+               to sit above it and say plainly that none of it is happening. */
+            <div className="mx-auto mt-6 max-w-2xl rounded-2xl border border-[rgba(139,0,0,0.55)] bg-[rgba(10,10,10,0.75)] px-6 py-6 backdrop-blur-md shadow-[0_0_48px_rgba(102,0,0,0.25)]">
+              <p className="font-slogan text-[13px] font-bold uppercase tracking-[4px] text-[#DC143C]">
+                Both tournaments cancelled
+              </p>
+              <p className="mt-3 font-body text-[15px] leading-relaxed text-neutral-300">
+                {CANCELLED_NOTE}
+              </p>
+              <p className="mt-3 font-body text-[13px] text-neutral-500">
+                The format and fixtures below are kept for the record — no matches will be played.
+              </p>
+            </div>
+          ) : (
+            <p className="font-body text-base text-neutral-400 mt-4 max-w-md mx-auto">
+              Round-robin groups, then knockout. Two tournaments this October.
+            </p>
+          )}
         </div>
 
         {/* Trophy / Champion */}

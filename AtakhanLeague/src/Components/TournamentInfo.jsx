@@ -1,4 +1,4 @@
-import { TOURNAMENTS } from '../utils/tournaments';
+import { TOURNAMENTS, CANCELLED, CANCELLED_NOTE } from '../utils/tournaments';
 
 function Pill({ children }) {
   return (
@@ -27,8 +27,19 @@ function Tournament({ image, alt, focus, label, title, accent, pills, rows }) {
           loading="lazy"
           decoding="async"
           style={{ objectPosition: focus }}
-          className="absolute inset-0 w-full h-full object-cover"
+          /* Drained of colour, so the banner reads as off before a word of it
+             is read. */
+          className={`absolute inset-0 w-full h-full object-cover ${
+            CANCELLED ? 'grayscale opacity-60' : ''
+          }`}
         />
+
+        {/* Traka preko ugla — ono sto se vidi prvo. */}
+        {CANCELLED && (
+          <span className="absolute right-[-58px] top-[26px] z-[3] w-[200px] rotate-45 bg-[#8B0000] py-1.5 text-center font-slogan text-[11px] font-bold uppercase tracking-[3px] text-white shadow-[0_0_24px_rgba(0,0,0,0.6)]">
+            Cancelled
+          </span>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/75 to-black/20" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(220,20,60,0.35),transparent_60%)]" />
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-[linear-gradient(90deg,transparent,#DC143C,#8B0000,#DC143C,transparent)]" />
@@ -52,6 +63,14 @@ function Tournament({ image, alt, focus, label, title, accent, pills, rows }) {
 
       {/* ===== DETAILS LIST ===== */}
       <div className="flex-1 rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] px-5 sm:px-7 py-7 backdrop-blur-md shadow-[0_0_48px_rgba(102,0,0,0.18),inset_0_0_24px_rgba(102,0,0,0.06)]">
+        {/* The specification stays readable — it says what this was going to
+            be — but it must not read as an invitation any more. */}
+        {CANCELLED && (
+          <p className="mb-5 rounded-xl border border-[rgba(139,0,0,0.6)] bg-[rgba(139,0,0,0.18)] px-4 py-3 text-center font-slogan text-[12px] font-bold uppercase tracking-[3px] text-[#e06666]">
+            Cancelled · Registration closed
+          </p>
+        )}
+
         <h4 className="font-heading text-white text-[26px] sm:text-[30px] tracking-[2px] mb-5 pb-4 border-b border-[rgba(102,0,0,0.35)] [text-shadow:0_0_18px_rgba(139,0,0,0.7)]">
           Tournament Specification
         </h4>
@@ -79,6 +98,19 @@ function Tournament({ image, alt, focus, label, title, accent, pills, rows }) {
 export default function TournamentInfo() {
   return (
     <section className="relative z-[2] mt-[100px] px-5">
+      {/* The one sentence that explains both banners, above them rather than
+          repeated inside each. */}
+      {CANCELLED && (
+        <div className="mx-auto mb-10 max-w-3xl rounded-2xl border border-[rgba(139,0,0,0.55)] bg-[rgba(10,10,10,0.75)] px-6 py-6 text-center backdrop-blur-md shadow-[0_0_48px_rgba(102,0,0,0.25)]">
+          <p className="font-slogan text-[13px] font-bold uppercase tracking-[4px] text-[#DC143C]">
+            Tournaments cancelled
+          </p>
+          <p className="mx-auto mt-3 max-w-xl font-body text-[15px] leading-relaxed text-neutral-300">
+            {CANCELLED_NOTE}
+          </p>
+        </div>
+      )}
+
       {/* Side by side from lg, stacked below it — two of these blocks in one
           narrow column would be a very long scroll. items-stretch so both
           specification panels end level however many rows each has. */}

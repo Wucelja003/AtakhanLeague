@@ -52,3 +52,8 @@ Thumbs.db
 # Large source video (compressed AtakhanMovie.mp4 is committed instead)
 Atakhan_Promo.mp4
 **/Atakhan_Promo.mp4
+
+# A folder whose name is a single space, holding the owner's own media
+# (Lol_plays, SM_Posts, Wallpaper). Not part of the site — kept out of git
+# rather than deleted, because it is his.
+/\ /

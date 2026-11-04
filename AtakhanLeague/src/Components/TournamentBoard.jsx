@@ -100,7 +100,7 @@ export default function TournamentBoard({ teams: teamsProp, tournament }) {
         {/* Table card */}
         <div className="rounded-2xl bg-[rgba(10,10,10,0.65)] border border-[rgba(102,0,0,0.35)] backdrop-blur-md shadow-[0_0_48px_rgba(102,0,0,0.22),inset_0_0_24px_rgba(102,0,0,0.06)] overflow-hidden animate-form-fade-in">
           {/* Header row */}
-          <div className="grid grid-cols-[40px_1fr_1fr] gap-3 sm:gap-4 px-4 sm:px-6 py-4 border-b border-[rgba(102,0,0,0.4)] bg-[rgba(102,0,0,0.1)]">
+          <div className="grid grid-cols-[36px_minmax(0,1.45fr)_minmax(0,1fr)] gap-2 sm:gap-4 px-4 sm:px-6 py-4 border-b border-[rgba(102,0,0,0.4)] bg-[rgba(102,0,0,0.1)]">
             <span className="font-slogan text-[10px] sm:text-[11px] font-bold uppercase tracking-[2px] text-[#DC143C]">
               #
             </span>
@@ -116,7 +116,7 @@ export default function TournamentBoard({ teams: teamsProp, tournament }) {
           {slots.map((team, i) => (
             <div
               key={i}
-              className={`grid grid-cols-[40px_1fr_1fr] gap-3 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 border-b border-[rgba(102,0,0,0.15)] last:border-b-0 transition-colors ${
+              className={`grid grid-cols-[36px_minmax(0,1.45fr)_minmax(0,1fr)] gap-2 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 border-b border-[rgba(102,0,0,0.15)] last:border-b-0 transition-colors ${
                 team
                   ? 'hover:bg-[rgba(139,0,0,0.08)]'
                   : 'bg-black/20'

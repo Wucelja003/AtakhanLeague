@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import SEO from '../Components/SEO';
 import { api } from '../api';
 import { emblemUrl, onEmblemError, tierColor, rankLabel } from '../utils/ranks';
+import { DEMO_RANKINGS } from '../utils/showcase';
 
 // Top 3 medal colors
 const positionStyles = {
@@ -12,13 +13,18 @@ const positionStyles = {
 
 export default function Rankings() {
   const [search, setSearch] = useState('');
-  const [entries, setEntries] = useState([]);
+  // Starts on the showcase board and is replaced the moment the API answers
+  // with a real one. A leaderboard is the page — an empty table here says the
+  // platform has never been used, which is not what an unreachable API means.
+  const [entries, setEntries] = useState(DEMO_RANKINGS);
 
   // Leaderboard is maintained by the organizer from the admin panel
   useEffect(() => {
     fetch(api('/rankings'))
-      .then((r) => r.json())
-      .then((d) => setEntries(Array.isArray(d) ? d : []))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (Array.isArray(d) && d.length) setEntries(d);
+      })
       .catch(() => {});
   }, []);
 

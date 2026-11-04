@@ -1,4 +1,12 @@
-import { TOURNAMENTS, CANCELLED, CANCELLED_NOTE } from '../utils/tournaments';
+import {
+  TOURNAMENTS,
+  CANCELLED,
+  DATES_ANNOUNCED,
+  CANCELLED_NOTE,
+  PENDING_NOTE,
+  specRows,
+  pillsFor,
+} from '../utils/tournaments';
 
 function Pill({ children }) {
   return (
@@ -8,7 +16,13 @@ function Pill({ children }) {
   );
 }
 
-function Tournament({ image, alt, focus, label, title, accent, pills, rows }) {
+function Tournament(tournament) {
+  const { image, alt, focus, label, title, accent } = tournament;
+  // Dates and prices come through the TBA filter rather than straight off the
+  // tournament, so an undated season cannot publish last season's numbers.
+  const pills = pillsFor(tournament);
+  const rows = specRows(tournament);
+
   return (
     <div className="flex w-full flex-col gap-5">
       {/* ===== NAME ===== */}
@@ -100,13 +114,13 @@ export default function TournamentInfo() {
     <section className="relative z-[2] mt-[100px] px-5">
       {/* The one sentence that explains both banners, above them rather than
           repeated inside each. */}
-      {CANCELLED && (
+      {(CANCELLED || !DATES_ANNOUNCED) && (
         <div className="mx-auto mb-10 max-w-3xl rounded-2xl border border-[rgba(139,0,0,0.55)] bg-[rgba(10,10,10,0.75)] px-6 py-6 text-center backdrop-blur-md shadow-[0_0_48px_rgba(102,0,0,0.25)]">
           <p className="font-slogan text-[13px] font-bold uppercase tracking-[4px] text-[#DC143C]">
-            Tournaments cancelled
+            {CANCELLED ? 'Tournaments cancelled' : 'Next season in preparation'}
           </p>
           <p className="mx-auto mt-3 max-w-xl font-body text-[15px] leading-relaxed text-neutral-300">
-            {CANCELLED_NOTE}
+            {CANCELLED ? CANCELLED_NOTE : PENDING_NOTE}
           </p>
         </div>
       )}

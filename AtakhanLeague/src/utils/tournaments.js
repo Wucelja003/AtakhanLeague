@@ -12,15 +12,21 @@
 const TBA = 'TBA';
 
 // ---------------------------------------------------------------------------
-// Both October tournaments are cancelled and registration is shut. One flag for
-// the whole site: the hero, the specification blocks, the Tournaments page and
-// the registration form all read it, so turning it back on is one edit here.
+// Three flags carry the whole site's state. Each is read in several places, so
+// a season opening or closing is an edit here and nowhere else.
 //
-// The tournaments themselves stay in the list rather than being deleted — a
-// cancelled tournament still has to say what it was, and an empty list would
-// leave the pages with nothing to render.
+//   CANCELLED          — the October run was called off. Off again now: the
+//                        site shows the format it runs rather than a notice.
+//   DATES_ANNOUNCED    — whether there is a date and a fee to publish yet.
+//                        While false, the hero shows no clock and every date
+//                        and price reads TBA, because inventing either is worse
+//                        than admitting it is not decided.
+//   REGISTRATION_OPEN  — whether anyone can enter. Stays shut until there is
+//                        something real to enter and a backend to take it; the
+//                        API endpoints enforce the same flag independently.
 // ---------------------------------------------------------------------------
-export const CANCELLED = true;
+export const CANCELLED = false;
+export const DATES_ANNOUNCED = false;
 export const REGISTRATION_OPEN = false;
 
 // Shown wherever the cancellation needs a sentence rather than a badge.
@@ -28,6 +34,10 @@ export const REGISTRATION_OPEN = false;
 // word, not this file's to assume.
 export const CANCELLED_NOTE =
   'Both October tournaments have been cancelled and registration is closed. Thanks to everyone who signed up — if you were registered, get in touch and we will sort it out with you.';
+
+// What stands in for a date or a fee while DATES_ANNOUNCED is false.
+export const PENDING_NOTE =
+  'The format below is the one we run. Dates, entry fees and the draw are announced before each season opens — registration stays closed until then.';
 
 export const TOURNAMENTS = [
   {
@@ -90,4 +100,29 @@ export const TOURNAMENTS = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// What the specification blocks actually render.
+//
+// While a season has no confirmed date, the rows that commit to something —
+// when it runs, what it costs, what it pays — read TBA instead of last
+// season's numbers. The rows that describe the format are untouched, because
+// those are true whether or not a date exists, and they are the half worth
+// showing. Inventing a date or leaving a stale one is worse than saying it is
+// not decided.
+// ---------------------------------------------------------------------------
+const PENDING_KEYS = ['Date', 'Start', 'Registration Fee', '1st Place', '2nd Place'];
+
+export function specRows(tournament) {
+  if (DATES_ANNOUNCED) return tournament.rows;
+  return tournament.rows.map((row) =>
+    PENDING_KEYS.includes(row.key) ? { ...row, val: TBA, color: undefined } : row
+  );
+}
+
+// The pills on the banner: the date one goes while there is no date.
+export function pillsFor(tournament) {
+  if (DATES_ANNOUNCED) return tournament.pills;
+  return ['Dates TBA', ...tournament.pills.filter((p) => !/date/i.test(p))];
+}
 

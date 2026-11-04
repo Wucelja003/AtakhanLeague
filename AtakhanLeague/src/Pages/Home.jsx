@@ -32,7 +32,16 @@ import ChampionQuotes from '../Components/ChampionQuotes';
 import TournamentInfo from '../Components/TournamentInfo';
 import Registration from '../Components/Registration';
 import Standings from '../Components/Standings';
-import { TOURNAMENTS, CANCELLED, REGISTRATION_OPEN, CANCELLED_NOTE } from '../utils/tournaments';
+import {
+  TOURNAMENTS,
+  CANCELLED,
+  DATES_ANNOUNCED,
+  REGISTRATION_OPEN,
+  CANCELLED_NOTE,
+  PENDING_NOTE,
+  specRows,
+} from '../utils/tournaments';
+import GamePicker from '../Components/GamePicker';
 import CommunitySection from '../Components/CommunitySection';
 
 // One clock per tournament, driven by the same list the rest of the site reads,
@@ -54,9 +63,10 @@ function Countdown({ tournament }) {
   const [t, setT] = useState(() => timeLeft(target));
 
   useEffect(() => {
-    // Nothing to count down to once it is cancelled — and a clock still
-    // ticking under a CANCELLED badge would read as a mistake.
-    if (CANCELLED) return;
+    // A clock only runs when there is something real to count down to. While a
+    // season is cancelled or undated, `startsAt` is last season's instant — a
+    // ticking clock on it would be wrong, and one sitting at "Under way" worse.
+    if (CANCELLED || !DATES_ANNOUNCED) return;
     const id = setInterval(() => setT(timeLeft(target)), 1000);
     return () => clearInterval(id);
   }, [target]);
@@ -78,6 +88,17 @@ function Countdown({ tournament }) {
         <p className="rounded-xl border border-[rgba(180,180,180,0.35)] bg-black/55 px-5 py-2.5 font-slogan text-[13px] font-bold uppercase tracking-[4px] text-neutral-300 backdrop-blur-md sm:text-[15px]">
           Cancelled
         </p>
+      ) : !DATES_ANNOUNCED ? (
+        /* No date yet: the format is what there is to say, so it says that
+           rather than standing an empty clock here. */
+        <div className="flex min-w-[190px] flex-col items-center gap-1 rounded-xl border border-[rgba(102,0,0,0.45)] bg-black/55 px-5 py-3 backdrop-blur-md shadow-[0_0_18px_rgba(139,0,0,0.25)]">
+          <span className="font-heading text-[26px] leading-none tracking-[1px] text-white [text-shadow:0_0_12px_rgba(220,20,60,0.5)]">
+            {tournament.slots} Teams
+          </span>
+          <span className="font-slogan text-[9px] uppercase tracking-[2px] text-neutral-400">
+            {tournament.divisions}
+          </span>
+        </div>
       ) : cells ? (
         <div className="flex items-center gap-1.5 sm:gap-2">
           {cells.map((c, i) => (
@@ -108,7 +129,7 @@ function Countdown({ tournament }) {
           CANCELLED ? 'line-through decoration-[#8B0000]' : ''
         }`}
       >
-        {tournament.rows.find((r) => r.key === 'Date')?.val}
+        {specRows(tournament).find((r) => r.key === 'Date')?.val}
       </span>
     </div>
   );
@@ -131,7 +152,7 @@ export default function Home() {
     <>
       <SEO
         path="/"
-        description="Atakhan League — community-run League of Legends tournament platform. The October tournaments have been cancelled and registration is closed."
+        description="Atakhan League — a community-run tournament platform for League of Legends, Teamfight Tactics and VALORANT. Brackets, group tables, rosters and rankings in one place."
       />
       <VideoBackground />
       <section className="relative z-[2] min-h-[calc(100vh-100px)] pt-[120px] sm:pt-[200px] px-4 flex">
@@ -149,7 +170,11 @@ export default function Home() {
 
           <div className="mt-[30px] sm:mt-[50px] flex flex-col items-center gap-4 sm:gap-5">
             <p className="px-5 sm:px-[30px] py-2.5 sm:py-3 rounded-full font-slogan text-[11px] sm:text-[14px] font-bold uppercase tracking-[2px] sm:tracking-[3px] text-[#cc3333] border border-[rgba(139,0,0,0.6)] bg-[rgba(123,26,26,0.12)] backdrop-blur-md shadow-[0_0_16px_rgba(139,0,0,0.25),inset_0_0_12px_rgba(139,0,0,0.08)] animate-fade-in-up-delayed text-center">
-              {CANCELLED ? 'Both October tournaments cancelled' : 'Two tournaments this October'}
+              {CANCELLED
+                ? 'Both October tournaments cancelled'
+                : DATES_ANNOUNCED
+                  ? 'Two tournaments this October'
+                  : 'Three games · Next season in preparation'}
             </p>
 
             <div className="flex flex-col items-center gap-7 animate-fade-in-up-delayed sm:flex-row sm:items-start sm:gap-10">
@@ -170,11 +195,16 @@ export default function Home() {
               </button>
             ) : (
               <div className="flex flex-col items-center gap-3">
-                <span className="px-8 sm:px-[45px] py-3.5 sm:py-4 rounded-[20px] font-slogan text-[12px] sm:text-[14px] font-bold uppercase tracking-[2px] sm:tracking-[3px] text-neutral-400 border border-[rgba(102,0,0,0.5)] bg-black/50 backdrop-blur-md">
-                  Registration Closed
-                </span>
+                {/* Registration is shut, so the button leads to the thing there
+                    actually is to look at rather than to a form that refuses. */}
+                <a
+                  href="#games"
+                  className="px-8 sm:px-[45px] py-3.5 sm:py-4 rounded-[20px] font-slogan text-[12px] sm:text-[14px] font-bold uppercase tracking-[2px] sm:tracking-[3px] text-white border-0 cursor-pointer bg-[length:300%_300%] bg-[linear-gradient(270deg,#660000,#8B0000,#DC143C,#8B0000,#660000)] shadow-[0_4px_24px_rgba(139,0,0,0.4)] animate-wind-flow-login transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:animate-wind-flow-fast hover:shadow-[0_6px_36px_rgba(220,20,60,0.6)]"
+                >
+                  Explore the platform
+                </a>
                 <p className="max-w-md text-center font-body text-[13px] leading-relaxed text-neutral-400">
-                  {CANCELLED_NOTE}
+                  {CANCELLED ? CANCELLED_NOTE : PENDING_NOTE}
                 </p>
               </div>
             )}
@@ -182,6 +212,9 @@ export default function Home() {
         </div>
       </section>
       <Introduce />
+      {/* Which game, before any of the tournament machinery below — the rest of
+          the page is what running one looks like, and this is what it runs. */}
+      <GamePicker />
       <DeferredJourney />
       <Champions />
       <GlowDivider />

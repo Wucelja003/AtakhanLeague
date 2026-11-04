@@ -1,12 +1,20 @@
 import TournamentBoard from './TournamentBoard';
 import SoloPool from './SoloPool';
-import { TOURNAMENTS } from '../utils/tournaments';
+import { TOURNAMENTS, DATES_ANNOUNCED } from '../utils/tournaments';
+import { demoBoard, demoPool } from '../utils/showcase';
 
 // Who has entered, in one section: a team board per tournament side by side,
 // and the solo pools in a row beneath them. Both answer the same question, so
 // splitting them across sections meant scrolling past one tournament's board to
 // reach the other's pool.
 export default function Standings() {
+  // With no season open there is nothing to fetch and twenty rows of "awaiting
+  // team" to show for it, which reads as abandoned rather than as between
+  // seasons. Passing entries in also stops the 15-second poll against an API
+  // that is not answering. Once a season opens, these go and the boards go back
+  // to being live.
+  const preview = !DATES_ANNOUNCED;
+
   return (
     <section className="relative z-[2] mt-[80px] sm:mt-[100px] px-5 pb-16">
       <div className="mx-auto max-w-6xl">
@@ -27,7 +35,11 @@ export default function Standings() {
             one — Low Elo has 8 rows against High Elo's 12. */}
         <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-6">
           {TOURNAMENTS.map((t) => (
-            <TournamentBoard key={t.id} tournament={t} />
+            <TournamentBoard
+              key={t.id}
+              tournament={t}
+              teams={preview ? demoBoard(t) : undefined}
+            />
           ))}
         </div>
 
@@ -44,7 +56,11 @@ export default function Standings() {
 
         <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-6">
           {TOURNAMENTS.map((t) => (
-            <SoloPool key={t.id} tournament={t} />
+            <SoloPool
+              key={t.id}
+              tournament={t}
+              registrations={preview ? demoPool(t) : undefined}
+            />
           ))}
         </div>
       </div>
